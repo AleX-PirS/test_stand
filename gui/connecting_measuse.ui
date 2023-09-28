@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>402</width>
+    <width>455</width>
     <height>551</height>
    </rect>
   </property>
@@ -19,12 +19,12 @@
      <rect>
       <x>0</x>
       <y>0</y>
-      <width>391</width>
+      <width>451</width>
       <height>381</height>
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <property name="documentMode">
      <bool>false</bool>
@@ -47,7 +47,7 @@
        <rect>
         <x>10</x>
         <y>10</y>
-        <width>361</width>
+        <width>431</width>
         <height>111</height>
        </rect>
       </property>
@@ -62,7 +62,7 @@
         <rect>
          <x>12</x>
          <y>30</y>
-         <width>241</width>
+         <width>311</width>
          <height>20</height>
         </rect>
        </property>
@@ -73,7 +73,7 @@
       <widget class="QPushButton" name="oscilloscope_butt">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>330</x>
          <y>30</y>
          <width>91</width>
          <height>21</height>
@@ -88,7 +88,7 @@
         <rect>
          <x>12</x>
          <y>70</y>
-         <width>241</width>
+         <width>311</width>
          <height>20</height>
         </rect>
        </property>
@@ -102,7 +102,7 @@
       <widget class="QPushButton" name="oscilloscope_ping_butt">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>330</x>
          <y>69</y>
          <width>91</width>
          <height>21</height>
@@ -144,7 +144,7 @@
        <rect>
         <x>10</x>
         <y>120</y>
-        <width>361</width>
+        <width>431</width>
         <height>111</height>
        </rect>
       </property>
@@ -159,7 +159,7 @@
         <rect>
          <x>12</x>
          <y>30</y>
-         <width>241</width>
+         <width>311</width>
          <height>20</height>
         </rect>
        </property>
@@ -170,7 +170,7 @@
       <widget class="QPushButton" name="generator_60_butt">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>330</x>
          <y>30</y>
          <width>91</width>
          <height>21</height>
@@ -185,7 +185,7 @@
         <rect>
          <x>12</x>
          <y>70</y>
-         <width>241</width>
+         <width>311</width>
          <height>20</height>
         </rect>
        </property>
@@ -199,7 +199,7 @@
       <widget class="QPushButton" name="generator_60_ping_butt">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>330</x>
          <y>69</y>
          <width>91</width>
          <height>21</height>
@@ -241,7 +241,7 @@
        <rect>
         <x>10</x>
         <y>230</y>
-        <width>361</width>
+        <width>431</width>
         <height>111</height>
        </rect>
       </property>
@@ -256,7 +256,7 @@
         <rect>
          <x>12</x>
          <y>30</y>
-         <width>241</width>
+         <width>311</width>
          <height>20</height>
         </rect>
        </property>
@@ -267,7 +267,7 @@
       <widget class="QPushButton" name="generator_50_butt">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>330</x>
          <y>30</y>
          <width>91</width>
          <height>21</height>
@@ -282,7 +282,7 @@
         <rect>
          <x>12</x>
          <y>70</y>
-         <width>241</width>
+         <width>311</width>
          <height>20</height>
         </rect>
        </property>
@@ -296,7 +296,7 @@
       <widget class="QPushButton" name="generator_50_ping_butt">
        <property name="geometry">
         <rect>
-         <x>260</x>
+         <x>330</x>
          <y>69</y>
          <width>91</width>
          <height>21</height>
@@ -338,6 +338,59 @@
      <attribute name="title">
       <string>Measure</string>
      </attribute>
+     <widget class="QComboBox" name="signals_box">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>20</y>
+        <width>81</width>
+        <height>22</height>
+       </rect>
+      </property>
+      <item>
+       <property name="text">
+        <string>Pulse</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Sine</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Square</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Ramp</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Arb</string>
+       </property>
+      </item>
+      <item>
+       <property name="text">
+        <string>Noise</string>
+       </property>
+      </item>
+     </widget>
+     <widget class="QLabel" name="label_7">
+      <property name="geometry">
+       <rect>
+        <x>10</x>
+        <y>0</y>
+        <width>81</width>
+        <height>21</height>
+       </rect>
+      </property>
+      <property name="text">
+       <string>Signal type</string>
+      </property>
+     </widget>
     </widget>
    </widget>
    <widget class="QPlainTextEdit" name="plainTextEdit">
