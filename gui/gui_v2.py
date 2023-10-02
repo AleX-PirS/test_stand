@@ -10,8 +10,6 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-import pyvisa as visa
-
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -192,114 +190,12 @@ class Ui_MainWindow(object):
         self.tabWidget.setTabText(self.tabWidget.indexOf(self.tab), _translate("MainWindow", "Other measures"))
         self.pushButton.setText(_translate("MainWindow", "show devices"))
 
-def list_of_resourses():
-    resourses = rm.list_resources()
-    print(resourses)
-    text = ""
-    for i in resourses:
-        text+= str(i)+"\n"
-    print("done creating list of txt")
-    ui.plainTextEdit.setPlainText(text)
-
-def connect_osc():
-    Infiniium = rm.open_resource(ui.oscilloscope_addr.text())
-    Infiniium.timeout = 20
-    Infiniium.query_delay = 1
-    Infiniium.clear()
-    Infiniium.term_chars = ""
-    # Infiniium.chunk_size = 128
-    Infiniium.read_termination = '\n'
-    Infiniium.write_termination = '\0'
-    Infiniium.baud_rate = 57600
-    ui.oscilloscope_info.setText(Infiniium.query("*IDN?"))
-
-def connect_gen_60():
-    Infiniium = rm.open_resource(ui.generator_60_addr.text())
-    Infiniium.timeout = 20
-    Infiniium.query_delay = 1
-    Infiniium.clear()
-    Infiniium.term_chars = ""
-    # Infiniium.chunk_size = 128
-    Infiniium.read_termination = '\n'
-    Infiniium.write_termination = '\0'
-    Infiniium.baud_rate = 57600
-    ui.generator_60_info.setText(Infiniium.query("*IDN?"))
-
-def connect_gen_50():
-    Infiniium = rm.open_resource(ui.generator_50_addr.text())
-    Infiniium.timeout = 20
-    Infiniium.query_delay = 1
-    Infiniium.clear()
-    Infiniium.term_chars = ""
-    # Infiniium.chunk_size = 128
-    Infiniium.read_termination = '\n'
-    Infiniium.write_termination = '\0'
-    Infiniium.baud_rate = 57600
-    ui.generator_50_info.setText(Infiniium.query("*IDN?"))
-    
-def testing():
-    data = ui.plainTextEdit_2.toPlainText().split("\n")
-    if len(data)<1:
-        print("bad data")
-        return
-
-    params = data[0].split(",")
-
-    if params != 5:
-        print("bad params")
-        return
-
-    delay = params[0]
-    width = params[1]
-    lead = params[2]
-    trail = params[3]
-    ampl = params[4]
-
-    
-
-rm = visa.ResourceManager()
-ui = Ui_MainWindow()
 
 if __name__ == "__main__":
     import sys
-    
-
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
-   
+    ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
-    print("created main")
-    ui.pushButton.clicked.connect(testing)
-    print("asked list of resourses func")
-    ui.oscilloscope_butt.clicked.connect(connect_osc)
-    ui.generator_60_butt.clicked.connect(connect_gen_60)
-    ui.generator_50_butt.clicked.connect(connect_gen_50)
-
     sys.exit(app.exec_())
-
-
-
-
-
-
-
-    #     Infiniium = rm.open_resource(ui.lineEdit.text())
-    #     Infiniium.timeout = 20
-    #     Infiniium.query_delay = 1
-    #     Infiniium.clear()
-    #     Infiniium.term_chars = ""
-    #     # Infiniium.chunk_size = 128
-    #     Infiniium.read_termination = '\n'
-    #     Infiniium.write_termination = '\0'
-    #     Infiniium.baud_rate = 57600
-    #     ui.label.setText("Connected")
-    # except Exception as e:
-    #     print('[!] Exception:' + str(e))
-    #     # sys.exit()
-    #     return
-    
-    # try:
-    #     print(Infiniium.query("*IDN?"))
-    # except:
-    #     print("can't ping")
