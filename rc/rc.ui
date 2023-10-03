@@ -1,0 +1,555 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>343</width>
+    <height>653</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>MainWindow</string>
+  </property>
+  <property name="autoFillBackground">
+   <bool>false</bool>
+  </property>
+  <widget class="QWidget" name="centralwidget">
+   <widget class="QFrame" name="frame">
+    <property name="geometry">
+     <rect>
+      <x>0</x>
+      <y>0</y>
+      <width>341</width>
+      <height>131</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="label">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>0</y>
+       <width>91</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Connecting</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="oscilloscope_addr">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>49</y>
+       <width>231</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="oscilloscope_conn_butt">
+     <property name="geometry">
+      <rect>
+       <x>250</x>
+       <y>49</y>
+       <width>61</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>connect</string>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="oscilloscope_radio">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>49</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_3">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>181</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Oscilloscope</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_4">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>70</y>
+       <width>181</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Generator</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="generator_conn_butt">
+     <property name="geometry">
+      <rect>
+       <x>250</x>
+       <y>89</y>
+       <width>61</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>connect</string>
+     </property>
+    </widget>
+    <widget class="QLineEdit" name="generator_addr">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>89</y>
+       <width>231</width>
+       <height>20</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QRadioButton" name="generator_radio">
+     <property name="geometry">
+      <rect>
+       <x>320</x>
+       <y>89</y>
+       <width>21</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+     <property name="checked">
+      <bool>false</bool>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QPlainTextEdit" name="logs_plain_text">
+    <property name="geometry">
+     <rect>
+      <x>3</x>
+      <y>510</y>
+      <width>341</width>
+      <height>141</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_2">
+    <property name="geometry">
+     <rect>
+      <x>6</x>
+      <y>491</y>
+      <width>71</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Logs</string>
+    </property>
+   </widget>
+   <widget class="QFrame" name="frame_2">
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>129</y>
+      <width>341</width>
+      <height>111</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="label_5">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>0</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Control</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="reset_osc_butt">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>30</y>
+       <width>321</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Reset oscilloscope</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="reset_gen_butt">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>60</y>
+       <width>321</width>
+       <height>23</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Reset generator</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QFrame" name="frame_3">
+    <property name="geometry">
+     <rect>
+      <x>-1</x>
+      <y>239</y>
+      <width>341</width>
+      <height>211</height>
+     </rect>
+    </property>
+    <property name="frameShape">
+     <enum>QFrame::StyledPanel</enum>
+    </property>
+    <property name="frameShadow">
+     <enum>QFrame::Raised</enum>
+    </property>
+    <widget class="QLabel" name="label_6">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>0</y>
+       <width>101</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <pointsize>10</pointsize>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Pulse settings</string>
+     </property>
+     <property name="textFormat">
+      <enum>Qt::AutoText</enum>
+     </property>
+     <property name="wordWrap">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="freq">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>30</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_7">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>31</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Freq:</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_8">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>61</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Delay:</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="delay">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>60</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_9">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>30</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>Hz</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_10">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>60</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>s</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_11">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>90</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>ns</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_15">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>120</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>ns</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_16">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>150</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>ns</string>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_17">
+     <property name="geometry">
+      <rect>
+       <x>160</x>
+       <y>180</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>mV</string>
+     </property>
+    </widget>
+   </widget>
+   <widget class="QDoubleSpinBox" name="width">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>329</y>
+      <width>101</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>330</y>
+      <width>47</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Width:</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="lead">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>359</y>
+      <width>101</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_13">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>360</y>
+      <width>47</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Lead:</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_14">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>391</y>
+      <width>47</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Trail:</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="trail">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>390</y>
+      <width>101</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+   <widget class="QLabel" name="Ampl">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>421</y>
+      <width>47</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Ampl:</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="ampl">
+    <property name="geometry">
+     <rect>
+      <x>50</x>
+      <y>420</y>
+      <width>101</width>
+      <height>22</height>
+     </rect>
+    </property>
+   </widget>
+  </widget>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

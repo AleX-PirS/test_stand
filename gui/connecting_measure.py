@@ -270,7 +270,7 @@ if __name__ == "__main__":
     ui.setupUi(MainWindow)
     MainWindow.show()
     print("created main")
-    ui.pushButton.clicked.connect(testing)
+    ui.pushButton.clicked.connect(list_of_resourses)
     print("asked list of resourses func")
     ui.oscilloscope_butt.clicked.connect(connect_osc)
     ui.generator_60_butt.clicked.connect(connect_gen_60)
