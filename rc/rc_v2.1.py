@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-# Form implementation generated from reading ui file 'rc.ui'
+# Form implementation generated from reading ui file 'rc/rc.ui'
 #
 # Created by: PyQt5 UI code generator 5.15.9
 #
@@ -10,9 +10,6 @@
 
 from PyQt5 import QtCore, QtGui, QtWidgets
 
-import pyvisa as visa
-import sys
-import numpy as np
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -39,7 +36,6 @@ class Ui_MainWindow(object):
         self.oscilloscope_addr = QtWidgets.QLineEdit(self.frame)
         self.oscilloscope_addr.setGeometry(QtCore.QRect(10, 49, 231, 20))
         self.oscilloscope_addr.setObjectName("oscilloscope_addr")
-        self.oscilloscope_addr.setText("TCPIP::10.3.69.159::INSTR")
         self.oscilloscope_conn_butt = QtWidgets.QPushButton(self.frame)
         self.oscilloscope_conn_butt.setGeometry(QtCore.QRect(250, 49, 61, 21))
         self.oscilloscope_conn_butt.setObjectName("oscilloscope_conn_butt")
@@ -61,7 +57,6 @@ class Ui_MainWindow(object):
         self.generator_addr = QtWidgets.QLineEdit(self.frame)
         self.generator_addr.setGeometry(QtCore.QRect(10, 89, 231, 20))
         self.generator_addr.setObjectName("generator_addr")
-        self.generator_addr.setText("TCPIP::10.3.69.160::INSTR")
         self.generator_radio = QtWidgets.QRadioButton(self.frame)
         self.generator_radio.setGeometry(QtCore.QRect(320, 89, 21, 21))
         self.generator_radio.setText("")
@@ -117,7 +112,6 @@ class Ui_MainWindow(object):
         self.freq.setMaximum(999999.99)
         self.freq.setSingleStep(0.01)
         self.freq.setObjectName("freq")
-        self.freq.setValue(10000)
         self.label_7 = QtWidgets.QLabel(self.frame_3)
         self.label_7.setGeometry(QtCore.QRect(10, 31, 47, 21))
         self.label_7.setObjectName("label_7")
@@ -130,7 +124,6 @@ class Ui_MainWindow(object):
         self.delay.setMaximum(999.99)
         self.delay.setSingleStep(0.01)
         self.delay.setObjectName("delay")
-        self.delay.setValue(0.00001)
         self.label_9 = QtWidgets.QLabel(self.frame_3)
         self.label_9.setGeometry(QtCore.QRect(160, 30, 47, 21))
         font = QtGui.QFont()
@@ -182,7 +175,6 @@ class Ui_MainWindow(object):
         self.width.setMaximum(999.99)
         self.width.setSingleStep(0.01)
         self.width.setObjectName("width")
-        self.width.setValue(100)
         self.label_12 = QtWidgets.QLabel(self.centralwidget)
         self.label_12.setGeometry(QtCore.QRect(10, 330, 47, 21))
         self.label_12.setObjectName("label_12")
@@ -192,7 +184,6 @@ class Ui_MainWindow(object):
         self.lead.setMaximum(999.99)
         self.lead.setSingleStep(0.01)
         self.lead.setObjectName("lead")
-        self.lead.setValue(15)
         self.label_13 = QtWidgets.QLabel(self.centralwidget)
         self.label_13.setGeometry(QtCore.QRect(10, 360, 47, 21))
         self.label_13.setObjectName("label_13")
@@ -205,7 +196,6 @@ class Ui_MainWindow(object):
         self.trail.setMaximum(999.99)
         self.trail.setSingleStep(0.01)
         self.trail.setObjectName("trail")
-        self.trail.setValue(8)
         self.Ampl = QtWidgets.QLabel(self.centralwidget)
         self.Ampl.setGeometry(QtCore.QRect(10, 421, 47, 21))
         self.Ampl.setObjectName("Ampl")
@@ -215,7 +205,6 @@ class Ui_MainWindow(object):
         self.ampl.setMaximum(9999.99)
         self.ampl.setSingleStep(0.01)
         self.ampl.setObjectName("ampl")
-        self.ampl.setValue(2000)
         MainWindow.setCentralWidget(self.centralwidget)
 
         self.retranslateUi(MainWindow)
@@ -248,191 +237,12 @@ class Ui_MainWindow(object):
         self.label_14.setText(_translate("MainWindow", "Trail:"))
         self.Ampl.setText(_translate("MainWindow", "Ampl:"))
 
-class Stand(object):
-    osc = visa.Resource
-    gen = visa.Resource
-    rm = visa.ResourceManager()
 
+if __name__ == "__main__":
+    import sys
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
-
-    def log(self, *log:str):
-        history = self.ui.logs_plain_text.toPlainText()
-        if history != "":
-            history += "\n"
-
-        res = ""
-        for i in log:
-            res +=str(i)
-            
-        self.ui.logs_plain_text.setPlainText(history+res)
-
-    # need to add to check if error exists after send command 
-    def detect_error(self)->str:
-        err = self.query(self.osc, ":SYST:ERR? STR")
-        return err
-
-    def prep_osc(self):
-        self.send_command(self.osc, ":CHAN1:PROB 1.0")
-        # self.send_command(self.osc, ":SELECT:CH1 ON")
-        # chose trig mode
-        self.send_command(self.osc, ":TRIG:MODE EDGE")
-        # trigger settings
-        self.send_command(self.osc, ":TRIG:EDGE:SOUR CHAN1")
-        self.send_command(self.osc, ":TRIG:LEV CHAN1, 1.5V")
-        self.send_command(self.osc, ":TRIG:EDGE:SLOP POS")
-        # setting type sweep
-        self.send_command(self.osc, ":TRIG:SWE SING")
-
-    def send_command(self, resource:visa.Resource , comm:str):
-        try:
-            resource.write(comm)
-        except Exception as e:
-            self.log("ERROR send_command:", e)
-        self.log("Sended command:", comm)
-    
-    def query(self, resource:visa.Resource , comm:str) -> str:
-        q = ""
-        try:
-            q = resource.query(comm)
-        except Exception as e:
-            self.log("ERROR query:", e)
-        self.log("Sended command:", comm, "get query:", q)
-        return q
-
-    def connect_osc(self):
-        try:
-            self.osc = self.rm.open_resource(self.ui.oscilloscope_addr.text())
-        except Exception as e:
-            self.log("ERROR open_resourse:", e)
-            return
-        
-        idn = self.query(self.osc, "*IDN?")
-        if idn.find("MSOS204A") == -1:
-            self.log("ERROR: it's to an oscilloscope, try again.")
-            self.osc.close()
-            return
-
-        self.first_configure(self.osc)
-        self.ui.oscilloscope_radio.setChecked(True)
-        self.log("Succesfully connected oscilloscope")
-
-    def connect_gen(self):
-        try:
-            self.gen = self.rm.open_resource(self.ui.generator_addr.text())
-        except Exception as e:
-            self.log("ERROR open_resourse:", e)
-            return
-        
-        idn = self.query(self.gen, "*IDN?")
-        if idn.find("811") == -1:
-            self.log("ERROR: it's to an generator, try again.")
-            self.gen.close()
-            return
-
-        self.first_configure(self.gen)
-        self.ui.generator_radio.setChecked(True)
-        self.log("Succesfully connected generator")
-
-    def first_configure(self, resource:visa.Resource):
-        resource.timeout = 20
-        resource.query_delay = 0.5
-        resource.chunk_size = 128
-        resource.clear()
-        resource.term_chars = ""
-        resource.read_termination = '\n'
-        resource.write_termination = '\0'
-        resource.baud_rate = 115200
-        self.send_command(resource, "*CLS")
-        self.send_command(resource, "*RST")
-
-    def reset_resourse(self, resource:visa.Resource):
-        self.send_command(resource, "*CLS")
-        self.send_command(resource, "*RST")
-        try:
-            resource.close()
-        except Exception as e:
-            self.log("ERROR close resourse:", e)
-
-    def reset_osc(self):
-        self.reset_resourse(self.osc)
-        self.ui.oscilloscope_radio.setChecked(False)
-    
-    def reset_osc_data(self):
-        self.send_command(self.osc, "*CLS")
-        self.send_command(self.osc, "*RST")        
-
-    def reset_gen(self):
-        self.reset_resourse(self.gen)
-        self.ui.generator_radio.setChecked(False)
-
-    def get_pulse_data(self)->dict:
-        data = dict()
-        data["f"] = self.ui.freq.value()
-        data["d"] = self.ui.delay.value()
-        data["w"] = self.ui.width.value()
-        data["l"] = self.ui.lead.value()
-        data["t"] = self.ui.trail.value()
-        data["a"] = self.ui.ampl.value()
-        return data
-    
-    def configure_gen_sample(self, data:dict):
-        self.send_command(self.gen, ":FUNC PULS")
-        self.send_command(self.gen, ":FREQ "+str(data["f"])+"Hz")
-        self.send_command(self.gen, ":VOLT:HIGH "+str(data["a"]/2)+"mV")
-        self.send_command(self.gen, ":VOLT:LOW 0V")
-        self.send_command(self.gen, ":FUNC:PULS:WIDT "+str(data["w"])+"ns")
-        self.send_command(self.gen, ":FUNC:PULS:DEL "+str(data["d"])+"s")
-        self.send_command(self.gen, ":FUNC:PULS:TRAN "+str(data["l"])+"ns")
-        self.send_command(self.gen, ":FUNC:PULS:TRAN:TRA "+str(data["t"])+"ns")
-
-    def controller_connect_osc_butt(self):
-        self.connect_osc()
-
-    def controller_connect_gen_butt(self):
-        self.connect_gen()
-
-    def controller_reset_osc_butt(self):
-        self.reset_osc()
-    
-    def controller_reset_gen_butt(self):
-        self.reset_gen()
-
-    def controller_start_butt(self):
-        self.reset_osc_data()
-        self.configure_gen_sample(self.get_pulse_data())
-        self.send_command(self.gen, ":OUTP1 ON")
-        self.prep_osc()
-        self.send_command(self.osc, ":MEAS:SOUR CHAN1")
-        self.send_command(self.osc, ":ASQ:STATE RUN")
-        # try:
-        #     print(self.osc.query_binary_values(":CURV?", datatype="B", container=np.array))
-        # except Exception as e:
-
-        
-
-if __name__ == "__main__":
-    stand = Stand()
-    stand.ui.setupUi(stand.MainWindow)
-    stand.MainWindow.show()
-    stand.ui.oscilloscope_conn_butt.clicked.connect(stand.controller_connect_osc_butt)
-    stand.ui.generator_conn_butt.clicked.connect(stand.controller_connect_gen_butt)
-    stand.ui.reset_osc_butt.clicked.connect(stand.controller_reset_osc_butt)
-    stand.ui.reset_gen_butt.clicked.connect(stand.controller_reset_gen_butt)
-    stand.ui.start_butt.clicked.connect(stand.controller_start_butt)
-    sys.exit(stand.app.exec_())
-
-
-# Agilent Technologies,81150A,MY53820800,3.0.0.0-4.6
-# KEYSIGHT TECHNOLOGIES,MSOS204A,MY55510132,05.70.00714
-
-"""
-Надо поделить на классы UI и visa коннекты. И сделать один общий класс для стенда.
-
-TCPIP::10.3.69.159::INSTR
-TCPIP::10.3.69.160::INSTR
-TCPIP::10.3.69.159::hislip0,4880::INSTR
-"""
-
-
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())

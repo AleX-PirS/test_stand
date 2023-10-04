@@ -93,6 +93,9 @@
      <property name="text">
       <string/>
      </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
      <property name="checked">
       <bool>false</bool>
      </property>
@@ -158,6 +161,9 @@
      <property name="text">
       <string/>
      </property>
+     <property name="checkable">
+      <bool>false</bool>
+     </property>
      <property name="checked">
       <bool>false</bool>
      </property>
@@ -171,6 +177,9 @@
       <width>341</width>
       <height>141</height>
      </rect>
+    </property>
+    <property name="readOnly">
+     <bool>false</bool>
     </property>
    </widget>
    <widget class="QLabel" name="label_2">
@@ -304,6 +313,15 @@
        <height>22</height>
       </rect>
      </property>
+     <property name="decimals">
+      <number>5</number>
+     </property>
+     <property name="maximum">
+      <double>999999.989999999990687</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
     </widget>
     <widget class="QLabel" name="label_7">
      <property name="geometry">
@@ -339,6 +357,15 @@
        <width>101</width>
        <height>22</height>
       </rect>
+     </property>
+     <property name="decimals">
+      <number>5</number>
+     </property>
+     <property name="maximum">
+      <double>999.990000000000009</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
      </property>
     </widget>
     <widget class="QLabel" name="label_9">
@@ -455,6 +482,19 @@
       <string>mV</string>
      </property>
     </widget>
+    <widget class="QPushButton" name="start_butt">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>90</y>
+       <width>131</width>
+       <height>51</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Start</string>
+     </property>
+    </widget>
    </widget>
    <widget class="QDoubleSpinBox" name="width">
     <property name="geometry">
@@ -464,6 +504,15 @@
       <width>101</width>
       <height>22</height>
      </rect>
+    </property>
+    <property name="decimals">
+     <number>5</number>
+    </property>
+    <property name="maximum">
+     <double>999.990000000000009</double>
+    </property>
+    <property name="singleStep">
+     <double>0.010000000000000</double>
     </property>
    </widget>
    <widget class="QLabel" name="label_12">
@@ -487,6 +536,15 @@
       <width>101</width>
       <height>22</height>
      </rect>
+    </property>
+    <property name="decimals">
+     <number>5</number>
+    </property>
+    <property name="maximum">
+     <double>999.990000000000009</double>
+    </property>
+    <property name="singleStep">
+     <double>0.010000000000000</double>
     </property>
    </widget>
    <widget class="QLabel" name="label_13">
@@ -524,6 +582,15 @@
       <height>22</height>
      </rect>
     </property>
+    <property name="decimals">
+     <number>5</number>
+    </property>
+    <property name="maximum">
+     <double>999.990000000000009</double>
+    </property>
+    <property name="singleStep">
+     <double>0.010000000000000</double>
+    </property>
    </widget>
    <widget class="QLabel" name="Ampl">
     <property name="geometry">
@@ -546,6 +613,15 @@
       <width>101</width>
       <height>22</height>
      </rect>
+    </property>
+    <property name="decimals">
+     <number>5</number>
+    </property>
+    <property name="maximum">
+     <double>9999.989999999999782</double>
+    </property>
+    <property name="singleStep">
+     <double>0.010000000000000</double>
     </property>
    </widget>
   </widget>
