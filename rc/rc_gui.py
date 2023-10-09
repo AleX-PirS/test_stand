@@ -13,6 +13,8 @@ from PyQt5 import QtCore, QtGui, QtWidgets
 import pyvisa as visa
 import sys
 import numpy as np
+import time as tm
+import string
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
@@ -39,7 +41,7 @@ class Ui_MainWindow(object):
         self.oscilloscope_addr = QtWidgets.QLineEdit(self.frame)
         self.oscilloscope_addr.setGeometry(QtCore.QRect(10, 49, 231, 20))
         self.oscilloscope_addr.setObjectName("oscilloscope_addr")
-        self.oscilloscope_addr.setText("TCPIP::10.3.69.159::INSTR")
+        self.oscilloscope_addr.setText("TCPIP::10.3.69.161::INSTR")
         self.oscilloscope_conn_butt = QtWidgets.QPushButton(self.frame)
         self.oscilloscope_conn_butt.setGeometry(QtCore.QRect(250, 49, 61, 21))
         self.oscilloscope_conn_butt.setObjectName("oscilloscope_conn_butt")
@@ -61,7 +63,7 @@ class Ui_MainWindow(object):
         self.generator_addr = QtWidgets.QLineEdit(self.frame)
         self.generator_addr.setGeometry(QtCore.QRect(10, 89, 231, 20))
         self.generator_addr.setObjectName("generator_addr")
-        self.generator_addr.setText("TCPIP::10.3.69.160::INSTR")
+        self.generator_addr.setText("TCPIP::10.3.69.162::INSTR")
         self.generator_radio = QtWidgets.QRadioButton(self.frame)
         self.generator_radio.setGeometry(QtCore.QRect(320, 89, 21, 21))
         self.generator_radio.setText("")
@@ -251,11 +253,46 @@ class Ui_MainWindow(object):
 class Stand(object):
     osc = visa.Resource
     gen = visa.Resource
-    rm = visa.ResourceManager()
+    rm = visa.ResourceManager('@py')
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
+
+    # wav_form_dict = {
+    # 0 : "ASCii",
+    # 1 : "BYTE",
+    # 2 : "WORD",
+    # 3 : "LONG",
+    # 4 : "LONGLONG",
+    # }
+    # acq_type_dict = {
+    # 1 : "RAW",
+    # 2 : "AVERage",
+    # 3 : "VHIStogram",
+    # 4 : "HHIStogram",
+    # 6 : "INTerpolate",
+    # 10 : "PDETect",
+    # }
+    # acq_mode_dict = {
+    # 0 : "RTIMe",
+    # 1 : "ETIMe",
+    # 3 : "PDETect",
+    # }
+    # coupling_dict = {
+    # 0 : "AC",
+    # 1 : "DC",
+    # 2 : "DCFIFTY",
+    # 3 : "LFREJECT",
+    # }
+    # units_dict = {
+    # 0 : "UNKNOWN",
+    # 1 : "VOLT",
+    # 2 : "SECOND",
+    # 3 : "CONSTANT",
+    # 4 : "AMP",
+    # 5 : "DECIBEL",
+    # }   
 
     def log(self, *log:str):
         history = self.ui.logs_plain_text.toPlainText()
@@ -336,10 +373,10 @@ class Stand(object):
         self.log("Succesfully connected generator")
 
     def first_configure(self, resource:visa.Resource):
-        resource.timeout = 20
-        resource.query_delay = 0.5
-        resource.chunk_size = 128
         resource.clear()
+        resource.timeout = 5000
+        resource.query_delay = 0.5 # changed was 1
+        resource.chunk_size = 1_000_000 # changed was 128
         resource.term_chars = ""
         resource.read_termination = '\n'
         resource.write_termination = '\0'
@@ -401,14 +438,72 @@ class Stand(object):
 
     def controller_start_butt(self):
         self.reset_osc_data()
-        self.configure_gen_sample(self.get_pulse_data())
         self.send_command(self.gen, ":OUTP1 ON")
+        self.configure_gen_sample(self.get_pulse_data())
         self.prep_osc()
+        self.send_command(self.osc, ":SING")
+        
+        tm.sleep(0.5)
         self.send_command(self.osc, ":MEAS:SOUR CHAN1")
-        self.send_command(self.osc, ":ASQ:STATE RUN")
-        # try:
-        #     print(self.osc.query_binary_values(":CURV?", datatype="B", container=np.array))
-        # except Exception as e:
+        tm.sleep(0.5)
+        print("amplitude:", self.query(self.osc, ":MEAS:VAMP? CHANnel1"))
+        print("edge", self.query(self.osc, ":MEASure:EDGE? CHANnel1"))
+        print("fall", self.query(self.osc, ":MEASure:FALLtime? CHANnel1"))
+        # pre_string = self.query(self.osc, ":WAV:PRE?")
+        # (
+        # wav_form, acq_type, wfmpts, avgcnt, x_increment, x_origin,
+        # x_reference, y_increment, y_origin, y_reference, coupling,
+        # x_display_range, x_display_origin, y_display_range,
+        # y_display_origin, date, time, frame_model, acq_mode,
+        # completion, x_units, y_units, max_bw_limit, min_bw_limit
+        # ) = pre_string.split(",")
+
+        # print("Waveform format: %s" % self.wav_form_dict[int(wav_form)])
+        # print("Acquire type: %s" % self.acq_type_dict[int(acq_type)])
+        # print("Waveform points desired: %s" % wfmpts)
+        # print("Waveform average count: %s" % avgcnt)
+        # print("Waveform X increment: %s" % x_increment)
+        # print("Waveform X origin: %s" % x_origin)
+        # print("Waveform X reference: %s" % x_reference) # Always 0.
+        # print("Waveform Y increment: %s" % y_increment)
+        # print("Waveform Y origin: %s" % y_origin)
+        # print("Waveform Y reference: %s" % y_reference) # Always 0.
+        # print("Coupling: %s" % self.coupling_dict[int(coupling)])
+        # print("Waveform X display range: %s" % x_display_range)
+        # print("Waveform X display origin: %s" % x_display_origin)
+        # print("Waveform Y display range: %s" % y_display_range)
+        # print("Waveform Y display origin: %s" % y_display_origin)
+        # print("Date: %s" % date)
+        # print("Time: %s" % time)
+        # print("Frame model #: %s" % frame_model)
+        # print("Acquire mode: %s" % self.acq_mode_dict[int(acq_mode)])
+        # print("Completion pct: %s" % completion)
+        # print("Waveform X units: %s" % self.units_dict[int(x_units)])
+        # print("Waveform Y units: %s" % self.units_dict[int(y_units)])
+        # print("Max BW limit: %s" % max_bw_limit)
+        # print("Min BW limit: %s" % min_bw_limit)
+
+        size = 10000
+        tm.sleep(0.5)
+        self.send_command(self.osc, ":DISPlay:DATA? PNG")
+        tm.sleep(0.5)
+        counter = 0
+        f = open("data.png", "wb")
+        arr = []
+        bts = b''
+        while True:
+            try:
+                data = self.osc.read_bytes(size)
+                arr.append(data)
+                bts+=data
+                counter += 1
+            except:
+                try:
+                    f.write(bts[7:])
+                except Exception as e:
+                    print("can't save file: ", e)
+                f.close()
+                break
 
         
 
@@ -430,9 +525,9 @@ if __name__ == "__main__":
 """
 Надо поделить на классы UI и visa коннекты. И сделать один общий класс для стенда.
 
-TCPIP::10.3.69.159::INSTR
-TCPIP::10.3.69.160::INSTR
-TCPIP::10.3.69.159::hislip0,4880::INSTR
+TCPIP::10.3.69.161::INSTR
+TCPIP::10.3.69.162::INSTR
+TCPIP::10.3.69.161::hislip0,4880::INSTR
 """
 
 

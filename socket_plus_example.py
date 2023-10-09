@@ -8,10 +8,10 @@ import string
 
 from pyvisa import constants 
 
-devByHTML = "TCPIP0::10.3.69.147::inst0::INSTR"
-devListGen = "TCPIP::10.3.69.147::INSTR"
-devListOsc = "TCPIP::10.3.69.148::INSTR"
-devListOscNew = "TCPIP::10.3.69.148::hislip0,4880::INSTR"
+devByHTML = "TCPIP0::10.3.69.162::inst0::INSTR"
+devListGen = "TCPIP::10.3.69.162::INSTR"
+devListOsc = "TCPIP::10.3.69.161::INSTR"
+devListOscNew = "TCPIP::10.3.69.161::hislip0,4880::INSTR"
 
 debug = 0
 
@@ -284,10 +284,10 @@ def initialize():
     print("Identification string: '%s'" % idn_string)
     # Load the default setup.
     do_command("*RST")
-    print(Infiniium.query(":DISPlay:DATA? PNG"))
-    # print(Infiniium.write(":DISPlay:DATA? PNG"))
-    # time.sleep(1)
-    # print(Infiniium.read_bytes(50))
+    # print(Infiniium.query(":DISPlay:DATA? PNG"))
+    print(Infiniium.write(":DISPlay:DATA? PNG"))
+    time.sleep(1)
+    print(Infiniium.read_bytes(50))
 
 # visa.log_to_screen()
 # rm.visalib.set_buffer(Infiniium.session, constants.VI_IO_IN_BUF, 20)
