@@ -269,7 +269,7 @@
       <x>-1</x>
       <y>239</y>
       <width>341</width>
-      <height>211</height>
+      <height>241</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -295,7 +295,7 @@
       </font>
      </property>
      <property name="text">
-      <string>Pulse settings</string>
+      <string>Signal settings</string>
      </property>
      <property name="textFormat">
       <enum>Qt::AutoText</enum>
@@ -493,6 +493,110 @@
      </property>
      <property name="text">
       <string>Start</string>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="signal_type_box">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>30</y>
+       <width>131</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <item>
+      <property name="text">
+       <string>PULSE</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SQUARE</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>SINE</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>RAMP</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>NOISE</string>
+      </property>
+     </item>
+     <item>
+      <property name="text">
+       <string>ARB</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QLabel" name="label_18">
+     <property name="geometry">
+      <rect>
+       <x>159</x>
+       <y>208</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
+     <property name="text">
+      <string>mV</string>
+     </property>
+    </widget>
+    <widget class="QDoubleSpinBox" name="trig">
+     <property name="geometry">
+      <rect>
+       <x>50</x>
+       <y>209</y>
+       <width>101</width>
+       <height>22</height>
+      </rect>
+     </property>
+     <property name="decimals">
+      <number>5</number>
+     </property>
+     <property name="maximum">
+      <double>9999.989999999999782</double>
+     </property>
+     <property name="singleStep">
+      <double>0.010000000000000</double>
+     </property>
+    </widget>
+    <widget class="QLabel" name="Ampl_2">
+     <property name="geometry">
+      <rect>
+       <x>10</x>
+       <y>210</y>
+       <width>47</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Trig</string>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="isScreenshotable">
+     <property name="geometry">
+      <rect>
+       <x>189</x>
+       <y>70</y>
+       <width>131</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Take screenshot</string>
      </property>
     </widget>
    </widget>

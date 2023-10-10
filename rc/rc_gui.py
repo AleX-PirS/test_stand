@@ -99,7 +99,7 @@ class Ui_MainWindow(object):
         self.reset_gen_butt.setGeometry(QtCore.QRect(10, 60, 321, 23))
         self.reset_gen_butt.setObjectName("reset_gen_butt")
         self.frame_3 = QtWidgets.QFrame(self.centralwidget)
-        self.frame_3.setGeometry(QtCore.QRect(-1, 239, 341, 211))
+        self.frame_3.setGeometry(QtCore.QRect(-1, 239, 341, 241))
         self.frame_3.setFrameShape(QtWidgets.QFrame.StyledPanel)
         self.frame_3.setFrameShadow(QtWidgets.QFrame.Raised)
         self.frame_3.setObjectName("frame_3")
@@ -178,6 +178,35 @@ class Ui_MainWindow(object):
         self.start_butt = QtWidgets.QPushButton(self.frame_3)
         self.start_butt.setGeometry(QtCore.QRect(190, 90, 131, 51))
         self.start_butt.setObjectName("start_butt")
+        self.signal_type_box = QtWidgets.QComboBox(self.frame_3)
+        self.signal_type_box.setGeometry(QtCore.QRect(190, 30, 131, 22))
+        self.signal_type_box.setObjectName("signal_type_box")
+        self.signal_type_box.addItem("")
+        self.signal_type_box.addItem("")
+        self.signal_type_box.addItem("")
+        self.signal_type_box.addItem("")
+        self.signal_type_box.addItem("")
+        self.signal_type_box.addItem("")
+        self.label_18 = QtWidgets.QLabel(self.frame_3)
+        self.label_18.setGeometry(QtCore.QRect(159, 208, 47, 21))
+        font = QtGui.QFont()
+        font.setBold(True)
+        font.setWeight(75)
+        self.label_18.setFont(font)
+        self.label_18.setObjectName("label_18")
+        self.trig = QtWidgets.QDoubleSpinBox(self.frame_3)
+        self.trig.setGeometry(QtCore.QRect(50, 209, 101, 22))
+        self.trig.setDecimals(5)
+        self.trig.setMaximum(9999.99)
+        self.trig.setSingleStep(0.01)
+        self.trig.setObjectName("trig")
+        self.trig.setValue(200)
+        self.Ampl_2 = QtWidgets.QLabel(self.frame_3)
+        self.Ampl_2.setGeometry(QtCore.QRect(10, 210, 47, 21))
+        self.Ampl_2.setObjectName("Ampl_2")
+        self.isScreenshotable = QtWidgets.QCheckBox(self.frame_3)
+        self.isScreenshotable.setGeometry(QtCore.QRect(189, 70, 131, 20))
+        self.isScreenshotable.setObjectName("isScreenshotable")
         self.width = QtWidgets.QDoubleSpinBox(self.centralwidget)
         self.width.setGeometry(QtCore.QRect(50, 329, 101, 22))
         self.width.setDecimals(5)
@@ -235,7 +264,7 @@ class Ui_MainWindow(object):
         self.label_5.setText(_translate("MainWindow", "Control"))
         self.reset_osc_butt.setText(_translate("MainWindow", "Reset oscilloscope"))
         self.reset_gen_butt.setText(_translate("MainWindow", "Reset generator"))
-        self.label_6.setText(_translate("MainWindow", "Pulse settings"))
+        self.label_6.setText(_translate("MainWindow", "Signal settings"))
         self.label_7.setText(_translate("MainWindow", "Freq:"))
         self.label_8.setText(_translate("MainWindow", "Delay:"))
         self.label_9.setText(_translate("MainWindow", "Hz"))
@@ -245,12 +274,35 @@ class Ui_MainWindow(object):
         self.label_16.setText(_translate("MainWindow", "ns"))
         self.label_17.setText(_translate("MainWindow", "mV"))
         self.start_butt.setText(_translate("MainWindow", "Start"))
+        self.signal_type_box.setItemText(0, _translate("MainWindow", "PULSE"))
+        self.signal_type_box.setItemText(1, _translate("MainWindow", "SQUARE"))
+        self.signal_type_box.setItemText(2, _translate("MainWindow", "SINE"))
+        self.signal_type_box.setItemText(3, _translate("MainWindow", "RAMP"))
+        self.signal_type_box.setItemText(4, _translate("MainWindow", "NOISE"))
+        self.signal_type_box.setItemText(5, _translate("MainWindow", "ARB"))
+        self.label_18.setText(_translate("MainWindow", "mV"))
+        self.Ampl_2.setText(_translate("MainWindow", "Trig"))
+        self.isScreenshotable.setText(_translate("MainWindow", "Take screenshot"))
         self.label_12.setText(_translate("MainWindow", "Width:"))
         self.label_13.setText(_translate("MainWindow", "Lead:"))
         self.label_14.setText(_translate("MainWindow", "Trail:"))
         self.Ampl.setText(_translate("MainWindow", "Ampl:"))
 
 class Stand(object):
+    PULSE_SIGNAL_TYPE = "PULS"
+    SQUARE_SIGNAL_TYPE = "SQU"
+    SINE_SIGNAL_TYPE = "SIN"
+    RAMP_SIGNAL_TYPE = "RAMP"
+    NOISE_SIGNAL_TYPE = "NOIS"
+    ARB_SIGNAL_TYPE = "USER"
+
+    PULSE_BOX_TYPE = "PULSE"
+    SQUARE_BOX_TYPE = "SQUARE"
+    SINE_BOX_TYPE = "SINE"
+    RAMP_BOX_TYPE = "RAMP"
+    NOISE_BOX_TYPE = "NOISE"
+    ARB_BOX_TYPE = "ARB"
+
     osc = visa.Resource
     gen = visa.Resource
     rm = visa.ResourceManager('@py')
@@ -258,41 +310,6 @@ class Stand(object):
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
-
-    # wav_form_dict = {
-    # 0 : "ASCii",
-    # 1 : "BYTE",
-    # 2 : "WORD",
-    # 3 : "LONG",
-    # 4 : "LONGLONG",
-    # }
-    # acq_type_dict = {
-    # 1 : "RAW",
-    # 2 : "AVERage",
-    # 3 : "VHIStogram",
-    # 4 : "HHIStogram",
-    # 6 : "INTerpolate",
-    # 10 : "PDETect",
-    # }
-    # acq_mode_dict = {
-    # 0 : "RTIMe",
-    # 1 : "ETIMe",
-    # 3 : "PDETect",
-    # }
-    # coupling_dict = {
-    # 0 : "AC",
-    # 1 : "DC",
-    # 2 : "DCFIFTY",
-    # 3 : "LFREJECT",
-    # }
-    # units_dict = {
-    # 0 : "UNKNOWN",
-    # 1 : "VOLT",
-    # 2 : "SECOND",
-    # 3 : "CONSTANT",
-    # 4 : "AMP",
-    # 5 : "DECIBEL",
-    # }   
 
     def log(self, *log:str):
         history = self.ui.logs_plain_text.toPlainText()
@@ -306,10 +323,31 @@ class Stand(object):
         self.ui.logs_plain_text.setPlainText(history+res)
 
     # need to add to check if error exists after send command 
-    def detect_error(self)->str:
-        err = self.query(self.osc, ":SYST:ERR? STR")
-        return err
+    def detect_error(self, resource:visa.Resource)->int:
+        err_count = 0
+        while True:
+            str_err = ""
+            match resource:
+                case self.osc:
+                    str_err = resource.query(":SYST:ERR? STR").strip()
+                case self.gen:
+                    str_err = resource.query(":SYST:ERR?").strip()
 
+            arr_err = str_err.split(",")
+
+            err_code = 0
+            try:
+                err_code = int(arr_err[0])
+            except Exception as e:
+                print("ERROR get error code cause", e)
+            
+            if err_code == 0:
+                break
+
+            self.log("KEYSIGHT ERR:", arr_err[1])
+            err_count += 1
+        return err_count
+    
     def prep_osc(self):
         self.send_command(self.osc, ":CHAN1:PROB 1.0")
         # self.send_command(self.osc, ":SELECT:CH1 ON")
@@ -317,7 +355,7 @@ class Stand(object):
         self.send_command(self.osc, ":TRIG:MODE EDGE")
         # trigger settings
         self.send_command(self.osc, ":TRIG:EDGE:SOUR CHAN1")
-        self.send_command(self.osc, ":TRIG:LEV CHAN1, 1.5V")
+        self.send_command(self.osc, f":TRIG:LEV CHAN1, {str(self.ui.trig.value())}mV")
         self.send_command(self.osc, ":TRIG:EDGE:SLOP POS")
         # setting type sweep
         self.send_command(self.osc, ":TRIG:SWE SING")
@@ -332,7 +370,7 @@ class Stand(object):
     def query(self, resource:visa.Resource , comm:str) -> str:
         q = ""
         try:
-            q = resource.query(comm)
+            q = resource.query(comm).strip()
         except Exception as e:
             self.log("ERROR query:", e)
         self.log("Sended command:", comm, "get query:", q)
@@ -347,7 +385,7 @@ class Stand(object):
         
         idn = self.query(self.osc, "*IDN?")
         if idn.find("MSOS204A") == -1:
-            self.log("ERROR: it's to an oscilloscope, try again.")
+            self.log("ERROR: it's not an oscilloscope, try again.")
             self.osc.close()
             return
 
@@ -375,8 +413,8 @@ class Stand(object):
     def first_configure(self, resource:visa.Resource):
         resource.clear()
         resource.timeout = 5000
-        resource.query_delay = 0.5 # changed was 1
-        resource.chunk_size = 1_000_000 # changed was 128
+        resource.query_delay = 0.1 # changed was 1
+        resource.chunk_size = 100_000 # changed was 128
         resource.term_chars = ""
         resource.read_termination = '\n'
         resource.write_termination = '\0'
@@ -397,8 +435,9 @@ class Stand(object):
         self.ui.oscilloscope_radio.setChecked(False)
     
     def reset_osc_data(self):
-        self.send_command(self.osc, "*CLS")
-        self.send_command(self.osc, "*RST")        
+        # self.send_command(self.osc, "*CLS")
+        # self.send_command(self.osc, "*RST")
+        pass     
 
     def reset_gen(self):
         self.reset_resourse(self.gen)
@@ -412,17 +451,36 @@ class Stand(object):
         data["l"] = self.ui.lead.value()
         data["t"] = self.ui.trail.value()
         data["a"] = self.ui.ampl.value()
+        data["type"] = self.ui.signal_type_box.currentText()
         return data
     
-    def configure_gen_sample(self, data:dict):
-        self.send_command(self.gen, ":FUNC PULS")
-        self.send_command(self.gen, ":FREQ "+str(data["f"])+"Hz")
-        self.send_command(self.gen, ":VOLT:HIGH "+str(data["a"]/2)+"mV")
-        self.send_command(self.gen, ":VOLT:LOW 0V")
-        self.send_command(self.gen, ":FUNC:PULS:WIDT "+str(data["w"])+"ns")
-        self.send_command(self.gen, ":FUNC:PULS:DEL "+str(data["d"])+"s")
-        self.send_command(self.gen, ":FUNC:PULS:TRAN "+str(data["l"])+"ns")
-        self.send_command(self.gen, ":FUNC:PULS:TRAN:TRA "+str(data["t"])+"ns")
+    def signal_type_from_box(self, type:str)->str:
+        match type:
+            case self.PULSE_BOX_TYPE:
+                return self.PULSE_SIGNAL_TYPE
+            case self.SQUARE_BOX_TYPE:
+                return self.SQUARE_SIGNAL_TYPE
+            case self.SINE_BOX_TYPE:
+                return self.SINE_SIGNAL_TYPE
+            case self.RAMP_BOX_TYPE:
+                return self.RAMP_SIGNAL_TYPE
+            case self.NOISE_BOX_TYPE:
+                return self.NOISE_SIGNAL_TYPE
+            case self.ARB_BOX_TYPE:
+                return self.ARB_SIGNAL_TYPE
+
+    def configure_gen_sample(self, data:dict)->int:
+        signal_type = self.signal_type_from_box(data["type"])
+        self.send_command(self.gen, f":FUNC {signal_type}")
+        self.send_command(self.gen, f":FREQ {str(data['f'])}Hz")
+        self.send_command(self.gen, f":VOLT:HIGH {str(data['a'])}mV")
+        self.send_command(self.gen, f":VOLT:LOW 0V")
+        self.send_command(self.gen, f":FUNC:{signal_type}:WIDT {str(data['w'])}ns")
+        self.send_command(self.gen, f":FUNC:{signal_type}:DEL {str(data['d'])}s")
+        self.send_command(self.gen, f":FUNC:{signal_type}:TRAN {str(data['l'])}ns")
+        self.send_command(self.gen, f":FUNC:{signal_type}:TRAN:TRA {str(data['t'])}ns")
+        if self.detect_error(self.gen):
+            return 1
 
     def controller_connect_osc_butt(self):
         self.connect_osc()
@@ -439,71 +497,38 @@ class Stand(object):
     def controller_start_butt(self):
         self.reset_osc_data()
         self.send_command(self.gen, ":OUTP1 ON")
-        self.configure_gen_sample(self.get_pulse_data())
+        if self.configure_gen_sample(self.get_pulse_data()):
+            return
         self.prep_osc()
         self.send_command(self.osc, ":SING")
         
-        tm.sleep(0.5)
         self.send_command(self.osc, ":MEAS:SOUR CHAN1")
-        tm.sleep(0.5)
-        print("amplitude:", self.query(self.osc, ":MEAS:VAMP? CHANnel1"))
-        print("edge", self.query(self.osc, ":MEASure:EDGE? CHANnel1"))
-        print("fall", self.query(self.osc, ":MEASure:FALLtime? CHANnel1"))
-        # pre_string = self.query(self.osc, ":WAV:PRE?")
-        # (
-        # wav_form, acq_type, wfmpts, avgcnt, x_increment, x_origin,
-        # x_reference, y_increment, y_origin, y_reference, coupling,
-        # x_display_range, x_display_origin, y_display_range,
-        # y_display_origin, date, time, frame_model, acq_mode,
-        # completion, x_units, y_units, max_bw_limit, min_bw_limit
-        # ) = pre_string.split(",")
+        tm.sleep(0.25)
+    
+        print("Edge", self.query(self.osc, ":MEASure:EDGE? CHANnel1"))
+        print("Amplitude:", self.query(self.osc, ":MEAS:VAMP? CHANnel1"))
+        print("Fall", self.query(self.osc, ":MEAS:FALL? CHANnel1"))
+        print("Frequency", self.query(self.osc, ":MEAS:FREQ? CHANnel1"))
 
-        # print("Waveform format: %s" % self.wav_form_dict[int(wav_form)])
-        # print("Acquire type: %s" % self.acq_type_dict[int(acq_type)])
-        # print("Waveform points desired: %s" % wfmpts)
-        # print("Waveform average count: %s" % avgcnt)
-        # print("Waveform X increment: %s" % x_increment)
-        # print("Waveform X origin: %s" % x_origin)
-        # print("Waveform X reference: %s" % x_reference) # Always 0.
-        # print("Waveform Y increment: %s" % y_increment)
-        # print("Waveform Y origin: %s" % y_origin)
-        # print("Waveform Y reference: %s" % y_reference) # Always 0.
-        # print("Coupling: %s" % self.coupling_dict[int(coupling)])
-        # print("Waveform X display range: %s" % x_display_range)
-        # print("Waveform X display origin: %s" % x_display_origin)
-        # print("Waveform Y display range: %s" % y_display_range)
-        # print("Waveform Y display origin: %s" % y_display_origin)
-        # print("Date: %s" % date)
-        # print("Time: %s" % time)
-        # print("Frame model #: %s" % frame_model)
-        # print("Acquire mode: %s" % self.acq_mode_dict[int(acq_mode)])
-        # print("Completion pct: %s" % completion)
-        # print("Waveform X units: %s" % self.units_dict[int(x_units)])
-        # print("Waveform Y units: %s" % self.units_dict[int(y_units)])
-        # print("Max BW limit: %s" % max_bw_limit)
-        # print("Min BW limit: %s" % min_bw_limit)
-
-        size = 10000
-        tm.sleep(0.5)
-        self.send_command(self.osc, ":DISPlay:DATA? PNG")
-        tm.sleep(0.5)
-        counter = 0
-        f = open("data.png", "wb")
-        arr = []
-        bts = b''
-        while True:
-            try:
-                data = self.osc.read_bytes(size)
-                arr.append(data)
-                bts+=data
-                counter += 1
-            except:
+        
+        if self.ui.isScreenshotable.isChecked(): 
+            size = 10000
+            tm.sleep(0.5)
+            self.send_command(self.osc, ":DISPlay:DATA? PNG")
+            tm.sleep(0.5)
+            counter = 0
+            f = open("data.png", "wb")
+            bts = b''
+            while True:
                 try:
-                    f.write(bts[7:])
-                except Exception as e:
-                    print("can't save file: ", e)
-                f.close()
-                break
+                    bts += self.osc.read_bytes(size)
+                except:
+                    try:
+                        f.write(bts[7:])
+                    except Exception as e:
+                        print("can't save file: ", e)
+                    f.close()
+                    break
 
         
 
