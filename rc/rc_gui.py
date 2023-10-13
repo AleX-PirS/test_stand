@@ -303,9 +303,12 @@ class Stand(object):
     NOISE_BOX_TYPE = "NOISE"
     ARB_BOX_TYPE = "ARB"
 
-    osc = visa.Resource
-    gen = visa.Resource
-    rm = visa.ResourceManager('@py')
+    osc:visa.Resource
+    gen:visa.Resource
+    rm:visa.ResourceManager('@py')
+
+    async def Some(self):
+        tm.sleep(100)
 
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
