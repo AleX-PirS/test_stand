@@ -257,7 +257,7 @@ def analyze():
     print("Waveform format BYTE data written to waveform_data.csv.")
 
 # main program
-
+#oaiwjdoajwdoajwodjao jdoaiwjd oawjd oajo
 try:
     rm = visa.ResourceManager()
     # rm = visa.ResourceManager("C:\Program Files\IVI Foundation\VISA\Win64\lib\msc\ivi.lib")
