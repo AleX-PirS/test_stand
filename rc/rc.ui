@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>679</width>
-    <height>653</height>
+    <width>682</width>
+    <height>658</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -696,7 +696,7 @@
       <x>340</x>
       <y>0</y>
       <width>341</width>
-      <height>241</height>
+      <height>481</height>
      </rect>
     </property>
     <property name="frameShape">
@@ -731,25 +731,12 @@
       <bool>false</bool>
      </property>
     </widget>
-    <widget class="QPushButton" name="start_butt_3">
-     <property name="geometry">
-      <rect>
-       <x>10</x>
-       <y>210</y>
-       <width>321</width>
-       <height>21</height>
-      </rect>
-     </property>
-     <property name="text">
-      <string>Send data</string>
-     </property>
-    </widget>
     <widget class="QPushButton" name="com_conn_butt">
      <property name="geometry">
       <rect>
-       <x>130</x>
+       <x>180</x>
        <y>50</y>
-       <width>71</width>
+       <width>151</width>
        <height>21</height>
       </rect>
      </property>
@@ -762,7 +749,7 @@
       <rect>
        <x>10</x>
        <y>50</y>
-       <width>111</width>
+       <width>151</width>
        <height>20</height>
       </rect>
      </property>
@@ -778,6 +765,58 @@
      </property>
      <property name="text">
       <string>COM port number</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="com_read_butt">
+     <property name="geometry">
+      <rect>
+       <x>200</x>
+       <y>80</y>
+       <width>111</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>read</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="com_write_butt">
+     <property name="geometry">
+      <rect>
+       <x>30</x>
+       <y>80</y>
+       <width>111</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>write</string>
+     </property>
+    </widget>
+    <widget class="QPlainTextEdit" name="regs_plain_text">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>340</y>
+       <width>331</width>
+       <height>141</height>
+      </rect>
+     </property>
+     <property name="readOnly">
+      <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QLabel" name="label_478">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>320</y>
+       <width>101</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>Registers data:</string>
      </property>
     </widget>
    </widget>
