@@ -307,9 +307,6 @@ class Stand(object):
     gen:visa.Resource
     rm:visa.ResourceManager('@py')
 
-    async def Some(self):
-        tm.sleep(100)
-
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
@@ -393,7 +390,6 @@ class Stand(object):
             return
 
         self.first_configure(self.osc)
-        self.ui.oscilloscope_radio.setChecked(True)
         self.log("Succesfully connected oscilloscope")
 
     def connect_gen(self):
@@ -410,7 +406,6 @@ class Stand(object):
             return
 
         self.first_configure(self.gen)
-        self.ui.generator_radio.setChecked(True)
         self.log("Succesfully connected generator")
 
     def first_configure(self, resource:visa.Resource):

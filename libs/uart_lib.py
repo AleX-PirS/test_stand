@@ -40,7 +40,9 @@ class UART(object):
 
         for i in data:
             self.ser.write(i)
-
+    # я думаю надо отдельно сделать комманду отправить read и функцию считывания данных
+    # те будут функции чтения от FPGF и записи в FPGA
+    # и вот как раз в функции read_reg надо убрать часть со считыванием в обработчик в бесконечном лупе
     def read_reg(self, start_addr:int, count:int):
         package = [self.READ_WORD, start_addr, count]
          # 1-st realisation
@@ -69,4 +71,18 @@ class UART(object):
 
             read_data.append(data)
             
+    def listen_uart(self):
+        while True:
+            data = self.ser.read()
+            match data:
+                case self.WRITE_WORD:
+                    print("GET WRITE WORD FROM FPGA")
+                    pass
+                case self.READ_WORD:
+                    print("GET READ WORD FROM FPGA")
+                    pass
+                case _:
+                    print("GET UNSIGNED DATA FROM FPGA:", data)
+                    pass
+
 
