@@ -322,31 +322,31 @@ class Stand(object):
             
         self.ui.logs_plain_text.setPlainText(history+res)
 
-    # need to add to check if error exists after send command 
-    def detect_error(self, resource:visa.Resource)->int:
-        err_count = 0
-        while True:
-            str_err = ""
-            match resource:
-                case self.osc:
-                    str_err = resource.query(":SYST:ERR? STR").strip()
-                case self.gen:
-                    str_err = resource.query(":SYST:ERR?").strip()
+    # # need to add to check if error exists after send command 
+    # def detect_error(self, resource:visa.Resource)->int:
+    #     err_count = 0
+    #     while True:
+    #         str_err = ""
+    #         match resource:
+    #             case self.osc:
+    #                 str_err = resource.query(":SYST:ERR? STR").strip()
+    #             case self.gen:
+    #                 str_err = resource.query(":SYST:ERR?").strip()
 
-            arr_err = str_err.split(",")
+    #         arr_err = str_err.split(",")
 
-            err_code = 0
-            try:
-                err_code = int(arr_err[0])
-            except Exception as e:
-                print("ERROR get error code cause", e)
+    #         err_code = 0
+    #         try:
+    #             err_code = int(arr_err[0])
+    #         except Exception as e:
+    #             print("ERROR get error code cause", e)
             
-            if err_code == 0:
-                break
+    #         if err_code == 0:
+    #             break
 
-            self.log("KEYSIGHT ERR:", arr_err[1])
-            err_count += 1
-        return err_count
+    #         self.log("KEYSIGHT ERR:", arr_err[1])
+    #         err_count += 1
+    #     return err_count
     
     def prep_osc(self):
         self.send_command(self.osc, ":CHAN1:PROB 1.0")
@@ -360,73 +360,73 @@ class Stand(object):
         # setting type sweep
         self.send_command(self.osc, ":TRIG:SWE SING")
 
-    def send_command(self, resource:visa.Resource , comm:str):
-        try:
-            resource.write(comm)
-        except Exception as e:
-            self.log("ERROR send_command:", e)
-        self.log("Sended command:", comm)
+    # def send_command(self, resource:visa.Resource , comm:str):
+    #     try:
+    #         resource.write(comm)
+    #     except Exception as e:
+    #         self.log("ERROR send_command:", e)
+    #     self.log("Sended command:", comm)
     
-    def query(self, resource:visa.Resource , comm:str) -> str:
-        q = ""
-        try:
-            q = resource.query(comm).strip()
-        except Exception as e:
-            self.log("ERROR query:", e)
-        self.log("Sended command:", comm, "get query:", q)
-        return q
+    # def query(self, resource:visa.Resource , comm:str) -> str:
+    #     q = ""
+    #     try:
+    #         q = resource.query(comm).strip()
+    #     except Exception as e:
+    #         self.log("ERROR query:", e)
+    #     self.log("Sended command:", comm, "get query:", q)
+    #     return q
 
-    def connect_osc(self):
-        try:
-            self.osc = self.rm.open_resource(self.ui.oscilloscope_addr.text())
-        except Exception as e:
-            self.log("ERROR open_resourse:", e)
-            return
+    # def connect_osc(self):
+    #     try:
+    #         self.osc = self.rm.open_resource(self.ui.oscilloscope_addr.text())
+    #     except Exception as e:
+    #         self.log("ERROR open_resourse:", e)
+    #         return
         
-        idn = self.query(self.osc, "*IDN?")
-        if idn.find("MSOS204A") == -1:
-            self.log("ERROR: it's not an oscilloscope, try again.")
-            self.osc.close()
-            return
+    #     idn = self.query(self.osc, "*IDN?")
+    #     if idn.find("MSOS204A") == -1:
+    #         self.log("ERROR: it's not an oscilloscope, try again.")
+    #         self.osc.close()
+    #         return
 
-        self.first_configure(self.osc)
-        self.log("Succesfully connected oscilloscope")
+    #     self.first_configure(self.osc)
+    #     self.log("Succesfully connected oscilloscope")
 
-    def connect_gen(self):
-        try:
-            self.gen = self.rm.open_resource(self.ui.generator_addr.text())
-        except Exception as e:
-            self.log("ERROR open_resourse:", e)
-            return
+    # def connect_gen(self):
+    #     try:
+    #         self.gen = self.rm.open_resource(self.ui.generator_addr.text())
+    #     except Exception as e:
+    #         self.log("ERROR open_resourse:", e)
+    #         return
         
-        idn = self.query(self.gen, "*IDN?")
-        if idn.find("811") == -1:
-            self.log("ERROR: it's to an generator, try again.")
-            self.gen.close()
-            return
+    #     idn = self.query(self.gen, "*IDN?")
+    #     if idn.find("811") == -1:
+    #         self.log("ERROR: it's to an generator, try again.")
+    #         self.gen.close()
+    #         return
 
-        self.first_configure(self.gen)
-        self.log("Succesfully connected generator")
+    #     self.first_configure(self.gen)
+    #     self.log("Succesfully connected generator")
 
-    def first_configure(self, resource:visa.Resource):
-        resource.clear()
-        resource.timeout = 5000
-        resource.query_delay = 0.1 # changed was 1
-        resource.chunk_size = 100_000 # changed was 128
-        resource.term_chars = ""
-        resource.read_termination = '\n'
-        resource.write_termination = '\0'
-        resource.baud_rate = 115200
-        self.send_command(resource, "*CLS")
-        self.send_command(resource, "*RST")
+    # def first_configure(self, resource:visa.Resource):
+    #     resource.clear()
+    #     resource.timeout = 5000
+    #     resource.query_delay = 0.1 # changed was 1
+    #     resource.chunk_size = 100_000 # changed was 128
+    #     resource.term_chars = ""
+    #     resource.read_termination = '\n'
+    #     resource.write_termination = '\0'
+    #     resource.baud_rate = 115200
+    #     self.send_command(resource, "*CLS")
+    #     self.send_command(resource, "*RST")
 
-    def reset_resourse(self, resource:visa.Resource):
-        self.send_command(resource, "*CLS")
-        self.send_command(resource, "*RST")
-        try:
-            resource.close()
-        except Exception as e:
-            self.log("ERROR close resourse:", e)
+    # def reset_resourse(self, resource:visa.Resource):
+    #     self.send_command(resource, "*CLS")
+    #     self.send_command(resource, "*RST")
+    #     try:
+    #         resource.close()
+    #     except Exception as e:
+    #         self.log("ERROR close resourse:", e)
 
     def reset_osc(self):
         self.reset_resourse(self.osc)
@@ -452,20 +452,20 @@ class Stand(object):
         data["type"] = self.ui.signal_type_box.currentText()
         return data
     
-    def signal_type_from_box(self, type:str)->str:
-        match type:
-            case self.PULSE_BOX_TYPE:
-                return self.PULSE_SIGNAL_TYPE
-            case self.SQUARE_BOX_TYPE:
-                return self.SQUARE_SIGNAL_TYPE
-            case self.SINE_BOX_TYPE:
-                return self.SINE_SIGNAL_TYPE
-            case self.RAMP_BOX_TYPE:
-                return self.RAMP_SIGNAL_TYPE
-            case self.NOISE_BOX_TYPE:
-                return self.NOISE_SIGNAL_TYPE
-            case self.ARB_BOX_TYPE:
-                return self.ARB_SIGNAL_TYPE
+    # def signal_type_from_box(self, type:str)->str:
+    #     match type:
+    #         case self.PULSE_BOX_TYPE:
+    #             return self.PULSE_SIGNAL_TYPE
+    #         case self.SQUARE_BOX_TYPE:
+    #             return self.SQUARE_SIGNAL_TYPE
+    #         case self.SINE_BOX_TYPE:
+    #             return self.SINE_SIGNAL_TYPE
+    #         case self.RAMP_BOX_TYPE:
+    #             return self.RAMP_SIGNAL_TYPE
+    #         case self.NOISE_BOX_TYPE:
+    #             return self.NOISE_SIGNAL_TYPE
+    #         case self.ARB_BOX_TYPE:
+    #             return self.ARB_SIGNAL_TYPE
 
     def configure_gen_sample(self, data:dict)->int:
         signal_type = self.signal_type_from_box(data["type"])
