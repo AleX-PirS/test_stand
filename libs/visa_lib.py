@@ -1,12 +1,56 @@
 import pyvisa as visa
 
+class SampleSettings(object):
+    settings:{}
+    def __init__(self, freq, delay, width, lead, trail, ampl, sig_type):
+        self.settings["f"] = freq
+        self.settings["d"] = delay
+        self.settings["w"] = width
+        self.settings["l"] = lead
+        self.settings["t"] = trail
+        self.settings["a"] = ampl
+        self.settings["type"] = sig_type
+
+    def get_freq(self):
+        return str(self.settings["f"])
+
+    def get_delay(self):
+        return str(self.settings["d"])
+    
+    def get_width(self):
+        return str(self.settings["w"])
+    
+    def get_lead(self):
+        return str(self.settings["l"])
+    
+    def get_trail(self):
+        return str(self.settings["t"])
+    
+    def get_ampl(self):
+        return str(self.settings["a"])
+    
+    def get_signal_type(self):
+        return str(self.settings["type"])
+
+    
+class Sample(object):
+    sample:{}
+    def __init__(self, edge, ampl, fall, freq):
+        self.sample["Edge"] = edge
+        self.sample["Amplitude"] = ampl
+        self.sample["Frequency"] = freq
+        self.sample["Fall"] = fall
+
 class Visa(object):
     # Exceptions
     EXCEPTION_INVALID_RESOURCE = "invalid resource"
+    EXCEPTION_INVALID_SIGNAL_SETTINGS = "invalid signal settings"
 
     # Queries for connect resources
     QUERY_OSCILLOSCOPE = "MSOS204A"
     QUERY_GENERATOR = "811"
+
+    CHANNEL_PROB_CONST = "1.0"
 
     # Start resource configuration
     RESOURCE_TIMEOUT = 5000
@@ -18,18 +62,29 @@ class Visa(object):
     RESOURCE_BAUD_RATE = 115200
 
     # KEYSIGHT commands
+    # STILL DOESN'T USED
+    COMMAND_QUERY = "?"
     COMMAND_RESET = "*RST"
     COMMAND_CLEAR = "*CLS"
     COMMAND_ERR_OSCILLOSCOPE = ":SYST:ERR? STR"
     COMMAND_ERR_GENERATOR = ":SYST:ERR?"
     COMMAND_IDN = "*IDN?"
-    COMMAND_CHAN_NUM = "CHAN"
-    
+    CHAN_NUM = "CHAN"
     COMMAND_TRIG = ":TRIG"
-    COMMAND_TRIG_MODE = ":MODE"
-    COMMAND_TRIG_MODE = "EDGE"
-    COMMAND_
-    COMMAND_
+    COMMAND_MODE = ":MODE"
+    COMMAND_EDGE = ":EDGE"
+    MODE_EDGE = "EDGE"
+    COMMAND_LEV = ":LEV"
+    COMMAND_SOUR = ":SOUR"
+    COMMAND_CLOP = ":SLOP"
+    SLOP_POS = "POS"
+    SLOP_NEG = "NEG"
+    COMMAND_SWEEP = ":SWE"
+    SWEEP_SING = "SING"
+    # Fast commands
+    SET_TRIG_MODE = COMMAND_TRIG+COMMAND_MODE
+    SET_TRIG_EDGE_SOUR = COMMAND_TRIG+COMMAND_EDGE+COMMAND_SOUR+" "+CHAN_NUM
+    SET_TRIG_LEV = COMMAND_TRIG+COMMAND_LEV+" "+CHAN_NUM
 
     # KEYSIGHT signals functions
     PULSE_SIGNAL_TYPE = "PULS"
@@ -163,7 +218,55 @@ class Visa(object):
     def reset_generator(self):
         self.reset_resourse(self.generator)
 
-"""
-Тут надо сделать класс для стенда с функциями только для UI
-Чтобы сгенерированный UI просто подбрасывался этим классом
-"""
+    def prep_oscilloscope(self, chan_numb:int, trig_lvl:int):
+        self.send_command(self.oscilloscope, f":CHAN{str(chan_numb)}:PROB {self.CHANNEL_PROB_CONST}")
+        # self.send_command(self.osc, ":SELECT:CH1 ON")
+        # chose trig mode
+        self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
+        # trigger settings
+        self.send_command(self.oscilloscope, f":TRIG:EDGE:SOUR CHAN{str(chan_numb)}")
+        self.send_command(self.oscilloscope, f":TRIG:LEV CHAN{str(chan_numb)}, {str(trig_lvl)}mV")
+        self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
+        # setting type sweep
+        self.send_command(self.oscilloscope, ":TRIG:SWE SING")
+
+    def configure_generator_sample(self, data:SampleSettings):
+        signal_type = self.signal_type_from_box(data.get_signal_type())
+
+        self.send_command(self.generator, f":FUNC {signal_type}")
+        self.send_command(self.generator, f":FREQ {data.get_freq()}Hz")
+        self.send_command(self.generator, f":VOLT:HIGH {data.get_ampl()}mV")
+        self.send_command(self.generator, f":VOLT:LOW 0V")
+        self.send_command(self.generator, f":FUNC:{signal_type}:WIDT {data.get_width()}ns")
+        self.send_command(self.generator, f":FUNC:{signal_type}:DEL {data.get_delay()}s")
+        self.send_command(self.generator, f":FUNC:{signal_type}:TRAN {data.get_lead()}ns")
+        self.send_command(self.generator, f":FUNC:{signal_type}:TRAN:TRA {data.get_trail()}ns")
+        
+        errors = self.detect_errors(self.generator)
+
+        if errors != "":
+            raise Exception(self.EXCEPTION_INVALID_SIGNAL_SETTINGS, errors)
+        
+    def measure(self, chan_num:int)->Sample:
+        Edge = self.query(self.oscilloscope, f":MEAS:EDGE? CHAN{str(chan_num)}")
+        Amplitude = self.query(self.oscilloscope, f":MEAS:VAMP? CHAN{str(chan_num)}")
+        Fall = self.query(self.oscilloscope, f":MEAS:FALL? CHAN{str(chan_num)}")
+        Frequency = self.query(self.oscilloscope, f":MEAS:FREQ? CHAN{str(chan_num)}")
+
+        sample = Sample(edge=Edge, ampl=Amplitude, fall=Fall, freq=Frequency)
+    
+        return sample
+
+    def do_sample(self, chan_num:int, generator_settings:SampleSettings, trig_lvl:int):
+        self.send_command(self.generator, f":OUTP{str(chan_num)} ON")
+        try:
+            self.configure_generator_sample(generator_settings)
+        except Exception as e:
+            if e.args[0]==self.EXCEPTION_INVALID_SIGNAL_SETTINGS:
+                print("Bad signal settings")
+                return e.args[1]
+            return
+        
+        self.prep_oscilloscope(chan_num, trig_lvl)
+        self.send_command(self.oscilloscope, ":SING")        
+        self.send_command(self.oscilloscope, f":MEAS:SOUR CHAN{str(chan_num)}")
