@@ -13,14 +13,17 @@ class UART(object):
     ser:serial.Serial
         
     def connect_com(self, com:str):
-        self.ser = serial.Serial(
+        try:
+            self.ser = serial.Serial(
             com, 
             baudrate=self.BAUDRATE,
             bytesize=self.BYTESIZE,
             parity=self.PARITY,
             stopbits=self.STOPBITS,
             timeout=self.TIMEOUT,
-        )
+            )
+        except:
+            raise
 
     def write_reg(self, start_addr:int, count:int, data:[int]):
         if len(data)!=count:
@@ -40,6 +43,7 @@ class UART(object):
 
         for i in data:
             self.ser.write(i)
+            
     # я думаю надо отдельно сделать комманду отправить read и функцию считывания данных
     # те будут функции чтения от FPGF и записи в FPGA
     # и вот как раз в функции read_reg надо убрать часть со считыванием в обработчик в бесконечном лупе
