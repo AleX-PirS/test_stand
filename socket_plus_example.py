@@ -1,3 +1,4 @@
+# import pyvisa as visa
 import pyvisa as visa
 import socket
 import time
@@ -5,21 +6,14 @@ import sys
 import struct
 import string
 
-devByHTML = "TCPIP0::10.3.69.147::inst0::INSTR"
-devListGen = "TCPIP::10.3.69.147::INSTR"
-devListOsc = "TCPIP::10.3.69.148::INSTR"
-devListOscNew = "TCPIP::10.3.69.148::hislip0,4880::INSTR"
+from pyvisa import constants 
+
+devByHTML = "TCPIP0::10.3.69.162::inst0::INSTR"
+devListGen = "TCPIP::10.3.69.162::INSTR"
+devListOsc = "TCPIP::10.3.69.161::INSTR"
+devListOscNew = "TCPIP::10.3.69.161::hislip0,4880::INSTR"
 
 debug = 0
-
-def initialize():
-    do_command("*CLS")
-    # Get and display the device's *IDN? string.
-    idn_string = do_query_string("*IDN?")
-    print("Identification string: '%s'" % idn_string)
-    # Load the default setup.
-    do_command("*RST")
-
 
 def do_command(command, hide_params=False):
     if hide_params:
@@ -263,20 +257,50 @@ def analyze():
     print("Waveform format BYTE data written to waveform_data.csv.")
 
 # main program
-
+#oaiwjdoajwdoajwodjao jdoaiwjd oawjd oajo
 try:
     rm = visa.ResourceManager()
-    print(rm.list_resources())
+    # rm = visa.ResourceManager("C:\Program Files\IVI Foundation\VISA\Win64\lib\msc\ivi.lib")
+    # print(rm)
+    # print(rm.visalib)
+    print("list of resourses:", rm.list_resources())
     Infiniium = rm.open_resource(devListOsc)
     Infiniium.timeout = 20
+    Infiniium.query_delay = 1
     Infiniium.clear()
     Infiniium.term_chars = ""
-    Infiniium.chunk_size = 128
+    # Infiniium.chunk_size = 128
     Infiniium.read_termination = '\n'
-    Infiniium.write_termination = '\n'
+    Infiniium.write_termination = '\0'
+    Infiniium.baud_rate = 57600
 except Exception as e:
     print('[!] Exception:' + str(e))
+    sys.exit()
+
+def initialize():
+    do_command("*CLS")
+    # Get and display the device's *IDN? string.
+    idn_string = do_query_string("*IDN?")
+    print("Identification string: '%s'" % idn_string)
+    # Load the default setup.
+    do_command("*RST")
+    # print(Infiniium.query(":DISPlay:DATA? PNG"))
+    print(Infiniium.write(":DISPlay:DATA? PNG"))
+    time.sleep(1)
+    print(Infiniium.read_bytes(50))
+
+# visa.log_to_screen()
+# rm.visalib.set_buffer(Infiniium.session, constants.VI_IO_IN_BUF, 20)
+# rm.visalib.set_buffer(Infiniium.session, constants.VI_IO_OUT_BUF, 20)
 
 initialize()
-capture()
+# capture()
 # analyze()
+
+# 300 rub - 1h of driving
+# 26h 32k 
+# 34h 39k
+# 44h 41k
+# 56h 47k
+
+# special cost -6k
