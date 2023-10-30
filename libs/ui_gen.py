@@ -1176,13 +1176,3 @@ class Ui_MainWindow(object):
         self.label_480.setText(_translate("MainWindow", "ADDR"))
         self.label_484.setText(_translate("MainWindow", "LABEL"))
         self.label_485.setText(_translate("MainWindow", "ADDR"))
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    MainWindow = QtWidgets.QMainWindow()
-    ui = Ui_MainWindow()
-    ui.setupUi(MainWindow)
-    MainWindow.show()
-    sys.exit(app.exec_())

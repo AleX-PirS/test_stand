@@ -107,7 +107,7 @@ class Visa(object):
     rm:visa.ResourceManager
 
     def __init__(self) -> None:
-        rm = visa.ResourceManager("@py")
+        self.rm = visa.ResourceManager("@py")
 
     def send_command(self, resource:visa.Resource , comm:str):
         try:

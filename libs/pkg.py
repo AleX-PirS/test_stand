@@ -1,9 +1,25 @@
 
 
 class RegData(object):
-    reg_data = [int.to_bytes(0, 1, 'big') for _ in range(125)]   
+    reg_data = [int.to_bytes(0, 1, 'big') for _ in range(125)]
+    r_regs_start_addr_count = (
+        (0, 7),
+        (8, 5),
+        (16, 12),
+        (32, 17),
+    )
+
+    rw_regs_start_addr_count = (
+        (65, 6),
+        (72, 1),
+        (80, 9),
+        (90, 4),
+        (111, 2),
+        (122, 3),
+    )
 
     def __init__(self,
+                 is_zero_init = False,
                  # Analog
                  CCAL = 0b01,
                  CCSA = 0b01,
@@ -225,6 +241,10 @@ class RegData(object):
             'cfg_ch_emul_4' : 124,
         }
 
+        if is_zero_init:
+            self.reg_data = [-1 for _ in range(125)]
+            return
+
         self.reg_data[self.registers_metadata_name_to_addr['analog_ctrl_0']] = int.to_bytes((CCAL<<6)+(CCSA<<4)+(GAIN<<3)+(ICSA<<2)+(SHA), 1, 'big')
         self.reg_data[self.registers_metadata_name_to_addr['analog_ctrl_1']] = int.to_bytes((SHTR<<6)+(POL<<5)+(BIAS_CORE_CUR<<3), 1, 'big')
         self.reg_data[self.registers_metadata_name_to_addr['dac_cal']] = int.to_bytes(DAC_CAL, 1, 'big')
@@ -253,28 +273,12 @@ class RegData(object):
         return
 
     def __str__(self) -> str:
-        res = '{\n'
+        res = ""
         for i in range(len(self.reg_data)):
             if i not in self.registers_metadata_addr_to_name:
                 continue
-            res += f'\t"{self.registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}",\n'
+            if self.reg_data[i] == -1:
+                continue
+            res += f'"{self.registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
 
-        return res[:]+'}'
-    
-    def get_analog_regs(self):
-        pass
-
-    def get_analog_digital_regs(self):
-        pass
-
-    def get_digital_regs(self):
-        pass
-
-    def get_rw_regs(self):
-        pass
-
-    def get_r_regs(self):
-        pass
-
-reg = RegData()
-print(reg)
+        return res[:-1]
