@@ -5,10 +5,11 @@ from pkg import RegData
 
 import sys
 
+
 class Stand(object):
-    ui:Ui
-    uart:UART
-    visa:Visa
+    ui: Ui
+    uart: UART
+    visa: Visa
 
     def __init__(self) -> None:
         self.ui = Ui()
@@ -19,8 +20,10 @@ class Stand(object):
         self.ui.ui.com_read_butt.clicked.connect(self.process_com_read_butt)
         self.ui.ui.com_conn_butt.clicked.connect(self.process_com_conn_butt)
 
-        self.ui.ui.oscilloscope_conn_butt.clicked.connect(self.process_oscilloscope_conn_butt)
-        self.ui.ui.generator_conn_butt.clicked.connect(self.process_generator_conn_butt)
+        self.ui.ui.oscilloscope_conn_butt.clicked.connect(
+            self.process_oscilloscope_conn_butt)
+        self.ui.ui.generator_conn_butt.clicked.connect(
+            self.process_generator_conn_butt)
         self.ui.ui.reset_osc_butt.clicked.connect(self.process_reset_osc_butt)
         self.ui.ui.reset_gen_butt.clicked.connect(self.process_reset_gen_butt)
 
@@ -50,20 +53,21 @@ class Stand(object):
             self.ui.logging("ERROR connect using uart: ", e.args[0])
             return
 
-    def process_oscilloscope_conn_butt (self):
+    def process_oscilloscope_conn_butt(self):
         pass
 
-    def process_generator_conn_butt (self):
+    def process_generator_conn_butt(self):
         pass
 
-    def process_reset_osc_butt (self):
+    def process_reset_osc_butt(self):
         pass
 
-    def process_reset_gen_butt (self):
+    def process_reset_gen_butt(self):
         pass
 
-    def process_start_butt (self):
+    def process_start_butt(self):
         pass
+
 
 if __name__ == "__main__":
     stand = Stand()
