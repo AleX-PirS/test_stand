@@ -10,7 +10,7 @@ class UART(object):
         self.BYTESIZE = 8
         self.PARITY = serial.PARITY_NONE
         self.STOPBITS = 1
-        self.TIMEOUT = 2
+        self.TIMEOUT = 1
 
         self.WRITE_WORD = int.to_bytes(0b01110111, 1, 'big')
         self.READ_WORD = int.to_bytes(0b01110010, 1, 'big')
@@ -74,32 +74,44 @@ class UART(object):
 
     def read_reg(self, start_addr: bytes, count: bytes) -> list[bytes]:
         self.is_connection_open()
-        package = [self.READ_WORD, start_addr, count]
-
-        for byte in package:
-            self.ser.write(byte)
-
-        get_flag = 0
-        read_data = []
+        corrupt_count = 0
         while True:
-            if get_flag == 0:
+            package = [self.READ_WORD, start_addr, count]
+
+            for byte in package:
+                self.ser.write(byte)
+
+            get_flag = 0
+            read_data = []
+            while True:
+                if get_flag == 0:
+                    data = self.ser.read(1)
+                    if data != self.READ_WORD:
+                        if data == b'':
+                            break
+                        continue
+                    get_flag = 1
+
                 data = self.ser.read(1)
-                if data != self.READ_WORD:
-                    continue
-                get_flag = 1
+                print(f'Get payload from uart:"{int.from_bytes(data, "big"):08b}"')
 
-            data = self.ser.read(1)
-            print(f'Get payload from uart:"{data}"')
+                if data == b'':
+                    break
 
-            if data == b'':
-                break
+                read_data.append(data)
+                if len(read_data) == int.from_bytes(count, "big"):
+                    break
+            
+            print(f'Asked len={int.from_bytes(count, "big")}, get len={len(read_data)}')
+            if int.from_bytes(count, "big") != len(read_data):
+                print(f"Packet corrupted. Try again with: start_addr:{int.from_bytes(start_addr, 'big')}, count:{int.from_bytes(count, 'big')}")
+                corrupt_count+=1
+                continue
+            if corrupt_count == 5:
+                print("Critical error with FPGA")
+                raise Exception("Check FPGA, detected read loop")
+            break
 
-            read_data.append(data)
-            if len(read_data) == int.from_bytes(count, "big"):
-                break
-
-        print(
-            f'Asked len={int.from_bytes(count, "big")}, get len={len(read_data)}')
         return read_data
 
     def is_connection_open(self):

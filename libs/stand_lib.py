@@ -17,7 +17,9 @@ class Stand(object):
         self.visa = Visa()
 
         self.ui.ui.com_write_butt.clicked.connect(self.process_com_write_butt)
-        self.ui.ui.com_read_butt.clicked.connect(self.process_com_read_butt)
+        self.ui.ui.com_read_all_butt.clicked.connect(self.process_com_read_all_butt)
+        self.ui.ui.com_read_r_butt.clicked.connect(self.process_com_read_r_butt)
+        self.ui.ui.com_read_rw_butt.clicked.connect(self.process_com_read_rw_butt)
         self.ui.ui.com_conn_butt.clicked.connect(self.process_com_conn_butt)
 
         self.ui.ui.oscilloscope_conn_butt.clicked.connect(
@@ -32,13 +34,28 @@ class Stand(object):
     def process_com_write_butt(self):
         try:
             self.uart.write_w_regs(self.ui.get_w_registers_data())
+            self.ui.logging("Constants sended succesfully")
         except Exception as e:
-            self.ui.logging("ERROR send constants: ", e.args)
+            self.ui.logging("ERROR send constants: ", e.args[0])
             return
 
-    def process_com_read_butt(self):
+    def process_com_read_all_butt(self):
         try:
             self.ui.log_registers(self.uart.read_all_regs().__str__())
+        except Exception as e:
+            self.ui.logging("ERROR read constants: ", e.args[0])
+            return
+        
+    def process_com_read_r_butt(self):
+        try:
+            self.ui.log_registers(self.uart.read_r_regs().__str__())
+        except Exception as e:
+            self.ui.logging("ERROR read constants: ", e.args[0])
+            return
+        
+    def process_com_read_rw_butt(self):
+        try:
+            self.ui.log_registers(self.uart.read_rw_regs().__str__())
         except Exception as e:
             self.ui.logging("ERROR read constants: ", e.args[0])
             return

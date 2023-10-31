@@ -800,23 +800,23 @@
       <string>COM port number</string>
      </property>
     </widget>
-    <widget class="QPushButton" name="com_read_butt">
+    <widget class="QPushButton" name="com_read_all_butt">
      <property name="geometry">
       <rect>
-       <x>200</x>
+       <x>120</x>
        <y>80</y>
-       <width>111</width>
+       <width>71</width>
        <height>21</height>
       </rect>
      </property>
      <property name="text">
-      <string>read</string>
+      <string>read all</string>
      </property>
     </widget>
     <widget class="QPushButton" name="com_write_butt">
      <property name="geometry">
       <rect>
-       <x>30</x>
+       <x>10</x>
        <y>80</y>
        <width>111</width>
        <height>21</height>
@@ -832,7 +832,7 @@
        <x>10</x>
        <y>130</y>
        <width>321</width>
-       <height>91</height>
+       <height>181</height>
       </rect>
      </property>
      <property name="readOnly">
@@ -2128,7 +2128,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>250</y>
+       <y>340</y>
        <width>301</width>
        <height>41</height>
       </rect>
@@ -2953,7 +2953,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>230</y>
+       <y>320</y>
        <width>101</width>
        <height>21</height>
       </rect>
@@ -3095,7 +3095,7 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>300</y>
+       <y>390</y>
        <width>101</width>
        <height>23</height>
       </rect>
@@ -3108,7 +3108,7 @@
      <property name="geometry">
       <rect>
        <x>128</x>
-       <y>300</y>
+       <y>390</y>
        <width>191</width>
        <height>22</height>
       </rect>
@@ -3118,13 +3118,39 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>330</y>
+       <y>420</y>
        <width>301</width>
        <height>121</height>
       </rect>
      </property>
      <property name="readOnly">
       <bool>false</bool>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="com_read_r_butt">
+     <property name="geometry">
+      <rect>
+       <x>190</x>
+       <y>80</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>read &quot;R&quot;</string>
+     </property>
+    </widget>
+    <widget class="QPushButton" name="com_read_rw_butt">
+     <property name="geometry">
+      <rect>
+       <x>260</x>
+       <y>80</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string>read &quot;RW&quot;</string>
      </property>
     </widget>
    </widget>

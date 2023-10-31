@@ -31,16 +31,12 @@ class Ui(object):
         self.ui.regs_plain_text.setPlainText("Date: " + date + '\n' + data)
 
     def get_com_port_address(self) -> str:
-        address = self.ui.com_addr.text().strip().upper()
-        if address.find("COM") == -1:
+        address = regex.findall("^COM([0-9]+)", self.ui.com_addr.text().strip().upper())
+        if len(address) != 1:
             raise Exception(
                 "Invalid COM PORT address. Need address like 'COMi' where 'i' is 1, 2, ... n.")
-        try:
-            port = int(address[address.find("COM")+3:])
-        except:
-            raise Exception("Invalid PORT number. You should use int type.")
 
-        return "COM" + str(port)
+        return "COM" + address[0]
 
     def get_w_registers_data(self) -> RegData:
         return RegData(
@@ -64,7 +60,7 @@ class Ui(object):
             CFG_p2_plus_SOC=self.ui.spinBox_CFG_p2_puls_SOC.value(),
             CFG_p2_plus_SWM=self.ui.spinBox_CFG_p2_puls_SWM.value(),
             CFG_p2_plus_EOC=self.ui.spinBox_CFG_p2_puls_EOC.value(),
-            CFG_p3_L1_over=self.ui.spinBox_CFG_p1_L0_over.value(),
+            CFG_p3_L1_over=self.ui.spinBox_CFG_p3_L1_over.value(),
             CFG_rst_plus_EOC=self.ui.spinBox_CFG_rst_puls_EOC.value(),
             CFG_SW_force_num=self.ui.spinBox_CFG_SW_force_num.value(),
             CFG_SW_force_EN=self.get_code_from_box(
@@ -87,7 +83,7 @@ class Ui(object):
 
     def get_code_from_box(self, data: str) -> int:
         try:
-            code = int(regex.findall(".*\(([0-9]*)\)", data)[0])
+            code = int(regex.findall(".*\(([0-9]*)\)", data)[0], base=2)
         except Exception as e:
             print('Bad data!', e)
             return

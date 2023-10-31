@@ -260,14 +260,14 @@ class Ui_MainWindow(object):
         self.label_20 = QtWidgets.QLabel(self.frame_4)
         self.label_20.setGeometry(QtCore.QRect(10, 31, 181, 20))
         self.label_20.setObjectName("label_20")
-        self.com_read_butt = QtWidgets.QPushButton(self.frame_4)
-        self.com_read_butt.setGeometry(QtCore.QRect(200, 80, 111, 21))
-        self.com_read_butt.setObjectName("com_read_butt")
+        self.com_read_all_butt = QtWidgets.QPushButton(self.frame_4)
+        self.com_read_all_butt.setGeometry(QtCore.QRect(120, 80, 71, 21))
+        self.com_read_all_butt.setObjectName("com_read_all_butt")
         self.com_write_butt = QtWidgets.QPushButton(self.frame_4)
-        self.com_write_butt.setGeometry(QtCore.QRect(30, 80, 111, 21))
+        self.com_write_butt.setGeometry(QtCore.QRect(10, 80, 111, 21))
         self.com_write_butt.setObjectName("com_write_butt")
         self.regs_plain_text = QtWidgets.QPlainTextEdit(self.frame_4)
-        self.regs_plain_text.setGeometry(QtCore.QRect(10, 130, 321, 91))
+        self.regs_plain_text.setGeometry(QtCore.QRect(10, 130, 321, 181))
         self.regs_plain_text.setReadOnly(False)
         self.regs_plain_text.setObjectName("regs_plain_text")
         self.label_478 = QtWidgets.QLabel(self.frame_4)
@@ -655,10 +655,8 @@ class Ui_MainWindow(object):
         self.add.setFont(font)
         self.add.setObjectName("add")
         self.addr_CFG_p3_L1_over_2x5bit = QtWidgets.QLabel(self.widget_22)
-        self.addr_CFG_p3_L1_over_2x5bit.setGeometry(
-            QtCore.QRect(0, 20, 101, 20))
-        self.addr_CFG_p3_L1_over_2x5bit.setObjectName(
-            "addr_CFG_p3_L1_over_2x5bit")
+        self.addr_CFG_p3_L1_over_2x5bit.setGeometry(QtCore.QRect(0, 20, 101, 20))
+        self.addr_CFG_p3_L1_over_2x5bit.setObjectName("addr_CFG_p3_L1_over_2x5bit")
         self.spinBox_CFG_p3_L1_over = QtWidgets.QSpinBox(self.widget_22)
         self.spinBox_CFG_p3_L1_over.setGeometry(QtCore.QRect(40, 20, 81, 21))
         self.spinBox_CFG_p3_L1_over.setMaximum(1023)
@@ -666,7 +664,7 @@ class Ui_MainWindow(object):
         self.spinBox_CFG_p3_L1_over.setDisplayIntegerBase(2)
         self.spinBox_CFG_p3_L1_over.setObjectName("spinBox_CFG_p3_L1_over")
         self.widget_23 = QtWidgets.QWidget(self.frame_4)
-        self.widget_23.setGeometry(QtCore.QRect(20, 250, 301, 41))
+        self.widget_23.setGeometry(QtCore.QRect(20, 340, 301, 41))
         self.widget_23.setObjectName("widget_23")
         self.label_516 = QtWidgets.QLabel(self.widget_23)
         self.label_516.setGeometry(QtCore.QRect(0, 0, 121, 20))
@@ -910,7 +908,7 @@ class Ui_MainWindow(object):
         self.line.setFrameShadow(QtWidgets.QFrame.Sunken)
         self.line.setObjectName("line")
         self.label_25 = QtWidgets.QLabel(self.frame_4)
-        self.label_25.setGeometry(QtCore.QRect(20, 230, 101, 21))
+        self.label_25.setGeometry(QtCore.QRect(20, 320, 101, 21))
         font = QtGui.QFont()
         font.setPointSize(10)
         font.setBold(True)
@@ -956,17 +954,21 @@ class Ui_MainWindow(object):
         self.comboBox_CMP_TH.addItem("")
         self.comboBox_CMP_TH.addItem("")
         self.pushButton_scan_scripts = QtWidgets.QPushButton(self.frame_4)
-        self.pushButton_scan_scripts.setGeometry(
-            QtCore.QRect(20, 300, 101, 23))
+        self.pushButton_scan_scripts.setGeometry(QtCore.QRect(20, 390, 101, 23))
         self.pushButton_scan_scripts.setObjectName("pushButton_scan_scripts")
         self.comboBox_scripts_files = QtWidgets.QComboBox(self.frame_4)
-        self.comboBox_scripts_files.setGeometry(
-            QtCore.QRect(128, 300, 191, 22))
+        self.comboBox_scripts_files.setGeometry(QtCore.QRect(128, 390, 191, 22))
         self.comboBox_scripts_files.setObjectName("comboBox_scripts_files")
         self.script_plain_text = QtWidgets.QPlainTextEdit(self.frame_4)
-        self.script_plain_text.setGeometry(QtCore.QRect(20, 330, 301, 121))
+        self.script_plain_text.setGeometry(QtCore.QRect(20, 420, 301, 121))
         self.script_plain_text.setReadOnly(False)
         self.script_plain_text.setObjectName("script_plain_text")
+        self.com_read_r_butt = QtWidgets.QPushButton(self.frame_4)
+        self.com_read_r_butt.setGeometry(QtCore.QRect(190, 80, 71, 21))
+        self.com_read_r_butt.setObjectName("com_read_r_butt")
+        self.com_read_rw_butt = QtWidgets.QPushButton(self.frame_4)
+        self.com_read_rw_butt.setGeometry(QtCore.QRect(260, 80, 71, 21))
+        self.com_read_rw_butt.setObjectName("com_read_rw_butt")
         self.widget = QtWidgets.QWidget(self.centralwidget)
         self.widget.setGeometry(QtCore.QRect(10, 490, 121, 41))
         self.widget.setObjectName("widget")
@@ -1020,17 +1022,14 @@ class Ui_MainWindow(object):
         _translate = QtCore.QCoreApplication.translate
         MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
         self.label.setText(_translate("MainWindow", "Connecting"))
-        self.oscilloscope_conn_butt.setText(
-            _translate("MainWindow", "connect"))
+        self.oscilloscope_conn_butt.setText(_translate("MainWindow", "connect"))
         self.label_3.setText(_translate("MainWindow", "Oscilloscope"))
         self.label_4.setText(_translate("MainWindow", "Generator"))
         self.generator_conn_butt.setText(_translate("MainWindow", "connect"))
         self.label_2.setText(_translate("MainWindow", "Logs"))
         self.label_5.setText(_translate("MainWindow", "Control"))
-        self.reset_osc_butt.setText(_translate(
-            "MainWindow", "Reset oscilloscope"))
-        self.reset_gen_butt.setText(
-            _translate("MainWindow", "Reset generator"))
+        self.reset_osc_butt.setText(_translate("MainWindow", "Reset oscilloscope"))
+        self.reset_gen_butt.setText(_translate("MainWindow", "Reset generator"))
         self.label_6.setText(_translate("MainWindow", "Signal settings"))
         self.label_7.setText(_translate("MainWindow", "Freq:"))
         self.label_8.setText(_translate("MainWindow", "Delay:"))
@@ -1049,8 +1048,7 @@ class Ui_MainWindow(object):
         self.signal_type_box.setItemText(5, _translate("MainWindow", "ARB"))
         self.label_18.setText(_translate("MainWindow", "mV"))
         self.Ampl_2.setText(_translate("MainWindow", "Trig"))
-        self.isScreenshotable.setText(
-            _translate("MainWindow", "Take screenshot"))
+        self.isScreenshotable.setText(_translate("MainWindow", "Take screenshot"))
         self.label_12.setText(_translate("MainWindow", "Width:"))
         self.label_13.setText(_translate("MainWindow", "Lead:"))
         self.label_14.setText(_translate("MainWindow", "Trail:"))
@@ -1058,66 +1056,47 @@ class Ui_MainWindow(object):
         self.label_19.setText(_translate("MainWindow", "Registers"))
         self.com_conn_butt.setText(_translate("MainWindow", "connect"))
         self.label_20.setText(_translate("MainWindow", "COM port number"))
-        self.com_read_butt.setText(_translate("MainWindow", "read"))
+        self.com_read_all_butt.setText(_translate("MainWindow", "read all"))
         self.com_write_butt.setText(_translate("MainWindow", "write"))
         self.label_478.setText(_translate("MainWindow", "Registers data:"))
         self.label_486.setText(_translate("MainWindow", "CCAL"))
         self.addr_CCAL.setText(_translate("MainWindow", "65 [7:6]"))
-        self.comboBox_CCAL.setItemText(
-            0, _translate("MainWindow", "100 fF (01)"))
-        self.comboBox_CCAL.setItemText(
-            1, _translate("MainWindow", "80 fF (00)"))
-        self.comboBox_CCAL.setItemText(
-            2, _translate("MainWindow", "100 fF (10)"))
-        self.comboBox_CCAL.setItemText(
-            3, _translate("MainWindow", "120 fF (11)"))
+        self.comboBox_CCAL.setItemText(0, _translate("MainWindow", "100 fF (01)"))
+        self.comboBox_CCAL.setItemText(1, _translate("MainWindow", "80 fF (00)"))
+        self.comboBox_CCAL.setItemText(2, _translate("MainWindow", "100 fF (10)"))
+        self.comboBox_CCAL.setItemText(3, _translate("MainWindow", "120 fF (11)"))
         self.label_487.setText(_translate("MainWindow", "CCSA"))
         self.addr_CCSA.setText(_translate("MainWindow", "65 [5:4]"))
-        self.comboBox_CCSA.setItemText(
-            0, _translate("MainWindow", "200 fF (01)"))
-        self.comboBox_CCSA.setItemText(
-            1, _translate("MainWindow", "180 fF (00)"))
-        self.comboBox_CCSA.setItemText(
-            2, _translate("MainWindow", "200 fF (10)"))
-        self.comboBox_CCSA.setItemText(
-            3, _translate("MainWindow", "220 fF (11)"))
+        self.comboBox_CCSA.setItemText(0, _translate("MainWindow", "200 fF (01)"))
+        self.comboBox_CCSA.setItemText(1, _translate("MainWindow", "180 fF (00)"))
+        self.comboBox_CCSA.setItemText(2, _translate("MainWindow", "200 fF (10)"))
+        self.comboBox_CCSA.setItemText(3, _translate("MainWindow", "220 fF (11)"))
         self.label_488.setText(_translate("MainWindow", "GAIN"))
         self.addr_GAIN.setText(_translate("MainWindow", "65 [3]"))
-        self.comboBox_GAIN.setItemText(
-            0, _translate("MainWindow", "250 fF (0)"))
-        self.comboBox_GAIN.setItemText(
-            1, _translate("MainWindow", "80 fF (1)"))
+        self.comboBox_GAIN.setItemText(0, _translate("MainWindow", "250 fF (0)"))
+        self.comboBox_GAIN.setItemText(1, _translate("MainWindow", "80 fF (1)"))
         self.label_489.setText(_translate("MainWindow", "IСSA"))
         self.addr_ICSA.setText(_translate("MainWindow", "65 [2]"))
         self.comboBox_ICSA.setItemText(0, _translate("MainWindow", "1 mA (0)"))
         self.comboBox_ICSA.setItemText(1, _translate("MainWindow", "2 mA (1)"))
         self.label_490.setText(_translate("MainWindow", "SHA"))
         self.addr_SHA.setText(_translate("MainWindow", "65 [1:0]"))
-        self.comboBox_SHA.setItemText(
-            0, _translate("MainWindow", "200 ns (11)"))
-        self.comboBox_SHA.setItemText(
-            1, _translate("MainWindow", "500 ns (00)"))
-        self.comboBox_SHA.setItemText(
-            2, _translate("MainWindow", "300 ns (01)"))
+        self.comboBox_SHA.setItemText(0, _translate("MainWindow", "200 ns (11)"))
+        self.comboBox_SHA.setItemText(1, _translate("MainWindow", "500 ns (00)"))
+        self.comboBox_SHA.setItemText(2, _translate("MainWindow", "300 ns (01)"))
         self.label_491.setText(_translate("MainWindow", "SHTR"))
         self.label_SHTR.setText(_translate("MainWindow", "66 [7:6]"))
         self.comboBox_SHTR.setItemText(0, _translate("MainWindow", "(00)"))
         self.label_492.setText(_translate("MainWindow", "POL"))
         self.addr_POL.setText(_translate("MainWindow", "66 [5]"))
-        self.comboBox_POL.setItemText(
-            0, _translate("MainWindow", "+polarity (1)"))
-        self.comboBox_POL.setItemText(
-            1, _translate("MainWindow", "-polarity (0)"))
+        self.comboBox_POL.setItemText(0, _translate("MainWindow", "+polarity (1)"))
+        self.comboBox_POL.setItemText(1, _translate("MainWindow", "-polarity (0)"))
         self.label_493.setText(_translate("MainWindow", "BIAS_CORE_CUR"))
         self.label_BIAS_CORE_CUR.setText(_translate("MainWindow", "66 [4:3]"))
-        self.comboBox_BIAS_CORE_CUR.setItemText(
-            0, _translate("MainWindow", "(00)"))
-        self.comboBox_BIAS_CORE_CUR.setItemText(
-            1, _translate("MainWindow", "(01)"))
-        self.comboBox_BIAS_CORE_CUR.setItemText(
-            2, _translate("MainWindow", "(10)"))
-        self.comboBox_BIAS_CORE_CUR.setItemText(
-            3, _translate("MainWindow", "(11)"))
+        self.comboBox_BIAS_CORE_CUR.setItemText(0, _translate("MainWindow", "(00)"))
+        self.comboBox_BIAS_CORE_CUR.setItemText(1, _translate("MainWindow", "(01)"))
+        self.comboBox_BIAS_CORE_CUR.setItemText(2, _translate("MainWindow", "(10)"))
+        self.comboBox_BIAS_CORE_CUR.setItemText(3, _translate("MainWindow", "(11)"))
         self.label_494.setText(_translate("MainWindow", "DAC_CAL"))
         self.addr_DAC_CAL.setText(_translate("MainWindow", "67 [7:0]"))
         self.label_498.setText(_translate("MainWindow", "CAL_EN_CH "))
@@ -1125,8 +1104,7 @@ class Ui_MainWindow(object):
         self.label_497.setText(_translate("MainWindow", "REZ"))
         self.addr_REZ.setText(_translate("MainWindow", "70 [7:0]"))
         self.label_499.setText(_translate("MainWindow", "AN_CH_DISABLE"))
-        self.addr_AN_CH_DISABLE_10bit.setText(
-            _translate("MainWindow", "111-112"))
+        self.addr_AN_CH_DISABLE_10bit.setText(_translate("MainWindow", "111-112"))
         self.label_21.setText(_translate("MainWindow", "Analog constants"))
         self.label_23.setText(_translate("MainWindow", "Digital constants"))
         self.label_500.setText(_translate("MainWindow", "CFG_p1_in_time"))
@@ -1140,100 +1118,79 @@ class Ui_MainWindow(object):
         self.label_514.setText(_translate("MainWindow", "CFG_p2_puls_EOC"))
         self.addr_CFG_p2_puls_EOC.setText(_translate("MainWindow", "84 [4:0]"))
         self.label_515.setText(_translate("MainWindow", "CFG_rst_puls_EOC"))
-        self.addr_CFG_rst_puls_EOC.setText(
-            _translate("MainWindow", "85 [4:0]"))
+        self.addr_CFG_rst_puls_EOC.setText(_translate("MainWindow", "85 [4:0]"))
         self.add.setText(_translate("MainWindow", "CFG_p3_L1_over"))
-        self.addr_CFG_p3_L1_over_2x5bit.setText(
-            _translate("MainWindow", "86-87"))
+        self.addr_CFG_p3_L1_over_2x5bit.setText(_translate("MainWindow", "86-87"))
         self.label_516.setText(_translate("MainWindow", "Constant name"))
-        self.addr_example.setText(_translate(
-            "MainWindow", "Constant address (base: dec)"))
+        self.addr_example.setText(_translate("MainWindow", "Constant address (base: dec)"))
         self.label_518.setText(_translate("MainWindow", "Inputs:"))
         self.label_517.setText(_translate("MainWindow", "CFG_OUT_INT"))
         self.addr_CFG_OUT_INT.setText(_translate("MainWindow", "88 [6:0]"))
         self.label_519.setText(_translate("MainWindow", "ADC_EMU_CFG"))
         self.addr_ADC_EMU_CFG_10bit.setText(_translate("MainWindow", "90-91"))
         self.label_520.setText(_translate("MainWindow", "CFG_SW_force_num"))
-        self.addr_CFG_SW_force_num.setText(
-            _translate("MainWindow", "92 [7:0]"))
+        self.addr_CFG_SW_force_num.setText(_translate("MainWindow", "92 [7:0]"))
         self.label_482.setText(_translate("MainWindow", "CFG_SW_force_EN"))
         self.addr_CFG_SW_force_EN.setText(_translate("MainWindow", "93 [0]"))
-        self.comboBox_CFG_SW_force_EN.setItemText(
-            0, _translate("MainWindow", "Off (0)"))
-        self.comboBox_CFG_SW_force_EN.setItemText(
-            1, _translate("MainWindow", "On (1)"))
+        self.comboBox_CFG_SW_force_EN.setItemText(0, _translate("MainWindow", "Off (0)"))
+        self.comboBox_CFG_SW_force_EN.setItemText(1, _translate("MainWindow", "On (1)"))
         self.label_483.setText(_translate("MainWindow", "EMUL_EN_L0"))
         self.addr_EMUL_EN_L0.setText(_translate("MainWindow", "123 [0]"))
-        self.comboBox_EMUL_EN_L0.setItemText(
-            0, _translate("MainWindow", "Off (0)"))
-        self.comboBox_EMUL_EN_L0.setItemText(
-            1, _translate("MainWindow", "On (1)"))
+        self.comboBox_EMUL_EN_L0.setItemText(0, _translate("MainWindow", "Off (0)"))
+        self.comboBox_EMUL_EN_L0.setItemText(1, _translate("MainWindow", "On (1)"))
         self.label_521.setText(_translate("MainWindow", "EMUL_EN_L1"))
         self.addr_EMUL_EN_L1.setText(_translate("MainWindow", "123 [1]"))
-        self.comboBox_EMUL_EN_L1.setItemText(
-            0, _translate("MainWindow", "Off (0)"))
-        self.comboBox_EMUL_EN_L1.setItemText(
-            1, _translate("MainWindow", "On (1)"))
+        self.comboBox_EMUL_EN_L1.setItemText(0, _translate("MainWindow", "Off (0)"))
+        self.comboBox_EMUL_EN_L1.setItemText(1, _translate("MainWindow", "On (1)"))
         self.label_522.setText(_translate("MainWindow", "EMUL_tau_v"))
         self.addr_EMUL_tau_v.setText(_translate("MainWindow", "123[3:2]"))
-        self.comboBox_EMUL_tau_v.setItemText(
-            0, _translate("MainWindow", "200 ns (00)"))
-        self.comboBox_EMUL_tau_v.setItemText(
-            1, _translate("MainWindow", "300 ns (01)"))
-        self.comboBox_EMUL_tau_v.setItemText(
-            2, _translate("MainWindow", "400 ns (10)"))
-        self.comboBox_EMUL_tau_v.setItemText(
-            3, _translate("MainWindow", "500 ns (11)"))
+        self.comboBox_EMUL_tau_v.setItemText(0, _translate("MainWindow", "200 ns (00)"))
+        self.comboBox_EMUL_tau_v.setItemText(1, _translate("MainWindow", "300 ns (01)"))
+        self.comboBox_EMUL_tau_v.setItemText(2, _translate("MainWindow", "400 ns (10)"))
+        self.comboBox_EMUL_tau_v.setItemText(3, _translate("MainWindow", "500 ns (11)"))
         self.label_523.setText(_translate("MainWindow", "EMUL_L0_v"))
         self.addr_EMUL_L0_v.setText(_translate("MainWindow", "123[5:4]"))
-        self.comboBox_EMUL_L0_v.setItemText(
-            0, _translate("MainWindow", "250 ns (00)"))
-        self.comboBox_EMUL_L0_v.setItemText(
-            1, _translate("MainWindow", "350 ns (01)"))
-        self.comboBox_EMUL_L0_v.setItemText(
-            2, _translate("MainWindow", "450 ns (10)"))
-        self.comboBox_EMUL_L0_v.setItemText(
-            3, _translate("MainWindow", "550 ns (11)"))
+        self.comboBox_EMUL_L0_v.setItemText(0, _translate("MainWindow", "250 ns (00)"))
+        self.comboBox_EMUL_L0_v.setItemText(1, _translate("MainWindow", "350 ns (01)"))
+        self.comboBox_EMUL_L0_v.setItemText(2, _translate("MainWindow", "450 ns (10)"))
+        self.comboBox_EMUL_L0_v.setItemText(3, _translate("MainWindow", "550 ns (11)"))
         self.label_524.setText(_translate("MainWindow", "EMUL_DATA_i"))
         self.addr_EMUL_DATA_i.setText(_translate("MainWindow", "124[4:0]"))
         self.label_525.setText(_translate("MainWindow", "EMUL_ADDR_i"))
         self.addr_EMUL_ADDR_i.setText(_translate("MainWindow", "124 [7:5]"))
-        self.comboBox_EMUL_ADDR_i.setItemText(
-            0, _translate("MainWindow", "PFEMUL[4:0] (000)"))
-        self.comboBox_EMUL_ADDR_i.setItemText(
-            1, _translate("MainWindow", "PFEMUL[5:1] (001)"))
-        self.comboBox_EMUL_ADDR_i.setItemText(
-            2, _translate("MainWindow", "PFEMUL[6:2] (010)"))
-        self.comboBox_EMUL_ADDR_i.setItemText(
-            3, _translate("MainWindow", "PFEMUL[7:3] (011)"))
-        self.comboBox_EMUL_ADDR_i.setItemText(
-            4, _translate("MainWindow", "PFEMUL[8:4] (100)"))
-        self.comboBox_EMUL_ADDR_i.setItemText(
-            5, _translate("MainWindow", "PFEMUL[9:5] (101)"))
-        self.comboBox_EMUL_ADDR_i.setItemText(
-            6, _translate("MainWindow", "Odds (110)"))
-        self.comboBox_EMUL_ADDR_i.setItemText(
-            7, _translate("MainWindow", "Even (111)"))
+        self.comboBox_EMUL_ADDR_i.setItemText(0, _translate("MainWindow", "PFEMUL[4:0] (000)"))
+        self.comboBox_EMUL_ADDR_i.setItemText(1, _translate("MainWindow", "PFEMUL[5:1] (001)"))
+        self.comboBox_EMUL_ADDR_i.setItemText(2, _translate("MainWindow", "PFEMUL[6:2] (010)"))
+        self.comboBox_EMUL_ADDR_i.setItemText(3, _translate("MainWindow", "PFEMUL[7:3] (011)"))
+        self.comboBox_EMUL_ADDR_i.setItemText(4, _translate("MainWindow", "PFEMUL[8:4] (100)"))
+        self.comboBox_EMUL_ADDR_i.setItemText(5, _translate("MainWindow", "PFEMUL[9:5] (101)"))
+        self.comboBox_EMUL_ADDR_i.setItemText(6, _translate("MainWindow", "Odds (110)"))
+        self.comboBox_EMUL_ADDR_i.setItemText(7, _translate("MainWindow", "Even (111)"))
         self.label_526.setText(_translate("MainWindow", "EMUL_L1_v"))
         self.addr_EMUL_L1_v.setText(_translate("MainWindow", "122[7:0]"))
         self.label_25.setText(_translate("MainWindow", "Example"))
-        self.label_22.setText(_translate(
-            "MainWindow", "Analog-digital constants"))
+        self.label_22.setText(_translate("MainWindow", "Analog-digital constants"))
         self.label_481.setText(_translate("MainWindow", "CMP_TH"))
         self.addr_CMP_TH.setText(_translate("MainWindow", "72 [3:0]"))
-        self.comboBox_CMP_TH.setItemText(
-            0, _translate("MainWindow", "10 mV (0001)"))
-        self.comboBox_CMP_TH.setItemText(
-            1, _translate("MainWindow", "0 mV (0000)"))
-        self.comboBox_CMP_TH.setItemText(
-            2, _translate("MainWindow", "20 mV (0011)"))
-        self.comboBox_CMP_TH.setItemText(
-            3, _translate("MainWindow", "30 mV (0111)"))
-        self.comboBox_CMP_TH.setItemText(
-            4, _translate("MainWindow", "40 mV (1111)"))
-        self.pushButton_scan_scripts.setText(
-            _translate("MainWindow", "Scan test scripts"))
+        self.comboBox_CMP_TH.setItemText(0, _translate("MainWindow", "10 mV (0001)"))
+        self.comboBox_CMP_TH.setItemText(1, _translate("MainWindow", "0 mV (0000)"))
+        self.comboBox_CMP_TH.setItemText(2, _translate("MainWindow", "20 mV (0011)"))
+        self.comboBox_CMP_TH.setItemText(3, _translate("MainWindow", "30 mV (0111)"))
+        self.comboBox_CMP_TH.setItemText(4, _translate("MainWindow", "40 mV (1111)"))
+        self.pushButton_scan_scripts.setText(_translate("MainWindow", "Scan test scripts"))
+        self.com_read_r_butt.setText(_translate("MainWindow", "read \"R\""))
+        self.com_read_rw_butt.setText(_translate("MainWindow", "read \"RW\""))
         self.label_479.setText(_translate("MainWindow", "LABEL"))
         self.label_480.setText(_translate("MainWindow", "ADDR"))
         self.label_484.setText(_translate("MainWindow", "LABEL"))
         self.label_485.setText(_translate("MainWindow", "ADDR"))
+
+
+if __name__ == "__main__":
+    import sys
+    app = QtWidgets.QApplication(sys.argv)
+    MainWindow = QtWidgets.QMainWindow()
+    ui = Ui_MainWindow()
+    ui.setupUi(MainWindow)
+    MainWindow.show()
+    sys.exit(app.exec_())

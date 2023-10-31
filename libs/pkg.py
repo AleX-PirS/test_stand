@@ -9,7 +9,8 @@ class RegData(object):
 
     rw_regs_start_addr_count = (
         (65, 6),
-        (72, 1),
+        (72, 2), # Поменял на длину 2, но вдруг что то задену
+        # (72, 1), было так, но почему то юарт на обрабатывает длину 1
         (80, 9),
         (90, 4),
         (111, 2),
@@ -302,6 +303,6 @@ class RegData(object):
                 continue
             if self.reg_data[i] == -1:
                 continue
-            res += f'"{self.registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
+            res += f'Addr:{i}, "{self.registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
 
         return res[:-1]
