@@ -29,8 +29,6 @@ class Stand(object):
         self.ui.ui.reset_osc_butt.clicked.connect(self.process_reset_osc_butt)
         self.ui.ui.reset_gen_butt.clicked.connect(self.process_reset_gen_butt)
 
-        self.ui.ui.start_butt.clicked.connect(self.process_start_butt)
-
     def process_com_write_butt(self):
         try:
             self.uart.write_w_regs(self.ui.get_w_registers_data())
@@ -80,9 +78,6 @@ class Stand(object):
         pass
 
     def process_reset_gen_butt(self):
-        pass
-
-    def process_start_butt(self):
         pass
 
 

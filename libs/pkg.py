@@ -1,3 +1,5 @@
+import json
+
 class RegData(object):
     reg_data = [int.to_bytes(0, 1, 'big') for _ in range(125)]
     r_regs_start_addr_count = (
@@ -17,44 +19,7 @@ class RegData(object):
         (122, 3),
     )
 
-    def __init__(self,
-                 is_zero_init=False,
-                 # Analog
-                 CCAL=0b01,
-                 CCSA=0b01,
-                 GAIN=0b0,
-                 ICSA=0b0,
-                 SHA=0b11,
-                 SHTR=0b00,
-                 POL=0b1,
-                 BIAS_CORE_CUR=0b00,
-                 DAC_CAL=0b0000_0000,
-                 REZ=0b0000_0000,
-                 CAL_EN_CH=0b0000_0000_00,
-                 AN_CH_DISABLE=0b0000_0000_00,
-                 # Analog-digital
-                 CMP_TH=0b0001,
-                 # Digital
-                 CFG_p1_in_time=0b01011,
-                 CFG_p1_L0_over=0b10101,
-                 CFG_p2_plus_SOC=0b01000,
-                 CFG_p2_plus_SWM=0b01010,
-                 CFG_p2_plus_EOC=0b00100,
-                 CFG_p3_L1_over=0b0110_0100_01,
-                 CFG_rst_plus_EOC=0b01000,
-                 CFG_SW_force_num=0b0000_0000,
-                 CFG_SW_force_EN=0b0,
-                 CFG_OUT_INT=0b0000_000,
-                 ADC_EMU_CFG=0b0000_0000_00,
-                 EMUL_DATA_i=0b0000_0,
-                 EMUL_ADDR_i=0b000,
-                 EMUL_EN_L0=0b0,
-                 EMUL_EN_L1=0b0,
-                 EMUL_tau_v=0b00,
-                 EMUL_L0_v=0b00,
-                 EMUL_L1_v=0b0000_0000,
-                 ) -> None:
-        self.registers_metadata_addr_to_name = {
+    registers_metadata_addr_to_name = {
             # ADC read regs
             0: 'adc_val_0',
             1: 'adc_val_1',
@@ -147,7 +112,7 @@ class RegData(object):
             124: 'cfg_ch_emul_4',
         }
 
-        self.registers_metadata_name_to_addr = {
+    registers_metadata_name_to_addr = {
             # ADC read regs
             'adc_val_0': 0,
             'adc_val_1': 1,
@@ -240,6 +205,44 @@ class RegData(object):
             'cfg_ch_emul_4': 124,
         }
 
+    def __init__(self,
+                 is_zero_init=False,
+                 # Analog
+                 CCAL=0b01,
+                 CCSA=0b01,
+                 GAIN=0b0,
+                 ICSA=0b0,
+                 SHA=0b11,
+                 SHTR=0b00,
+                 POL=0b1,
+                 BIAS_CORE_CUR=0b00,
+                 DAC_CAL=0b0000_0000,
+                 REZ=0b0000_0000,
+                 CAL_EN_CH=0b0000_0000_00,
+                 AN_CH_DISABLE=0b0000_0000_00,
+                 # Analog-digital
+                 CMP_TH=0b0001,
+                 # Digital
+                 CFG_p1_in_time=0b01011,
+                 CFG_p1_L0_over=0b10101,
+                 CFG_p2_plus_SOC=0b01000,
+                 CFG_p2_plus_SWM=0b01010,
+                 CFG_p2_plus_EOC=0b00100,
+                 CFG_p3_L1_over=0b0110_0100_01,
+                 CFG_rst_plus_EOC=0b01000,
+                 CFG_SW_force_num=0b0000_0000,
+                 CFG_SW_force_EN=0b0,
+                 CFG_OUT_INT=0b0000_000,
+                 ADC_EMU_CFG=0b0000_0000_00,
+                 EMUL_DATA_i=0b0000_0,
+                 EMUL_ADDR_i=0b000,
+                 EMUL_EN_L0=0b0,
+                 EMUL_EN_L1=0b0,
+                 EMUL_tau_v=0b00,
+                 EMUL_L0_v=0b00,
+                 EMUL_L1_v=0b0000_0000,
+                 ) -> None:
+
         if is_zero_init:
             self.reg_data = [-1 for _ in range(125)]
             return
@@ -306,3 +309,85 @@ class RegData(object):
             res += f'Addr:{i}, "{self.registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
 
         return res[:-1]
+    
+    def toJSON(self):
+        reg_data_int = [int.from_bytes(i, 'big') for i in self.reg_data]
+        return json.dumps(reg_data_int, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+    
+    # def fromJSON(self, data:str):
+    #     data = self.toJSON()
+    #     json.loads(data)        
+
+
+class GeneratorSample(object):
+    def __init__(self, signal_type, offset, delay, width, lead, trail, ampl, freq, is_triggered) -> None:
+        self.signal_type = signal_type
+        self.offset = offset
+        self.delay = delay
+        self.width = width
+        self.lead = lead
+        self.trail = trail
+        self.ampl = ampl
+        self.freq = freq
+        self.is_triggered = is_triggered
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+
+class TestSample(object):
+    def __init__(self, constants:RegData, samples:list[GeneratorSample]) -> None:
+        self.test_count = len(samples)
+        self.constants = [int.from_bytes(i, 'big') for i in constants.reg_data]
+        self.samples = samples
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+    
+class Scenario(object):
+    def __init__(self, name:str='default name', description:str="", tests:list[TestSample] = []) -> None:
+        self.name = name
+        self.description = description
+        self.total_test_count = 0
+        for i in tests:
+            self.total_test_count += i.test_count
+        self.layers_count = len(tests)
+        self.tests = tests
+
+    def add_layer(self, test:TestSample):
+        self.layers_count += 1
+        self.tests.append(test)
+        self.total_test_count += test.test_count
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+    
+    def fromJSON(self, file):
+        data = json.load(file)
+        self.description = data['description']
+        self.layers_count = data['layers_count']
+        self.name = data['name']
+        self.total_test_count = data['total_test_count']
+
+        for test in data['tests']:
+            test_reg_bytes = RegData()
+            test_reg_bytes.reg_data = [int.to_bytes(i, 1, 'big') for i in test['constants']]
+            tests = TestSample(test_reg_bytes, [])
+            tests.test_count = test['test_count']
+
+            for sample in test['samples']:
+                smpl = GeneratorSample(
+                    ampl=sample['ampl'],
+                    delay=sample['delay'],
+                    freq=sample['freq'],
+                    is_triggered=sample['is_triggered'],
+                    lead=sample['lead'],
+                    offset=sample['offset'],
+                    signal_type=sample['signal_type'],
+                    trail=sample['trail'],
+                    width=sample['width'],
+                )
+                tests.samples.append(smpl)
+            self.tests.append(tests)
+        file.close()
