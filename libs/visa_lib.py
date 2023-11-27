@@ -99,12 +99,12 @@ class Visa(object):
     ARB_SIGNAL_TYPE = "USER"
 
     # GUI signals functions
-    PULSE_BOX_TYPE = "PULSE"
-    SQUARE_BOX_TYPE = "SQUARE"
-    SINE_BOX_TYPE = "SINE"
-    RAMP_BOX_TYPE = "RAMP"
-    NOISE_BOX_TYPE = "NOISE"
-    ARB_BOX_TYPE = "ARB"
+    PULSE_BOX_TYPE = "Pulse"
+    SQUARE_BOX_TYPE = "Square"
+    SINE_BOX_TYPE = "Sine"
+    RAMP_BOX_TYPE = "Ramp"
+    NOISE_BOX_TYPE = "Noise"
+    ARB_BOX_TYPE = "Arb"
 
     oscilloscope: visa.Resource
     generator: visa.Resource
@@ -182,6 +182,7 @@ class Visa(object):
             raise Exception(self.EXCEPTION_INVALID_RESOURCE)
 
         self.first_configure(res)
+        return res
 
     def connect_osc(self, address: str):
         try:
@@ -289,3 +290,22 @@ class Visa(object):
         self.prep_oscilloscope(chan_num, trig_lvl)
         self.send_command(self.oscilloscope, ":SING")
         self.send_command(self.oscilloscope, f":MEAS:SOUR CHAN{str(chan_num)}")
+
+    def is_resourses_connected(self) -> bool:
+        # return self.generator.
+        pass
+
+    def res_list(self) -> list[tuple[str, str]]:
+        result = []
+        buff_res:visa.Resource
+        resourses = self.rm.list_resources()
+        for res in resourses:
+            buff_res = self.rm.open_resource(res)
+            buff_res_detail = "no data"
+            try:
+                buff_res_detail = self.query(buff_res, self.COMMAND_IDN)
+            except:
+                print(f'Bad access to resourse {res}')
+            result.append((res, buff_res_detail))
+
+        return result

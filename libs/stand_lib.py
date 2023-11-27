@@ -21,6 +21,8 @@ class Stand(object):
         self.ui.ui.com_read_r_butt.clicked.connect(self.process_com_read_r_butt)
         self.ui.ui.com_read_rw_butt.clicked.connect(self.process_com_read_rw_butt)
         self.ui.ui.com_conn_butt.clicked.connect(self.process_com_conn_butt)
+        
+        self.ui.ui.butt_set_default_regs.clicked.connect(self.process_set_default_reg_values_butt)
 
         self.ui.ui.oscilloscope_conn_butt.clicked.connect(
             self.process_oscilloscope_conn_butt)
@@ -28,6 +30,8 @@ class Stand(object):
             self.process_generator_conn_butt)
         self.ui.ui.reset_osc_butt.clicked.connect(self.process_reset_osc_butt)
         self.ui.ui.reset_gen_butt.clicked.connect(self.process_reset_gen_butt)
+
+        self.ui.ui.scan_res_butt.clicked.connect(self.process_scan_res_butt)
 
     def process_com_write_butt(self):
         try:
@@ -69,16 +73,42 @@ class Stand(object):
             return
 
     def process_oscilloscope_conn_butt(self):
-        pass
+        try:
+            self.visa.connect_osc(self.ui.ui.oscilloscope_addr.text())
+            self.ui.logging("Successfull connect oscilloscope")
+        except Exception as e:
+            self.ui.logging("ERROR connect oscilloscope: ", e.args[0])
+            return
 
     def process_generator_conn_butt(self):
-        pass
+        try:
+            self.visa.connect_gen(self.ui.ui.generator_addr.text())
+            self.ui.logging("Successfull connect generator")
+        except Exception as e:
+            self.ui.logging("ERROR connect generator: ", e.args[0])
+            return
 
     def process_reset_osc_butt(self):
-        pass
+        try:
+            self.visa.reset_oscilloscope()
+            self.ui.logging("Successfull disconnect oscilloscope")
+        except Exception as e:
+            self.ui.logging("ERROR disconnect oscilloscope: ", e.args[0])
+            return
 
     def process_reset_gen_butt(self):
-        pass
+        try:
+            self.visa.reset_generator()
+            self.ui.logging("Successfull disconnect generator")
+        except Exception as e:
+            self.ui.logging("ERROR disconnect generator: ", e.args[0])
+            return
+
+    def process_scan_res_butt(self):
+        self.ui.log_resources(self.visa.res_list())
+
+    def process_set_default_reg_values_butt(self):
+        self.ui.set_reg_values(RegData())
 
 
 if __name__ == "__main__":
