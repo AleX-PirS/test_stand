@@ -366,6 +366,11 @@ class GeneratorSample(object):
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
+class Channel(object):
+    def __init__(self, name:str, index:int) -> None:
+        self.name = name
+        self.index = index
+
 
 class TestSample(object):
     def __init__(self, constants:RegData, samples:list[GeneratorSample]) -> None:
@@ -378,7 +383,8 @@ class TestSample(object):
 
     
 class Scenario(object):
-    def __init__(self, name:str='default name', description:str="", tests:list[TestSample] = []) -> None:
+    def __init__(self, channels:list[Channel] = [], name:str='default name', description:str="", tests:list[TestSample] = []) -> None:
+        self.channels = channels
         self.name = name
         self.description = description
         self.total_test_count = 0
@@ -397,6 +403,7 @@ class Scenario(object):
     
     def fromJSON(self, file):
         data = json.load(file)
+        self.channels = data['channels']
         self.description = data['description']
         self.layers_count = data['layers_count']
         self.name = data['name']
@@ -423,3 +430,12 @@ class Scenario(object):
                 tests.samples.append(smpl)
             self.tests.append(tests)
         file.close()
+
+
+# test = GeneratorSample("PULSE", 1, 12, 123, 4, 12, 24, 124, True)
+# consts = RegData()
+
+# sample = TestSample(consts, [test, test])
+
+# scen = Scenario(channels=[Channel("name", 1), Channel("some", 2)], description="desc", name="name", tests=[sample])
+# print(scen.toJSON())
