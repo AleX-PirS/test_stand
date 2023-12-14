@@ -65,12 +65,15 @@ class UART(object):
         self.is_connection_open()
         package = [self.WRITE_WORD, start_addr,
                    int.to_bytes(len(data), 1, "big")]
-
+        # Actual version
         for byte in package:
             self.ser.write(byte)
 
         for byte in data:
             self.ser.write(byte)
+        # Test version
+        # for byte in package+data:
+        #     self.ser.write(byte)
 
     def read_reg(self, start_addr: bytes, count: bytes) -> list[bytes]:
         self.is_connection_open()

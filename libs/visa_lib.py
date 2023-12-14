@@ -298,7 +298,7 @@ class Visa(object):
     def res_list(self) -> list[tuple[str, str]]:
         result = []
         buff_res:visa.Resource
-        resourses = self.rm.list_resources()
+        resourses = self.rm.list_resources("TCPIP")
         for res in resourses:
             buff_res = self.rm.open_resource(res)
             buff_res_detail = "no data"

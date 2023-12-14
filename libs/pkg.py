@@ -432,6 +432,10 @@ class Scenario(object):
         file.close()
 
 
+# class ScenarioProcessing():
+
+
+
 # test = GeneratorSample("PULSE", 1, 12, 123, 4, 12, 24, 124, True)
 # consts = RegData()
 

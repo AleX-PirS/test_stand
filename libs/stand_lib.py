@@ -40,6 +40,14 @@ class Stand(object):
         except Exception as e:
             self.ui.logging("ERROR send constants: ", e.args[0])
             return
+        # Send custom data
+        # try:
+        #     self.uart.write_reg(int.to_bytes(65, 1, 'big'), [int.to_bytes(255, 1, 'big') for i in range(70)])
+        #     self.ui.logging("Constants sended succesfully")
+        # except Exception as e:
+        #     self.ui.logging("ERROR send constants: ", e.args[0])
+        #     return
+
 
     def process_com_read_all_butt(self):
         try:

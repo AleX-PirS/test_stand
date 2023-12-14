@@ -1,3 +1,2 @@
 all:
-
-add hotkey for "*.ui -> ui_gen.py" generations
+	python -m PyQt5.uic.pyuic -x gui.ui -o ui_gen.py
