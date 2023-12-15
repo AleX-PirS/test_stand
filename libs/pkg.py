@@ -352,7 +352,7 @@ class RegData(object):
 
 
 class GeneratorSample(object):
-    def __init__(self, signal_type, offset, delay, width, lead, trail, ampl, freq, is_triggered) -> None:
+    def __init__(self, signal_type, offset, delay, width, lead, trail, ampl, freq, is_triggered, trig_lvl) -> None:
         self.signal_type = signal_type
         self.offset = offset
         self.delay = delay
@@ -362,6 +362,7 @@ class GeneratorSample(object):
         self.ampl = ampl
         self.freq = freq
         self.is_triggered = is_triggered
+        self.trig_lvl = trig_lvl
 
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -426,6 +427,7 @@ class Scenario(object):
                     signal_type=sample['signal_type'],
                     trail=sample['trail'],
                     width=sample['width'],
+                    trig_lvl=sample['trig_lvl'],
                 )
                 tests.samples.append(smpl)
             self.tests.append(tests)

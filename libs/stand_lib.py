@@ -15,23 +15,29 @@ class Stand(object):
         self.ui = Ui()
         self.uart = UART()
         self.visa = Visa()
-
+        # Registers panel
         self.ui.ui.com_write_butt.clicked.connect(self.process_com_write_butt)
         self.ui.ui.com_read_all_butt.clicked.connect(self.process_com_read_all_butt)
         self.ui.ui.com_read_r_butt.clicked.connect(self.process_com_read_r_butt)
         self.ui.ui.com_read_rw_butt.clicked.connect(self.process_com_read_rw_butt)
         self.ui.ui.com_conn_butt.clicked.connect(self.process_com_conn_butt)
-        
+        # Constants panel
         self.ui.ui.butt_set_default_regs.clicked.connect(self.process_set_default_reg_values_butt)
-
+        # Environment panel
         self.ui.ui.oscilloscope_conn_butt.clicked.connect(
             self.process_oscilloscope_conn_butt)
         self.ui.ui.generator_conn_butt.clicked.connect(
             self.process_generator_conn_butt)
         self.ui.ui.reset_osc_butt.clicked.connect(self.process_reset_osc_butt)
         self.ui.ui.reset_gen_butt.clicked.connect(self.process_reset_gen_butt)
-
         self.ui.ui.scan_res_butt.clicked.connect(self.process_scan_res_butt)
+        # Generator settings panel
+        self.ui.ui.gen_zero_butt.clicked.connect(self.process_set_zeros_generator_butt)
+        # Logs panel
+        self.ui.ui.clean_log_butt.clicked.connect(self.process_clear_log_butt)
+        
+        # TEST BUTT
+        self.ui.ui.start_butt.clicked.connect(self.process_TEST_BUTT)
 
     def process_com_write_butt(self):
         try:
@@ -117,6 +123,15 @@ class Stand(object):
 
     def process_set_default_reg_values_butt(self):
         self.ui.set_reg_values(RegData())
+
+    def process_set_zeros_generator_butt(self):
+        self.ui.set_generator_data_zero()
+
+    def process_clear_log_butt(self):
+        self.ui.clear_log()
+
+    def process_TEST_BUTT(self):
+        self.ui.get_generator_data_scenario()
 
 
 if __name__ == "__main__":

@@ -2264,6 +2264,9 @@
         <height>21</height>
        </rect>
       </property>
+      <property name="editable">
+       <bool>false</bool>
+      </property>
       <item>
        <property name="text">
         <string>Off (0)</string>
@@ -4253,7 +4256,7 @@
       <enum>Qt::Horizontal</enum>
      </property>
     </widget>
-    <widget class="QPushButton" name="com_conn_butt_2">
+    <widget class="QPushButton" name="gen_zero_butt">
      <property name="geometry">
       <rect>
        <x>40</x>
@@ -4323,7 +4326,7 @@
     <zorder>line_32</zorder>
     <zorder>line_33</zorder>
     <zorder>line_22</zorder>
-    <zorder>com_conn_butt_2</zorder>
+    <zorder>gen_zero_butt</zorder>
    </widget>
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
@@ -4335,7 +4338,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
