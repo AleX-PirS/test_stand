@@ -26,6 +26,8 @@ class Ui(object):
     NOISE_BOX_TYPE = "Noise"
     ARB_BOX_TYPE = "Arb"
 
+    is_regs_readonly = False
+
     def __init__(self) -> None:
         self.app = QtWidgets.QApplication(sys.argv)
         self.MainWindow = QtWidgets.QMainWindow()
@@ -207,8 +209,8 @@ class Ui(object):
         if finish==start or finish==0.0:
             return [start]
         
-        if finish<start:
-            raise Exception("Finish value less than start value.")
+        # if finish<start:
+        #     raise Exception("Finish value less than start value.")
 
         result = []
         match rule:
@@ -218,7 +220,7 @@ class Ui(object):
                     result.append(round(i*step+start, 3))
                 return result
             case "logarithmic":
-                if start == 0.0:
+                if start == 0.0 or finish == 0.0:
                     raise Exception("Forbidden to use zero value with logarithmic scale.")
                 step = (finish/start)**(1/(count-1))
                 for i in range(count):
@@ -380,6 +382,7 @@ class Ui(object):
         # Сделать сдесь следующее поведение: переключение readOnly у окон.
         # Для выпадающих окон создаю строки ридонли, в которые буду записывать значения и делать их видимыми при тесте
         # выпадающие буду делать невидимыми и тд.
+
         # self.ui.comboBox_CCAL.
         # self.ui.comboBox_CCSA.
         # self.ui.comboBox_GAIN.
@@ -396,22 +399,23 @@ class Ui(object):
         # self.ui.comboBox_CMP_TH.
         # self.ui.comboBox_CFG_SW_force_EN.setVisible()
 
-        # self.ui.spinBox_DAC_CAL.isReadOnly()
-        # self.ui.spinBox_REZ.
-        # self.ui.spinBox_CAL_EN_CH.
-        # self.ui.spinBox_AN_CH_DISABLE.
-        # self.ui.spinBox_CFG_p1_in_time.
-        # self.ui.spinBox_CFG_p1_L0_over.
-        # self.ui.spinBox_CFG_p2_puls_SOC.
-        # self.ui.spinBox_CFG_p2_puls_SWM.
-        # self.ui.spinBox_CFG_p2_puls_EOC.
-        # self.ui.spinBox_CFG_p3_L1_over.
-        # self.ui.spinBox_CFG_rst_puls_EOC.
-        # self.ui.spinBox_CFG_SW_force_num.
-        # self.ui.spinBox_CFG_OUT_INT.
-        # self.ui.spinBox_ADC_EMU_CFG.
-        # self.ui.spinBox_EMUL_DATA_i.
-        # self.ui.spinBox_EMUL_L1_v.
+        # self.ui.spinBox_DAC_CAL.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_REZ.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CAL_EN_CH.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_AN_CH_DISABLE.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CFG_p1_in_time.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CFG_p1_L0_over.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CFG_p2_puls_SOC.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CFG_p2_puls_SWM.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CFG_p2_puls_EOC.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CFG_p3_L1_over.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CFG_rst_puls_EOC.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CFG_SW_force_num.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_CFG_OUT_INT.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_ADC_EMU_CFG.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_EMUL_DATA_i.setReadOnly(self.is_regs_readonly)
+        # self.ui.spinBox_EMUL_L1_v.setReadOnly(self.is_regs_readonly)
+        # self.is_regs_readonly = not self.is_regs_readonly
 
 
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
