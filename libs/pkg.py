@@ -1,4 +1,5 @@
 import json
+import os
 
 class RegData(object):
     reg_data = [int.to_bytes(0, 1, 'big') for _ in range(125)]
@@ -384,6 +385,8 @@ class TestSample(object):
 
     
 class Scenario(object):
+    path = os.path.dirname(os.path.abspath(__file__)) + r'\scenarios\\'
+
     def __init__(self, channels:list[Channel] = [], name:str='default name', description:str="", tests:list[TestSample] = []) -> None:
         self.channels = channels
         self.name = name
@@ -432,6 +435,12 @@ class Scenario(object):
                 tests.samples.append(smpl)
             self.tests.append(tests)
         file.close()
+
+    def save_scenario(self)->None:
+        with open(self.path + self.name+'.json', 'w') as file:
+            file.write(self.toJSON())
+            file.close
+
 
 
 # class ScenarioProcessing():

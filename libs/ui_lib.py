@@ -1,12 +1,14 @@
+from re import M
 from PyQt5 import QtWidgets
 import sys
 import datetime
 import regex
 from pytz import timezone
 import math
+from itertools import product
 
 from ui_gen import Ui_MainWindow
-from pkg import RegData, GeneratorSample
+from pkg import Channel, RegData, GeneratorSample
 
 
 class Ui(object):
@@ -158,9 +160,9 @@ class Ui(object):
             case "ps" | "Hz":
                 return value*10**(-3)
             case "ms":
-                return value*10**(-6)
+                return value*10**(6)
             case "s":
-                return value*10**(-9)
+                return value*10**(9)
             case _:
                 raise Exception("Bad dimension.")
             
@@ -196,17 +198,17 @@ class Ui(object):
         )
 
     def create_sequence_samples(self, start, finish, count, rule) -> list[float]:
-        if finish<start:
-            raise Exception("Finish value less than start value.")
-        
-        if finish==start or finish==0.0:
-            return [start]
-        
         match count:
             case 1:
                 return [start]
             case 2:
                 return [start, finish]
+            
+        if finish==start or finish==0.0:
+            return [start]
+        
+        if finish<start:
+            raise Exception("Finish value less than start value.")
 
         result = []
         match rule:
@@ -228,63 +230,66 @@ class Ui(object):
     def get_generator_data_scenario(self)-> list[GeneratorSample]:
         sig_type = self.process_signal_type(self.ui.signal_type_box.currentText())
         offset = self.process_value_power(self.ui.offset.value(), self.ui.comboBox_offset.currentText())
+        delay = self.process_value_power(self.ui.delay.value(), self.ui.comboBox_delay.currentText())
         trig = self.process_value_power(self.ui.trig_lvl.value(), self.ui.comboBox_trig_lvl.currentText())
         is_triggered = self.ui.checkBox_is_triggered.isChecked()
-
         width_sequence = self.create_sequence_samples(
             start=self.process_value_power(self.ui.width.value(), self.ui.comboBox_width.currentText()),
             finish=self.process_value_power(self.ui.width_2.value(), self.ui.comboBox_width_2.currentText()),
             count=self.ui.spinBox_width_times.value(),
             rule=self.ui.comboBox_width_delta.currentText(),
         )
-
         lead_sequence = self.create_sequence_samples(
             start=self.process_value_power(self.ui.lead.value(), self.ui.comboBox_lead.currentText()),
             finish=self.process_value_power(self.ui.lead_2.value(), self.ui.comboBox_lead_2.currentText()),
             count=self.ui.spinBox_lead_times.value(),
             rule=self.ui.comboBox_lead_delta.currentText(),
         )
-
         trail_sequence = self.create_sequence_samples(
             start=self.process_value_power(self.ui.trail.value(), self.ui.comboBox_trail.currentText()),
             finish=self.process_value_power(self.ui.trail_2.value(), self.ui.comboBox_trail_2.currentText()),
             count=self.ui.spinBox_trail_times.value(),
             rule=self.ui.comboBox_trail_delta.currentText(),
         )
-
         ampl_sequence = self.create_sequence_samples(
             start=self.process_value_power(self.ui.ampl.value(), self.ui.comboBox_ampl.currentText()),
             finish=self.process_value_power(self.ui.ampl_2.value(), self.ui.comboBox_ampl_2.currentText()),
             count=self.ui.spinBox_ampl_times.value(),
             rule=self.ui.comboBox_ampl_delta.currentText(),
         )
-
         freq_sequence = self.create_sequence_samples(
             start=self.process_value_power(self.ui.freq.value(), self.ui.comboBox_freq.currentText()),
             finish=self.process_value_power(self.ui.freq_2.value(), self.ui.comboBox_freq_2.currentText()),
             count=self.ui.spinBox_freq_times.value(),
             rule=self.ui.comboBox_freq_delta.currentText(),
         )
+        parameters_lists = list(product(
+            width_sequence,
+            lead_sequence,
+            trail_sequence,
+            ampl_sequence,
+            freq_sequence,
+        ))
 
-        # lead_times_value = self.ui.spinBox_lead_times.value()
-        # lead_delta_rule = self.ui.comboBox_lead_delta.currentText()
-        # lead = self.process_value_power(self.ui.lead.value(), self.ui.comboBox_lead.currentText())
-        # lead_2 = self.process_value_power(self.ui.lead_2.value(), self.ui.comboBox_lead_2.currentText())
+        scenario_samples = []
+        for sample in parameters_lists:
+            scenario_samples.append(GeneratorSample(
+                signal_type=sig_type,
+                is_triggered=is_triggered,
+                trig_lvl=trig,
+                offset=offset,
+                delay=delay,
+                width=sample[0],
+                lead=sample[1],
+                trail=sample[2],
+                ampl=sample[3],
+                freq=sample[4],
+            ))
 
-        # trail_times_value = self.ui.spinBox_trail_times.value()
-        # trail_delta_rule = self.ui.comboBox_trail_delta.currentText()
-        # trail = self.process_value_power(self.ui.trail.value(), self.ui.comboBox_trail.currentText())
-        # trail_2 = self.process_value_power(self.ui.trail_2.value(), self.ui.comboBox_trail_2.currentText())
-
-        # ampl_times_value = self.ui.spinBox_ampl_times.value()
-        # ampl_delta_rule = self.ui.comboBox_ampl_delta.currentText()
-        # ampl = self.process_value_power(self.ui.ampl.value(), self.ui.comboBox_ampl.currentText())
-        # ampl_2 = self.process_value_power(self.ui.ampl_2.value(), self.ui.comboBox_ampl_2.currentText())
-
-        # freq_times_value = self.ui.spinBox_freq_times.value()
-        # freq_delta_rule = self.ui.comboBox_freq_delta.currentText()
-        # freq = self.process_value_power(self.ui.freq.value(), self.ui.comboBox_freq.currentText())
-        # freq_2 = self.process_value_power(self.ui.freq_2.value(), self.ui.comboBox_freq_2.currentText())
+        if len(scenario_samples) == 1:
+            if scenario_samples[0].width+scenario_samples[0].ampl+scenario_samples[0].lead+scenario_samples[0].trail== 0:
+                return []
+        return scenario_samples
 
     def set_generator_data_zero(self) -> None:
         self.ui.signal_type_box.setCurrentIndex(0)
@@ -326,36 +331,88 @@ class Ui(object):
         self.ui.trig_lvl.setValue(0)
         self.ui.comboBox_trig_lvl.setCurrentIndex(0)
 
-    def change_rw_constants(self) -> bool:
+    def reset_scenario_data(self)->None:
+        self.ui.scenario_name.setText("")
+        self.ui.scenario_desc_plain_text_input.setPlainText("")
+        self.ui.spinBox_layer_count.setValue(0)
+        self.ui.scenario_status_plain_text.setPlainText("")
+
+    def get_scenario_data(self) -> (str, str, int):
+        return self.ui.scenario_name.text(), self.ui.scenario_desc_plain_text_input.toPlainText(), self.ui.spinBox_layer_count.value()
+
+    def increase_layer_count(self) -> None:
+        self.ui.spinBox_layer_count.setValue(self.ui.spinBox_layer_count.value() + 1)
+
+    def decrease_layer_count(self) -> None:
+        self.ui.spinBox_layer_count.setValue(self.ui.spinBox_layer_count.value() - 1)
+
+    def add_log_layer_data(self, layer_count, test_count) -> None:
+        history = self.ui.scenario_status_plain_text.toPlainText()
+        self.ui.scenario_status_plain_text.setPlainText(history+f"layer:{layer_count}, tests:{test_count};\n")
+
+    def get_channels_data(self):
+        # Добавить сюда обработку источника триггера
+        channels = []
+        if self.ui.checkBox_is_use_chan_1.isChecked():
+            name = self.ui.line_chan_1_name.text().strip()
+            if name == "":
+                raise Exception(f"Empty signal name for channel #1")
+            channels.append(Channel(name, 1))
+        if self.ui.checkBox_is_use_chan_2.isChecked():
+            name = self.ui.line_chan_2_name.text().strip()
+            if name == "":
+                raise Exception(f"Empty signal name for channel #2")
+            channels.append(Channel(name, 2))
+        if self.ui.checkBox_is_use_chan_3.isChecked():
+            name = self.ui.line_chan_3_name.text().strip()
+            if name == "":
+                raise Exception(f"Empty signal name for channel #3")
+            channels.append(Channel(name, 3))
+        if self.ui.checkBox_is_use_chan_4.isChecked():
+            name = self.ui.line_chan_4_name.text().strip()
+            if name == "":
+                raise Exception(f"Empty signal name for channel #4")
+            channels.append(Channel(name, 4))
+        return channels
+        
+
+    # def change_rw_constants(self) -> bool:
         # Сделать сдесь следующее поведение: переключение readOnly у окон.
-        self.ui.comboBox_CCAL.
-        self.ui.comboBox_CCSA.
-        self.ui.comboBox_GAIN.
-        self.ui.comboBox_ICSA.
-        self.ui.comboBox_SHA.
-        self.ui.comboBox_SHTR.
-        self.ui.comboBox_POL.
-        self.ui.comboBox_BIAS_CORE_CUR.
-        self.ui.comboBox_EMUL_ADDR_i.
-        self.ui.comboBox_EMUL_EN_L0.
-        self.ui.comboBox_EMUL_EN_L1.
-        self.ui.comboBox_EMUL_tau_v.
-        self.ui.comboBox_EMUL_L0_v.
-        self.ui.comboBox_CMP_TH.
-        self.ui.comboBox_CFG_SW_force_EN.
-        self.ui.spinBox_DAC_CAL.
-        self.ui.spinBox_REZ.
-        self.ui.spinBox_CAL_EN_CH.
-        self.ui.spinBox_AN_CH_DISABLE.
-        self.ui.spinBox_CFG_p1_in_time.
-        self.ui.spinBox_CFG_p1_L0_over.
-        self.ui.spinBox_CFG_p2_puls_SOC.
-        self.ui.spinBox_CFG_p2_puls_SWM.
-        self.ui.spinBox_CFG_p2_puls_EOC.
-        self.ui.spinBox_CFG_p3_L1_over.
-        self.ui.spinBox_CFG_rst_puls_EOC.
-        self.ui.spinBox_CFG_SW_force_num.
-        self.ui.spinBox_CFG_OUT_INT.
-        self.ui.spinBox_ADC_EMU_CFG.
-        self.ui.spinBox_EMUL_DATA_i.
-        self.ui.spinBox_EMUL_L1_v.
+        # Для выпадающих окон создаю строки ридонли, в которые буду записывать значения и делать их видимыми при тесте
+        # выпадающие буду делать невидимыми и тд.
+        # self.ui.comboBox_CCAL.
+        # self.ui.comboBox_CCSA.
+        # self.ui.comboBox_GAIN.
+        # self.ui.comboBox_ICSA.
+        # self.ui.comboBox_SHA.
+        # self.ui.comboBox_SHTR.
+        # self.ui.comboBox_POL.
+        # self.ui.comboBox_BIAS_CORE_CUR.
+        # self.ui.comboBox_EMUL_ADDR_i.
+        # self.ui.comboBox_EMUL_EN_L0.
+        # self.ui.comboBox_EMUL_EN_L1.
+        # self.ui.comboBox_EMUL_tau_v.
+        # self.ui.comboBox_EMUL_L0_v.
+        # self.ui.comboBox_CMP_TH.
+        # self.ui.comboBox_CFG_SW_force_EN.setVisible()
+
+        # self.ui.spinBox_DAC_CAL.isReadOnly()
+        # self.ui.spinBox_REZ.
+        # self.ui.spinBox_CAL_EN_CH.
+        # self.ui.spinBox_AN_CH_DISABLE.
+        # self.ui.spinBox_CFG_p1_in_time.
+        # self.ui.spinBox_CFG_p1_L0_over.
+        # self.ui.spinBox_CFG_p2_puls_SOC.
+        # self.ui.spinBox_CFG_p2_puls_SWM.
+        # self.ui.spinBox_CFG_p2_puls_EOC.
+        # self.ui.spinBox_CFG_p3_L1_over.
+        # self.ui.spinBox_CFG_rst_puls_EOC.
+        # self.ui.spinBox_CFG_SW_force_num.
+        # self.ui.spinBox_CFG_OUT_INT.
+        # self.ui.spinBox_ADC_EMU_CFG.
+        # self.ui.spinBox_EMUL_DATA_i.
+        # self.ui.spinBox_EMUL_L1_v.
+
+
+# QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
+# QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)

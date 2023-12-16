@@ -1,7 +1,7 @@
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import RegData
+from pkg import RegData, Scenario, TestSample
 
 import sys
 
@@ -12,6 +12,8 @@ class Stand(object):
     visa: Visa
 
     def __init__(self) -> None:
+        self.main_scenario = Scenario()
+
         self.ui = Ui()
         self.uart = UART()
         self.visa = Visa()
@@ -35,6 +37,11 @@ class Stand(object):
         self.ui.ui.gen_zero_butt.clicked.connect(self.process_set_zeros_generator_butt)
         # Logs panel
         self.ui.ui.clean_log_butt.clicked.connect(self.process_clear_log_butt)
+        # Scenario processing panel
+        self.ui.ui.reset_scen_butt.clicked.connect(self.process_reset_scenario_butt)
+        self.ui.ui.generate_scen_butt.clicked.connect(self.process_generate_scenario_butt)
+        self.ui.ui.add_layer_scen_butt.clicked.connect(self.process_add_layer_butt)
+        # self.ui.ui.delete
         
         # TEST BUTT
         self.ui.ui.start_butt.clicked.connect(self.process_TEST_BUTT)
@@ -130,8 +137,55 @@ class Stand(object):
     def process_clear_log_butt(self):
         self.ui.clear_log()
 
+    def process_reset_scenario_butt(self):
+        self.ui.reset_scenario_data()
+        self.main_scenario = Scenario()
+        self.ui.logging("Successfully reset scenario")
+
+    def process_add_layer_butt(self):
+        try:
+            samples = self.ui.get_generator_data_scenario()
+        except Exception as e:
+            self.ui.logging("ERROR get generator samples data: ", e.args[0])
+            return
+        self.ui.increase_layer_count()
+        _, _, count = self.ui.get_scenario_data()
+        self.ui.add_log_layer_data(count, len(samples))
+
+        self.main_scenario.add_layer(
+            TestSample(
+                self.ui.get_w_registers_data(),
+                samples,
+            )
+        )
+        self.ui.logging(f"Successfully added a new scenario layer #{count}")
+
+    def process_generate_scenario_butt(self):
+        name, desc, _ = self.ui.get_scenario_data()
+        if name.strip() == "":
+            self.ui.logging("Please, write the scenario name!")
+            return
+        try:
+            channels = self.ui.get_channels_data()
+        except Exception as e:
+            self.ui.logging("ERROR get data about signals: ", e.args[0])
+            return
+        self.main_scenario.name = name
+        self.main_scenario.description = desc
+        self.main_scenario.channels = channels
+        try:
+            self.main_scenario.save_scenario()
+        except Exception as e:
+            self.ui.logging("ERROR create a new scenario: ", e.args[0])
+            return
+        self.ui.logging(f"Successfull creation of a new scenario '{self.main_scenario.name}'. Layers: {self.main_scenario.layers_count}, total tests:{self.main_scenario.total_test_count}")
+        self.process_reset_scenario_butt()
+
     def process_TEST_BUTT(self):
-        self.ui.get_generator_data_scenario()
+        data = self.ui.get_generator_data_scenario()
+        for sample in data:
+            print(sample.toJSON())
+        self.ui.log_registers(f"len: {len(data)}")
 
 
 if __name__ == "__main__":
