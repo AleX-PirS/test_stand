@@ -1,6 +1,6 @@
 import serial
 
-from pkg import RegData
+from pkg import RegData, rw_regs_start_addr_count, r_regs_start_addr_count
 
 
 class UART(object):
@@ -14,6 +14,7 @@ class UART(object):
 
         self.WRITE_WORD = int.to_bytes(0b01110111, 1, 'big')
         self.READ_WORD = int.to_bytes(0b01110010, 1, 'big')
+        self.START_WORD = int.to_bytes(0b01110011, 1, "big")
 
     def connect_com(self, com: str):
         try:
@@ -44,22 +45,25 @@ class UART(object):
         return reg_data
 
     def read_all_regs(self) -> RegData:
-        return self.read_i_regs((RegData.r_regs_start_addr_count + RegData.rw_regs_start_addr_count))
+        return self.read_i_regs((r_regs_start_addr_count + rw_regs_start_addr_count))
 
     def read_r_regs(self) -> RegData:
-        return self.read_i_regs(RegData.r_regs_start_addr_count)
+        return self.read_i_regs(r_regs_start_addr_count)
 
     def read_rw_regs(self) -> RegData:
-        return self.read_i_regs(RegData.rw_regs_start_addr_count)
+        return self.read_i_regs(rw_regs_start_addr_count)
 
     def write_w_regs(self, data: RegData):
-        for tupl in RegData.rw_regs_start_addr_count:
+        for tupl in rw_regs_start_addr_count:
             start_addr = tupl[0]
             count = tupl[1]
             self.write_reg(
                 int.to_bytes(start_addr, 1, "big"),
                 data.reg_data[start_addr:start_addr+count],
             )
+
+    def send_start_command(self):
+        self.ser.write(self.START_WORD)
 
     def write_reg(self, start_addr: bytes, data: list[bytes]):
         self.is_connection_open()
@@ -122,16 +126,16 @@ class UART(object):
             raise Exception("No connection to COM PORT.")
         return
 
-    def listen_uart(self):
-        while True:
-            data = self.ser.read()
-            match data:
-                case self.WRITE_WORD:
-                    print("GET WRITE WORD FROM FPGA")
-                    pass
-                case self.READ_WORD:
-                    print("GET READ WORD FROM FPGA")
-                    pass
-                case _:
-                    print("GET UNSIGNED DATA FROM FPGA:", data)
-                    pass
+    # def listen_uart(self):
+    #     while True:
+    #         data = self.ser.read()
+    #         match data:
+    #             case self.WRITE_WORD:
+    #                 print("GET WRITE WORD FROM FPGA")
+    #                 pass
+    #             case self.READ_WORD:
+    #                 print("GET READ WORD FROM FPGA")
+    #                 pass
+    #             case _:
+    #                 print("GET UNSIGNED DATA FROM FPGA:", data)
+    #                 pass

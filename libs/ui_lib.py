@@ -8,7 +8,7 @@ import math
 from itertools import product
 
 from ui_gen import Ui_MainWindow
-from pkg import Channel, RegData, GeneratorSample
+from pkg import Channel, RegData, GeneratorSample, Scenario, registers_metadata_name_to_addr
 
 
 class Ui(object):
@@ -110,7 +110,7 @@ class Ui(object):
             EMUL_L1_v=self.ui.spinBox_EMUL_L1_v.value(),
         )
 
-    def set_reg_values(self, regs:RegData):
+    def set_default_reg_values(self, regs:RegData):
         self.ui.comboBox_CCAL.setCurrentIndex(0)
         self.ui.comboBox_CCSA.setCurrentIndex(0)
         self.ui.comboBox_GAIN.setCurrentIndex(0)
@@ -142,6 +142,91 @@ class Ui(object):
         self.ui.comboBox_EMUL_tau_v.setCurrentIndex(0)
         self.ui.comboBox_EMUL_L0_v.setCurrentIndex(0)
         self.ui.spinBox_EMUL_L1_v.setValue(regs.DEFAULT_EMUL_L1_v)
+
+    def set_reg_values(self, regs:RegData):
+        self.ui.spinBox_DAC_CAL.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['dac_cal']], 1, "big"))
+        # self.ui.spinBox_REZ.setValue(regs.DEFAULT_REZ)
+        # self.ui.spinBox_CAL_EN_CH.setValue(regs.DEFAULT_CAL_EN_CH)
+        # self.ui.spinBox_AN_CH_DISABLE.setValue(regs.DEFAULT_AN_CH_DISABLE)
+        # self.ui.spinBox_CFG_p1_in_time.setValue(regs.DEFAULT_CFG_p1_in_time)
+        # self.ui.spinBox_CFG_p1_L0_over.setValue(regs.DEFAULT_CFG_p1_L0_over)
+        # self.ui.spinBox_CFG_p2_puls_SOC.setValue(regs.DEFAULT_CFG_p2_plus_SOC)
+        # self.ui.spinBox_CFG_p2_puls_SWM.setValue(regs.DEFAULT_CFG_p2_plus_SWM)
+        # self.ui.spinBox_CFG_p2_puls_EOC.setValue(regs.DEFAULT_CFG_p2_plus_EOC)
+        # self.ui.spinBox_CFG_p3_L1_over.setValue(regs.DEFAULT_CFG_p3_L1_over)
+        # self.ui.spinBox_CFG_rst_puls_EOC.setValue(regs.DEFAULT_CFG_rst_plus_EOC)
+        # self.ui.spinBox_CFG_SW_force_num.setValue(regs.DEFAULT_CFG_SW_force_num)
+        # self.ui.spinBox_CFG_OUT_INT.setValue(regs.DEFAULT_CFG_OUT_INT)
+        # self.ui.spinBox_ADC_EMU_CFG.setValue(regs.DEFAULT_ADC_EMU_CFG)
+        # self.ui.spinBox_EMUL_DATA_i.setValue(regs.DEFAULT_EMUL_DATA_i)
+        # self.ui.spinBox_EMUL_L1_v.setValue(regs.DEFAULT_EMUL_L1_v)
+
+        # self.ui.comboBox_CCAL.setCurrentIndex(0)
+        # self.ui.comboBox_CCSA.setCurrentIndex(0)
+        # self.ui.comboBox_GAIN.setCurrentIndex(0)
+        # self.ui.comboBox_ICSA.setCurrentIndex(0)
+        # self.ui.comboBox_SHA.setCurrentIndex(0)
+        # self.ui.comboBox_SHTR.setCurrentIndex(0)
+        # self.ui.comboBox_POL.setCurrentIndex(0)
+        # self.ui.comboBox_BIAS_CORE_CUR.setCurrentIndex(0)
+        # self.ui.comboBox_CMP_TH.setCurrentIndex(0)
+        # self.ui.comboBox_CFG_SW_force_EN.setCurrentIndex(0)
+        # self.ui.comboBox_EMUL_ADDR_i.setCurrentIndex(0)
+        # self.ui.comboBox_EMUL_EN_L0.setCurrentIndex(0)
+        # self.ui.comboBox_EMUL_EN_L1.setCurrentIndex(0)
+        # self.ui.comboBox_EMUL_tau_v.setCurrentIndex(0)
+        # self.ui.comboBox_EMUL_L0_v.setCurrentIndex(0)
+
+        # self.reg_data[self.registers_metadata_name_to_addr['analog_ctrl_0']] = int.to_bytes(
+        #     (CCAL << 6)+(CCSA << 4)+(GAIN << 3)+(ICSA << 2)+(SHA), 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['analog_ctrl_1']] = int.to_bytes(
+        #     (SHTR << 6)+(POL << 5)+(BIAS_CORE_CUR << 3), 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['dac_cal']] = int.to_bytes(
+        #     DAC_CAL, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cal_en_0']] = int.to_bytes(
+        #     CAL_EN_CH >> 2, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cal_en_1']] = int.to_bytes(
+        #     (0b11 & CAL_EN_CH) << 6, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['rez']
+        #               ] = int.to_bytes(REZ, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['an_ch_disable_15']] = int.to_bytes(
+        #     AN_CH_DISABLE >> 2, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['an_ch_disable_16']] = int.to_bytes(
+        #     (0b11 & AN_CH_DISABLE) << 6, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['digit_analog_ctrl_0']] = int.to_bytes(
+        #     CMP_TH, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_p1_in_time']] = int.to_bytes(
+        #     CFG_p1_in_time, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_p1_l0_over']] = int.to_bytes(
+        #     CFG_p1_L0_over, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_p2_plus_soc']] = int.to_bytes(
+        #     CFG_p2_plus_SOC, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_p2_plus_swm']] = int.to_bytes(
+        #     CFG_p2_plus_SWM, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_p2_plus_eoc']] = int.to_bytes(
+        #     CFG_p2_plus_EOC, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_rst_plus_eoc']] = int.to_bytes(
+        #     CFG_rst_plus_EOC, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_p3_l1_over_0']] = int.to_bytes(
+        #     CFG_p3_L1_over >> 5, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_p3_l1_over_1']] = int.to_bytes(
+        #     0b11111 & CFG_p3_L1_over, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_out_int']] = int.to_bytes(
+        #     CFG_OUT_INT, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_clk_gen_0']] = int.to_bytes(
+        #     ADC_EMU_CFG >> 2, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_clk_gen_1']] = int.to_bytes(
+        #     (0b11 & ADC_EMU_CFG) << 6, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_sw_force_num']] = int.to_bytes(
+        #     CFG_SW_force_num, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_sw_force_en']] = int.to_bytes(
+        #     CFG_SW_force_EN, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_ch_emul_2']] = int.to_bytes(
+        #     EMUL_L1_v, 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_ch_emul_3']] = int.to_bytes(
+        #     (EMUL_L0_v << 4)+(EMUL_tau_v << 2)+(EMUL_EN_L1 << 1)+(EMUL_EN_L0), 1, 'big')
+        # self.reg_data[self.registers_metadata_name_to_addr['cfg_ch_emul_4']] = int.to_bytes(
+        #     (EMUL_ADDR_i << 5)+(EMUL_DATA_i), 1, 'big')
 
     def get_code_from_box(self, data: str) -> int:
         try:
@@ -353,7 +438,6 @@ class Ui(object):
         self.ui.scenario_status_plain_text.setPlainText(history+f"layer:{layer_count}, tests:{test_count};\n")
 
     def get_channels_data(self):
-        # Добавить сюда обработку источника триггера
         channels = []
         if self.ui.checkBox_is_use_chan_1.isChecked():
             name = self.ui.line_chan_1_name.text().strip()
@@ -375,48 +459,64 @@ class Ui(object):
             if name == "":
                 raise Exception(f"Empty signal name for channel #4")
             channels.append(Channel(name, 4))
-        return channels
+        return channels, self.ui.trigger_src_box.currentIndex()
         
+    def delete_last_layer(self):
+        if self.ui.spinBox_layer_count.value() == 0:
+            return
+        self.decrease_layer_count()
+        history = self.ui.scenario_status_plain_text.toPlainText()
+        history_parts = history.split("\n")
+        data = ""
+        for part in history_parts[:-2]:
+            data += part + "\n"
+        self.ui.scenario_status_plain_text.setPlainText(data)
 
-    # def change_rw_constants(self) -> bool:
-        # Сделать сдесь следующее поведение: переключение readOnly у окон.
-        # Для выпадающих окон создаю строки ридонли, в которые буду записывать значения и делать их видимыми при тесте
-        # выпадающие буду делать невидимыми и тд.
+    def change_rw_constants(self) -> bool:
+        self.ui.comboBox_CCAL.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_CCSA.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_GAIN.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_ICSA.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_SHA.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_SHTR.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_POL.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_BIAS_CORE_CUR.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_ADDR_i.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_EN_L0.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_EN_L1.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_tau_v.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_L0_v.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_CMP_TH.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_CFG_SW_force_EN.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_DAC_CAL.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_REZ.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CAL_EN_CH.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_AN_CH_DISABLE.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p1_in_time.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p1_L0_over.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p2_puls_SOC.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p2_puls_SWM.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p2_puls_EOC.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p3_L1_over.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_rst_puls_EOC.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_SW_force_num.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_OUT_INT.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_ADC_EMU_CFG.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_EMUL_DATA_i.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_EMUL_L1_v.setEnabled(self.is_regs_readonly)
+        self.ui.butt_set_default_regs.setEnabled(self.is_regs_readonly)
+        self.is_regs_readonly = not self.is_regs_readonly
 
-        # self.ui.comboBox_CCAL.
-        # self.ui.comboBox_CCSA.
-        # self.ui.comboBox_GAIN.
-        # self.ui.comboBox_ICSA.
-        # self.ui.comboBox_SHA.
-        # self.ui.comboBox_SHTR.
-        # self.ui.comboBox_POL.
-        # self.ui.comboBox_BIAS_CORE_CUR.
-        # self.ui.comboBox_EMUL_ADDR_i.
-        # self.ui.comboBox_EMUL_EN_L0.
-        # self.ui.comboBox_EMUL_EN_L1.
-        # self.ui.comboBox_EMUL_tau_v.
-        # self.ui.comboBox_EMUL_L0_v.
-        # self.ui.comboBox_CMP_TH.
-        # self.ui.comboBox_CFG_SW_force_EN.setVisible()
+    def update_scenario_combo_box(self, scenarios:list[Scenario]):
+        self.ui.comboBox_scenarios.clear()
+        for scenario in scenarios:
+            self.ui.comboBox_scenarios.addItem(scenario.name)
 
-        # self.ui.spinBox_DAC_CAL.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_REZ.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CAL_EN_CH.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_AN_CH_DISABLE.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CFG_p1_in_time.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CFG_p1_L0_over.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CFG_p2_puls_SOC.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CFG_p2_puls_SWM.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CFG_p2_puls_EOC.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CFG_p3_L1_over.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CFG_rst_puls_EOC.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CFG_SW_force_num.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_CFG_OUT_INT.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_ADC_EMU_CFG.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_EMUL_DATA_i.setReadOnly(self.is_regs_readonly)
-        # self.ui.spinBox_EMUL_L1_v.setReadOnly(self.is_regs_readonly)
-        # self.is_regs_readonly = not self.is_regs_readonly
+    def update_scenario_description(self, desc):
+        self.ui.scenario_desc_plain_text_output.setPlainText(desc)
 
+    def get_current_scenario_box_index(self)->int:
+        return self.ui.comboBox_scenarios.currentIndex()
 
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)

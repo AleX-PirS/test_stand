@@ -1,5 +1,7 @@
 import pyvisa as visa
 
+from pkg import GeneratorSample
+
 
 class SampleSettings(object):
     settings: {}
@@ -262,6 +264,20 @@ class Visa(object):
 
         if errors != "":
             raise Exception(self.EXCEPTION_INVALID_SIGNAL_SETTINGS, errors)
+        
+    def configurate_generator_sample_v2(self, config:GeneratorSample):
+        self.send_command(self.generator, f":FUNC {config.signal_type}")
+        match config.signal_type:
+            case self.PULSE_SIGNAL_TYPE:
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:WIDT {config.width}ns")
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN {config.lead}ns")
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN:TRA {config.trail}ns")
+            case self.SQUARE_SIGNAL_TYPE | self.RAMP_SIGNAL_TYPE | self.SINE_SIGNAL_TYPE | self.ARB_SIGNAL_TYPE:
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:DEL {config.delay}ns")
+            case self.NOISE_SIGNAL_TYPE:
+                pass
+        self.send_command(self.generator, f":FREQ {config.freq}kHz")
+        # Дописать остальные параметры, норм взять offset и амплитуду
 
     def measure(self, chan_num: int) -> Sample:
         Edge = self.query(self.oscilloscope,

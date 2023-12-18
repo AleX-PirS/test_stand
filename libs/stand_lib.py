@@ -1,7 +1,7 @@
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import RegData, Scenario, TestSample
+from pkg import RegData, Scenario, TestSample, find_scenarios
 
 import sys
 
@@ -13,6 +13,8 @@ class Stand(object):
 
     def __init__(self) -> None:
         self.main_scenario = Scenario()
+        self.list_of_scenarios = list[Scenario]
+        self.scenario_to_start = Scenario()
 
         self.ui = Ui()
         self.uart = UART()
@@ -41,10 +43,17 @@ class Stand(object):
         self.ui.ui.reset_scen_butt.clicked.connect(self.process_reset_scenario_butt)
         self.ui.ui.generate_scen_butt.clicked.connect(self.process_generate_scenario_butt)
         self.ui.ui.add_layer_scen_butt.clicked.connect(self.process_add_layer_butt)
-        # self.ui.ui.delete
-        
+        self.ui.ui.delete_layer_scen_butt.clicked.connect(self.process_delete_layer_butt)
+        # Start scenario sampling
+        self.ui.ui.comboBox_scenarios.currentIndexChanged.connect(self.process_scenario_box)
+        self.ui.ui.scan_scen_butt.clicked.connect(self.process_scan_butt)
+        # Manual testing
+        self.ui.ui.gen_config_butt.clicked.connect(self.process_config_gen_butt)
+        self.ui.ui.gen_out_butt.clicked.connect(self.process_out_toggle_butt)
+        self.ui.ui.measure_butt.clicked.connect(self.process_measure_butt)
+
         # TEST BUTT
-        self.ui.ui.start_butt.clicked.connect(self.process_TEST_BUTT)
+        self.ui.ui.start_butt.clicked.connect(self.process_TEST_BUTT_THAT_IS_MANUAL_START)
 
     def process_com_write_butt(self):
         try:
@@ -129,7 +138,7 @@ class Stand(object):
         self.ui.log_resources(self.visa.res_list())
 
     def process_set_default_reg_values_butt(self):
-        self.ui.set_reg_values(RegData())
+        self.ui.set_default_reg_values(RegData())
 
     def process_set_zeros_generator_butt(self):
         self.ui.set_generator_data_zero()
@@ -139,8 +148,7 @@ class Stand(object):
 
     def process_reset_scenario_butt(self):
         self.ui.reset_scenario_data()
-        self.main_scenario = Scenario()
-        self.ui.logging("Successfully reset scenario")
+        self.main_scenario = Scenario([], "", "", [], 0)
 
     def process_add_layer_butt(self):
         try:
@@ -161,18 +169,22 @@ class Stand(object):
         self.ui.logging(f"Successfully added a new scenario layer #{count}")
 
     def process_generate_scenario_butt(self):
+        if self.main_scenario.layers_count == 0:
+            self.ui.logging("ERROR generate a new scenario. Zero layers count")
+            return
         name, desc, _ = self.ui.get_scenario_data()
         if name.strip() == "":
             self.ui.logging("Please, write the scenario name!")
             return
         try:
-            channels = self.ui.get_channels_data()
+            channels, trig_src = self.ui.get_channels_data()
         except Exception as e:
             self.ui.logging("ERROR get data about signals: ", e.args[0])
             return
         self.main_scenario.name = name
         self.main_scenario.description = desc
         self.main_scenario.channels = channels
+        self.main_scenario.trig_src = trig_src
         try:
             self.main_scenario.save_scenario()
         except Exception as e:
@@ -181,11 +193,38 @@ class Stand(object):
         self.ui.logging(f"Successfull creation of a new scenario '{self.main_scenario.name}'. Layers: {self.main_scenario.layers_count}, total tests:{self.main_scenario.total_test_count}")
         self.process_reset_scenario_butt()
 
-    def process_TEST_BUTT(self):
-        data = self.ui.get_generator_data_scenario()
-        for sample in data:
-            print(sample.toJSON())
-        self.ui.log_registers(f"len: {len(data)}")
+    def process_delete_layer_butt(self):
+        self.main_scenario.delete_last_layer()
+        self.ui.delete_last_layer()
+
+    def process_scenario_box(self):
+        index = self.ui.get_current_scenario_box_index()
+        if index == -1:
+            return
+        self.ui.update_scenario_description(self.list_of_scenarios[index].description)
+        self.scenario_to_start = self.list_of_scenarios[index]
+
+    def process_scan_butt(self):
+        try:
+            self.list_of_scenarios = find_scenarios()
+        except Exception as e:
+            self.ui.logging("ERROR scan scenario files: ", e.args[0])
+            return
+        self.ui.update_scenario_combo_box(self.list_of_scenarios)
+        self.process_scenario_box()
+
+    def process_config_gen_butt(self):
+        pass
+
+    def process_out_toggle_butt(self):
+        pass
+
+    def process_measure_butt(self):
+        pass
+
+    def process_TEST_BUTT_THAT_IS_MANUAL_START(self):
+        self.uart.send_start_command()
+        # find_scenarios()
 
 
 if __name__ == "__main__":

@@ -2,12 +2,15 @@
 <ui version="4.0">
  <class>MainWindow</class>
  <widget class="QMainWindow" name="MainWindow">
+  <property name="enabled">
+   <bool>true</bool>
+  </property>
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
     <width>1152</width>
-    <height>906</height>
+    <height>971</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -702,6 +705,9 @@
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_CCAL">
+      <property name="enabled">
+       <bool>true</bool>
+      </property>
       <property name="geometry">
        <rect>
         <x>50</x>
@@ -3449,6 +3455,9 @@
      <property name="singleStep">
       <double>1.000000000000000</double>
      </property>
+     <property name="value">
+      <double>200.000000000000000</double>
+     </property>
     </widget>
     <widget class="QLabel" name="Ampl_4">
      <property name="geometry">
@@ -4338,7 +4347,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -4784,7 +4793,7 @@
         <string>Reset</string>
        </property>
       </widget>
-      <widget class="QPushButton" name="add_layer_scen_butt_2">
+      <widget class="QPushButton" name="delete_layer_scen_butt">
        <property name="geometry">
         <rect>
          <x>130</x>
@@ -5006,7 +5015,7 @@
       <x>0</x>
       <y>770</y>
       <width>1151</width>
-      <height>131</height>
+      <height>201</height>
      </rect>
     </property>
     <widget class="QPlainTextEdit" name="logs_plain_text">
@@ -5015,7 +5024,7 @@
        <x>10</x>
        <y>20</y>
        <width>1131</width>
-       <height>111</height>
+       <height>171</height>
       </rect>
      </property>
      <property name="readOnly">
@@ -5046,7 +5055,7 @@
      <property name="geometry">
       <rect>
        <x>0</x>
-       <y>120</y>
+       <y>190</y>
        <width>1151</width>
        <height>21</height>
       </rect>
@@ -5061,7 +5070,7 @@
        <x>1140</x>
        <y>0</y>
        <width>20</width>
-       <height>131</height>
+       <height>201</height>
       </rect>
      </property>
      <property name="orientation">
@@ -5074,7 +5083,7 @@
        <x>-10</x>
        <y>0</y>
        <width>20</width>
-       <height>131</height>
+       <height>201</height>
       </rect>
      </property>
      <property name="orientation">
@@ -5283,6 +5292,16 @@
       <string>Chip name:</string>
      </property>
     </widget>
+   </widget>
+   <widget class="QGraphicsView" name="graphicsView">
+    <property name="geometry">
+     <rect>
+      <x>740</x>
+      <y>500</y>
+      <width>401</width>
+      <height>271</height>
+     </rect>
+    </property>
    </widget>
   </widget>
  </widget>
