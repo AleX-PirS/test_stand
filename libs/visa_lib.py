@@ -1,41 +1,30 @@
+from numpy import mat
 import pyvisa as visa
 
-from pkg import GeneratorSample
+from pkg import Channel, GeneratorSample
 
+# Queries for connect resources
+QUERY_OSCILLOSCOPE = "MSOS204A"
+QUERY_GENERATOR = "811"
 
-class SampleSettings(object):
-    settings: {}
+CHANNEL_PROB_CONST = "1.0"
 
-    def __init__(self, freq, delay, width, lead, trail, ampl, sig_type):
-        self.settings["f"] = freq
-        self.settings["d"] = delay
-        self.settings["w"] = width
-        self.settings["l"] = lead
-        self.settings["t"] = trail
-        self.settings["a"] = ampl
-        self.settings["type"] = sig_type
+# Start resource configuration
+RESOURCE_TIMEOUT = 5000
+RESOURCE_QUERY_DELAY = 0.1
+RESOURCE_CHUNCK_SIZE = 100_000
+RESOURCE_TERM_CHARS = ""
+RESOURCE_READ_TERMINATION = "\n"
+RESOURCE_WRITE_TERMINATION = "\0"
+RESOURCE_BAUD_RATE = 115200
 
-    def get_freq(self):
-        return str(self.settings["f"])
-
-    def get_delay(self):
-        return str(self.settings["d"])
-
-    def get_width(self):
-        return str(self.settings["w"])
-
-    def get_lead(self):
-        return str(self.settings["l"])
-
-    def get_trail(self):
-        return str(self.settings["t"])
-
-    def get_ampl(self):
-        return str(self.settings["a"])
-
-    def get_signal_type(self):
-        return str(self.settings["type"])
-
+# KEYSIGHT most common commands
+COMMAND_QUERY = "?"
+COMMAND_RESET = "*RST"
+COMMAND_CLEAR = "*CLS"
+COMMAND_ERR_OSCILLOSCOPE = ":SYST:ERR? STR"
+COMMAND_ERR_GENERATOR = ":SYST:ERR?"
+COMMAND_IDN = "*IDN?"
 
 class Sample(object):
     sample: {}
@@ -48,98 +37,30 @@ class Sample(object):
 
 
 class Visa(object):
-    # Exceptions
-    EXCEPTION_INVALID_RESOURCE = "invalid resource"
-    EXCEPTION_INVALID_SIGNAL_SETTINGS = "invalid signal settings"
-
-    # Queries for connect resources
-    QUERY_OSCILLOSCOPE = "MSOS204A"
-    QUERY_GENERATOR = "811"
-
-    CHANNEL_PROB_CONST = "1.0"
-
-    # Start resource configuration
-    RESOURCE_TIMEOUT = 5000
-    RESOURCE_QUERY_DELAY = 0.1
-    RESOURCE_CHUNCK_SIZE = 100_000
-    RESOURCE_TERM_CHARS = ""
-    RESOURCE_READ_TERMINATION = "\n"
-    RESOURCE_WRITE_TERMINATION = "\0"
-    RESOURCE_BAUD_RATE = 115200
-
-    # KEYSIGHT commands
-    # STILL DOESN'T USED
-    COMMAND_QUERY = "?"
-    COMMAND_RESET = "*RST"
-    COMMAND_CLEAR = "*CLS"
-    COMMAND_ERR_OSCILLOSCOPE = ":SYST:ERR? STR"
-    COMMAND_ERR_GENERATOR = ":SYST:ERR?"
-    COMMAND_IDN = "*IDN?"
-    CHAN_NUM = "CHAN"
-    COMMAND_TRIG = ":TRIG"
-    COMMAND_MODE = ":MODE"
-    COMMAND_EDGE = ":EDGE"
-    MODE_EDGE = "EDGE"
-    COMMAND_LEV = ":LEV"
-    COMMAND_SOUR = ":SOUR"
-    COMMAND_CLOP = ":SLOP"
-    SLOP_POS = "POS"
-    SLOP_NEG = "NEG"
-    COMMAND_SWEEP = ":SWE"
-    SWEEP_SING = "SING"
-    # Fast commands
-    SET_TRIG_MODE = COMMAND_TRIG+COMMAND_MODE
-    SET_TRIG_EDGE_SOUR = COMMAND_TRIG+COMMAND_EDGE+COMMAND_SOUR+" "+CHAN_NUM
-    SET_TRIG_LEV = COMMAND_TRIG+COMMAND_LEV+" "+CHAN_NUM
-
-    # KEYSIGHT signals functions
-    PULSE_SIGNAL_TYPE = "PULS"
-    SQUARE_SIGNAL_TYPE = "SQU"
-    SINE_SIGNAL_TYPE = "SIN"
-    RAMP_SIGNAL_TYPE = "RAMP"
-    NOISE_SIGNAL_TYPE = "NOIS"
-    ARB_SIGNAL_TYPE = "USER"
-
-    # GUI signals functions
-    PULSE_BOX_TYPE = "Pulse"
-    SQUARE_BOX_TYPE = "Square"
-    SINE_BOX_TYPE = "Sine"
-    RAMP_BOX_TYPE = "Ramp"
-    NOISE_BOX_TYPE = "Noise"
-    ARB_BOX_TYPE = "Arb"
-
-    oscilloscope: visa.Resource
-    generator: visa.Resource
-    rm: visa.ResourceManager
-
     def __init__(self) -> None:
         self.rm = visa.ResourceManager("@py")
+        self.oscilloscope = visa.Resource(self.rm, "oscilloscope")
+        self.generator = visa.Resource(self.rm, "generator")
 
     def send_command(self, resource: visa.Resource, comm: str):
-        try:
-            resource.write(comm)
-        except:
-            raise
+        resource.write(comm)
 
     def query(self, resource: visa.Resource, comm: str) -> str:
         q = ""
-        try:
-            q = resource.query(comm).strip()
-        except:
-            raise
+        q = resource.query(comm).strip()
         return q
 
     def first_configure(self, resource: visa.Resource):
         resource.clear()
-        resource.timeout = self.RESOURCE_TIMEOUT
-        resource.query_delay = self.RESOURCE_QUERY_DELAY
-        resource.chunk_size = self.RESOURCE_CHUNCK_SIZE
-        resource.term_chars = self.RESOURCE_TERM_CHARS
-        resource.read_termination = self.RESOURCE_READ_TERMINATION
-        resource.write_termination = self.RESOURCE_WRITE_TERMINATION
-        resource.baud_rate = self.RESOURCE_BAUD_RATE
-        self.send_command(resource, self.COMMAND_CLEAR)
-        self.send_command(resource, self.COMMAND_RESET)
+        resource.timeout = RESOURCE_TIMEOUT
+        resource.query_delay = RESOURCE_QUERY_DELAY
+        resource.chunk_size = RESOURCE_CHUNCK_SIZE
+        resource.term_chars = RESOURCE_TERM_CHARS
+        resource.read_termination = RESOURCE_READ_TERMINATION
+        resource.write_termination = RESOURCE_WRITE_TERMINATION
+        resource.baud_rate = RESOURCE_BAUD_RATE
+        self.send_command(resource, COMMAND_CLEAR)
+        self.send_command(resource, COMMAND_RESET)
 
     def detect_errors(self, resource: visa.Resource) -> str:
         err_string = ""
@@ -147,11 +68,9 @@ class Visa(object):
             str_err = ""
             match resource:
                 case self.oscilloscope:
-                    str_err = resource.query(
-                        self.COMMAND_ERR_OSCILLOSCOPE).strip()
+                    str_err = resource.query(COMMAND_ERR_OSCILLOSCOPE).strip()
                 case self.generator:
-                    str_err = resource.query(
-                        self.COMMAND_ERR_GENERATOR).strip()
+                    str_err = resource.query(COMMAND_ERR_GENERATOR).strip()
 
             arr_err = str_err.split(",")
 
@@ -167,71 +86,44 @@ class Visa(object):
             err_string += "Comm err: " + arr_err[1] + "\n"
 
         if len(err_string) > 1:
-            return err_string[:-1]
-        return err_string
+            if err_string[:-1] != "":
+                raise Exception("Get some errors:", err_string[:-1])
 
     def connect_resource(self, address: str, query: str) -> visa.Resource:
         res: visa.Resource
-        try:
-            res = self.rm.open_resource(address)
-        except:
-            raise
+        res = self.rm.open_resource(address)
 
-        idn = self.query(res, self.COMMAND_IDN)
+        idn = self.query(res, COMMAND_IDN)
         if idn.find(query) == -1:
             res.close()
             print(f"Invalid resource, need {query}, get {idn}")
-            raise Exception(self.EXCEPTION_INVALID_RESOURCE)
+            raise Exception("Invalid resource")
 
         self.first_configure(res)
         return res
 
     def connect_osc(self, address: str):
-        try:
-            self.oscilloscope = self.connect_resource(
-                address, self.QUERY_OSCILLOSCOPE)
-        except:
-            raise
+        self.oscilloscope = self.connect_resource(address, QUERY_OSCILLOSCOPE)
 
     def connect_gen(self, address: str):
-        try:
-            self.generator = self.connect_resource(
-                address, self.QUERY_GENERATOR)
-        except:
-            raise
-
-    def signal_type_from_box(self, type: str) -> str:
-        match type:
-            case self.PULSE_BOX_TYPE:
-                return self.PULSE_SIGNAL_TYPE
-            case self.SQUARE_BOX_TYPE:
-                return self.SQUARE_SIGNAL_TYPE
-            case self.SINE_BOX_TYPE:
-                return self.SINE_SIGNAL_TYPE
-            case self.RAMP_BOX_TYPE:
-                return self.RAMP_SIGNAL_TYPE
-            case self.NOISE_BOX_TYPE:
-                return self.NOISE_SIGNAL_TYPE
-            case self.ARB_BOX_TYPE:
-                return self.ARB_SIGNAL_TYPE
+        self.generator = self.connect_resource(address, QUERY_GENERATOR)
 
     def reset_resourse(self, resource: visa.Resource):
-        self.send_command(resource, self.COMMAND_CLEAR)
-        self.send_command(resource, self.COMMAND_RESET)
-        try:
-            resource.close()
-        except:
-            raise
+        self.send_command(resource, COMMAND_CLEAR)
+        self.send_command(resource, COMMAND_RESET)
+        resource.close()
 
     def reset_oscilloscope(self):
+        self.v2_oscilloscope_ping()
         self.reset_resourse(self.oscilloscope)
 
     def reset_generator(self):
+        self.v2_generator_ping()
         self.reset_resourse(self.generator)
 
     def prep_oscilloscope(self, chan_numb: int, trig_lvl: int):
         self.send_command(
-            self.oscilloscope, f":CHAN{str(chan_numb)}:PROB {self.CHANNEL_PROB_CONST}")
+            self.oscilloscope, f":CHAN{str(chan_numb)}:PROB {CHANNEL_PROB_CONST}")
         # self.send_command(self.osc, ":SELECT:CH1 ON")
         # chose trig mode
         self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
@@ -244,74 +136,56 @@ class Visa(object):
         # setting type sweep
         self.send_command(self.oscilloscope, ":TRIG:SWE SING")
 
-    def configure_generator_sample(self, data: SampleSettings):
-        signal_type = self.signal_type_from_box(data.get_signal_type())
+    # def configure_generator_sample(self, data: SampleSettings):
+    #     signal_type = self.signal_type_from_box(data.get_signal_type())
 
-        self.send_command(self.generator, f":FUNC {signal_type}")
-        self.send_command(self.generator, f":FREQ {data.get_freq()}Hz")
-        self.send_command(self.generator, f":VOLT:HIGH {data.get_ampl()}mV")
-        self.send_command(self.generator, f":VOLT:LOW 0V")
-        self.send_command(
-            self.generator, f":FUNC:{signal_type}:WIDT {data.get_width()}ns")
-        self.send_command(
-            self.generator, f":FUNC:{signal_type}:DEL {data.get_delay()}s")
-        self.send_command(
-            self.generator, f":FUNC:{signal_type}:TRAN {data.get_lead()}ns")
-        self.send_command(
-            self.generator, f":FUNC:{signal_type}:TRAN:TRA {data.get_trail()}ns")
+    #     self.send_command(self.generator, f":FUNC {signal_type}")
+    #     self.send_command(self.generator, f":FREQ {data.get_freq()}Hz")
+    #     self.send_command(self.generator, f":VOLT:HIGH {data.get_ampl()}mV")
+    #     self.send_command(self.generator, f":VOLT:LOW 0V")
+    #     self.send_command(
+    #         self.generator, f":FUNC:{signal_type}:WIDT {data.get_width()}ns")
+    #     self.send_command(
+    #         self.generator, f":FUNC:{signal_type}:DEL {data.get_delay()}s")
+    #     self.send_command(
+    #         self.generator, f":FUNC:{signal_type}:TRAN {data.get_lead()}ns")
+    #     self.send_command(
+    #         self.generator, f":FUNC:{signal_type}:TRAN:TRA {data.get_trail()}ns")
 
-        errors = self.detect_errors(self.generator)
+    #     errors = self.detect_errors(self.generator)
 
-        if errors != "":
-            raise Exception(self.EXCEPTION_INVALID_SIGNAL_SETTINGS, errors)
-        
-    def configurate_generator_sample_v2(self, config:GeneratorSample):
-        self.send_command(self.generator, f":FUNC {config.signal_type}")
-        match config.signal_type:
-            case self.PULSE_SIGNAL_TYPE:
-                self.send_command(self.generator, f":FUNC:{config.signal_type}:WIDT {config.width}ns")
-                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN {config.lead}ns")
-                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN:TRA {config.trail}ns")
-            case self.SQUARE_SIGNAL_TYPE | self.RAMP_SIGNAL_TYPE | self.SINE_SIGNAL_TYPE | self.ARB_SIGNAL_TYPE:
-                self.send_command(self.generator, f":FUNC:{config.signal_type}:DEL {config.delay}ns")
-            case self.NOISE_SIGNAL_TYPE:
-                pass
-        self.send_command(self.generator, f":FREQ {config.freq}kHz")
-        # Дописать остальные параметры, норм взять offset и амплитуду
+    #     if errors != "":
+    #         raise Exception("invalid signal settings", errors)
 
-    def measure(self, chan_num: int) -> Sample:
-        Edge = self.query(self.oscilloscope,
-                          f":MEAS:EDGE? CHAN{str(chan_num)}")
-        Amplitude = self.query(
-            self.oscilloscope, f":MEAS:VAMP? CHAN{str(chan_num)}")
-        Fall = self.query(self.oscilloscope,
-                          f":MEAS:FALL? CHAN{str(chan_num)}")
-        Frequency = self.query(
-            self.oscilloscope, f":MEAS:FREQ? CHAN{str(chan_num)}")
+    # def measure(self, chan_num: int) -> Sample:
+    #     Edge = self.query(self.oscilloscope,
+    #                       f":MEAS:EDGE? CHAN{str(chan_num)}")
+    #     Amplitude = self.query(
+    #         self.oscilloscope, f":MEAS:VAMP? CHAN{str(chan_num)}")
+    #     Fall = self.query(self.oscilloscope,
+    #                       f":MEAS:FALL? CHAN{str(chan_num)}")
+    #     Frequency = self.query(
+    #         self.oscilloscope, f":MEAS:FREQ? CHAN{str(chan_num)}")
 
-        sample = Sample(edge=Edge, ampl=Amplitude, fall=Fall, freq=Frequency)
+    #     sample = Sample(edge=Edge, ampl=Amplitude, fall=Fall, freq=Frequency)
 
-        return sample
+    #     return sample
 
-    def do_sample(self, chan_num: int, generator_settings: SampleSettings, trig_lvl: int):
-        self.send_command(self.generator, f":OUTP{str(chan_num)} ON")
-        try:
-            self.configure_generator_sample(generator_settings)
-        except Exception as e:
-            if e.args[0] == self.EXCEPTION_INVALID_SIGNAL_SETTINGS:
-                print("Bad signal settings")
-                return e.args[1]
-            return
+    # def do_sample(self, chan_num: int, generator_settings: SampleSettings, trig_lvl: int):
+    #     self.send_command(self.generator, f":OUTP{str(chan_num)} ON")
+    #     try:
+    #         self.configure_generator_sample(generator_settings)
+    #     except Exception as e:
+    #         if e.args[0] == self.EXCEPTION_INVALID_SIGNAL_SETTINGS:
+    #             print("Bad signal settings")
+    #             return e.args[1]
+    #         return
 
-        self.prep_oscilloscope(chan_num, trig_lvl)
-        self.send_command(self.oscilloscope, ":SING")
-        self.send_command(self.oscilloscope, f":MEAS:SOUR CHAN{str(chan_num)}")
+    #     self.prep_oscilloscope(chan_num, trig_lvl)
+    #     self.send_command(self.oscilloscope, ":SING")
+    #     self.send_command(self.oscilloscope, f":MEAS:SOUR CHAN{str(chan_num)}")
 
-    def is_resourses_connected(self) -> bool:
-        # return self.generator.
-        pass
-
-    def res_list(self) -> list[tuple[str, str]]:
+    def resource_list(self) -> list[tuple[str, str]]:
         result = []
         buff_res:visa.Resource
         resourses = self.rm.list_resources("TCPIP")
@@ -319,9 +193,84 @@ class Visa(object):
             buff_res = self.rm.open_resource(res)
             buff_res_detail = "no data"
             try:
-                buff_res_detail = self.query(buff_res, self.COMMAND_IDN)
+                buff_res_detail = self.query(buff_res, COMMAND_IDN)
             except:
                 print(f'Bad access to resourse {res}')
             result.append((res, buff_res_detail))
 
         return result
+    
+    def v2_configurate_generator_sample(self, config:GeneratorSample):
+        self.v2_generator_ping()
+        self.send_command(self.generator, f":FUNC {config.signal_type}")
+        self.send_command(self.generator, f":FREQ {config.freq}kHz")
+        self.send_command(self.generator, f":VOLT:OFFS {config.offset}mV")
+        self.send_command(self.generator, f":VOLT {config.ampl}mV")
+        # self.send_command(self.generator, f":VOLT:HIGH {config.offset}mV")
+        if config.is_triggered:
+            self.send_command(self.generator, f":ARM:SOUR EXT")
+            self.send_command(self.generator, f":ARM:LEV {config.trig_lvl}mV")
+        else:
+            self.send_command(self.generator, f":ARM:SOUR IMM")
+
+        match config.signal_type:
+            case "PULS":
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:WIDT {config.width}ns")
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN {config.lead}ns")
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN:TRA {config.trail}ns")
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:DEL {config.delay}ns")
+            case "SQU" | "RAMP" | "SIN" | "USER":
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:DEL {config.delay}ns")
+            case "NOIS":
+                pass
+
+        self.detect_errors(self.generator)
+    
+    def v2_toggle_out(self, index:int):
+        self.v2_generator_ping()
+        data = self.query(self.generator, f":OUT{index}?")
+        match data:
+            case "OFF" | "0":
+                self.send_command(self.generator, f":OUT{index} ON")
+            case "ON" | "1":
+                self.send_command(self.generator, f":OUT{index} OFF")
+        self.detect_errors(self.generator)
+
+    def v2_on_out(self, index:int):
+        self.v2_generator_ping()
+        self.send_command(self.generator, f":OUT{index} ON")
+        self.detect_errors(self.generator)
+    
+    def v2_on_out(self, index:int):
+        self.v2_generator_ping()
+        self.send_command(self.generator, f":OUT{index} ON")
+        self.detect_errors(self.generator)
+
+    def v2_configurate_oscilloscope_sample(self, channels:list[Channel], trig_src):
+        self.v2_oscilloscope_ping()
+        match trig_src:
+            case 0:
+                pass
+            case 5:
+                self.send_command(self.oscilloscope, f"")
+            case 1|2|3|4:
+                self.send_command(self.oscilloscope, f"")
+
+        self.detect_errors(self.oscilloscope)
+
+    def v2_measure_oscilloscope(self):
+        self.v2_oscilloscope_ping()
+
+        self.detect_errors(self.oscilloscope)
+
+    def v2_generator_ping(self):
+        try:
+            self.query(self.generator, COMMAND_IDN)
+        except:
+            raise Exception("No generator connection.")
+
+    def v2_oscilloscope_ping(self):
+        try:
+            self.query(self.generator, COMMAND_IDN)
+        except:
+            raise Exception("No oscilloscope connection.")

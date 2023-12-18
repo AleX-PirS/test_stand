@@ -8,24 +8,12 @@ import math
 from itertools import product
 
 from ui_gen import Ui_MainWindow
-from pkg import Channel, RegData, GeneratorSample, Scenario, registers_metadata_name_to_addr
+from pkg import Channel, RegData, GeneratorSample, Scenario
+from pkg import registers_metadata_name_to_addr
+from pkg import process_signal_type
 
 
 class Ui(object):
-    PULSE_SIGNAL_TYPE = "PULS"
-    SQUARE_SIGNAL_TYPE = "SQU"
-    SINE_SIGNAL_TYPE = "SIN"
-    RAMP_SIGNAL_TYPE = "RAMP"
-    NOISE_SIGNAL_TYPE = "NOIS"
-    ARB_SIGNAL_TYPE = "USER"
-
-    PULSE_BOX_TYPE = "Pulse"
-    SQUARE_BOX_TYPE = "Square"
-    SINE_BOX_TYPE = "Sine"
-    RAMP_BOX_TYPE = "Ramp"
-    NOISE_BOX_TYPE = "Noise"
-    ARB_BOX_TYPE = "Arb"
-
     is_regs_readonly = False
 
     def __init__(self) -> None:
@@ -252,27 +240,10 @@ class Ui(object):
                 return value*10**(9)
             case _:
                 raise Exception("Bad dimension.")
-            
-    def process_signal_type(self, signal:str) -> str:
-        match signal:
-            case self.PULSE_BOX_TYPE:
-                return self.PULSE_SIGNAL_TYPE
-            case self.SQUARE_BOX_TYPE:
-                return self.SQUARE_SIGNAL_TYPE
-            case self.SINE_BOX_TYPE:
-                return self.SINE_SIGNAL_TYPE
-            case self.RAMP_BOX_TYPE:
-                return self.RAMP_SIGNAL_TYPE
-            case self.NOISE_BOX_TYPE:
-                return self.NOISE_SIGNAL_TYPE
-            case self.ARB_BOX_TYPE:
-                return self.ARB_SIGNAL_TYPE
-            case _:
-                raise Exception("Bad signal type.")
 
     def get_generator_data_manual(self)-> GeneratorSample:
         return GeneratorSample(
-            signal_type=self.process_signal_type(self.ui.signal_type_box.currentText()),
+            signal_type=process_signal_type(self.ui.signal_type_box.currentText()),
             ampl=self.process_value_power(self.ui.ampl.value(), self.ui.comboBox_ampl.currentText()),
             delay=self.process_value_power(self.ui.delay.value(), self.ui.comboBox_delay.currentText()),
             freq=self.process_value_power(self.ui.freq.value(), self.ui.comboBox_freq.currentText()),
@@ -315,7 +286,7 @@ class Ui(object):
                 raise Exception("Bad sequence rule.")
 
     def get_generator_data_scenario(self)-> list[GeneratorSample]:
-        sig_type = self.process_signal_type(self.ui.signal_type_box.currentText())
+        sig_type = process_signal_type(self.ui.signal_type_box.currentText())
         offset = self.process_value_power(self.ui.offset.value(), self.ui.comboBox_offset.currentText())
         delay = self.process_value_power(self.ui.delay.value(), self.ui.comboBox_delay.currentText())
         trig = self.process_value_power(self.ui.trig_lvl.value(), self.ui.comboBox_trig_lvl.currentText())
@@ -415,7 +386,7 @@ class Ui(object):
         self.ui.comboBox_freq_2.setCurrentIndex(0)
         self.ui.comboBox_freq_delta.setCurrentIndex(0)
         self.ui.checkBox_is_triggered.setChecked(True)
-        self.ui.trig_lvl.setValue(0)
+        self.ui.trig_lvl.setValue(200)
         self.ui.comboBox_trig_lvl.setCurrentIndex(0)
 
     def reset_scenario_data(self)->None:

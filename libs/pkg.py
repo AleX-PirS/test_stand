@@ -207,6 +207,7 @@ registers_metadata_addr_to_name = {
         124: 'cfg_ch_emul_4',
     }
 
+
 class RegData(object):
     reg_data = [int.to_bytes(0, 1, 'big') for _ in range(125)]
 
@@ -467,16 +468,19 @@ def find_scenarios()-> list[Scenario]:
             f.close()
     return scenarios
 
-
-
-# class ScenarioProcessing():
-
-
-
-# test = GeneratorSample("PULSE", 1, 12, 123, 4, 12, 24, 124, True)
-# consts = RegData()
-
-# sample = TestSample(consts, [test, test])
-
-# scen = Scenario(channels=[Channel("name", 1), Channel("some", 2)], description="desc", name="name", tests=[sample])
-# print(scen.toJSON())
+def process_signal_type(signal) -> str:
+    match signal:
+        case "Pulse":
+            return "PULS"
+        case "Square":
+            return "SQU"
+        case "Sine":
+            return "SIN"
+        case "Ramp":
+            return "RAMP"
+        case "Noise":
+            return "NOIS"
+        case "Arb":
+            return "USER"
+        case _:
+            raise Exception("Bad signal type.")

@@ -7,10 +7,6 @@ import sys
 
 
 class Stand(object):
-    ui: Ui
-    uart: UART
-    visa: Visa
-
     def __init__(self) -> None:
         self.main_scenario = Scenario()
         self.list_of_scenarios = list[Scenario]
@@ -135,7 +131,7 @@ class Stand(object):
             return
 
     def process_scan_res_butt(self):
-        self.ui.log_resources(self.visa.res_list())
+        self.ui.log_resources(self.visa.resource_list())
 
     def process_set_default_reg_values_butt(self):
         self.ui.set_default_reg_values(RegData())
@@ -214,17 +210,24 @@ class Stand(object):
         self.process_scenario_box()
 
     def process_config_gen_butt(self):
-        pass
+        try:
+            self.visa.v2_configurate_generator_sample(self.ui.get_generator_data_manual())
+        except Exception as e:
+            self.ui.logging("ERROR configurate generator: ", e.args[0])
+            return
 
     def process_out_toggle_butt(self):
-        pass
+        try:
+            self.visa.v2_toggle_out(1)
+        except Exception as e:
+            self.ui.logging("ERROR toggle generator out1: ", e.args[0])
+            return
 
     def process_measure_butt(self):
         pass
 
     def process_TEST_BUTT_THAT_IS_MANUAL_START(self):
         self.uart.send_start_command()
-        # find_scenarios()
 
 
 if __name__ == "__main__":
