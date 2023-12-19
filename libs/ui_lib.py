@@ -410,6 +410,7 @@ class Ui(object):
 
     def get_channels_data(self):
         channels = []
+        trig_lvl = self.process_value_power(self.ui.trig_lvl.value(), self.ui.comboBox_trig_lvl.currentText())
         if self.ui.checkBox_is_use_chan_1.isChecked():
             name = self.ui.line_chan_1_name.text().strip()
             if name == "":
@@ -430,7 +431,20 @@ class Ui(object):
             if name == "":
                 raise Exception(f"Empty signal name for channel #4")
             channels.append(Channel(name, 4))
-        return channels, self.ui.trigger_src_box.currentIndex()
+
+        if self.ui.trigger_src_box.currentIndex() == 0:
+            raise Exception(f"Need to chose channel to trigger source.")
+
+        flag = 0
+        for ch in channels:
+            if ch.index == self.ui.trigger_src_box.currentIndex():
+                flag = 1
+                break
+        
+        if flag == 0:
+            raise Exception(f"Trigger source is unused channel.")
+        
+        return channels, self.ui.trigger_src_box.currentIndex(), trig_lvl
         
     def delete_last_layer(self):
         if self.ui.spinBox_layer_count.value() == 0:

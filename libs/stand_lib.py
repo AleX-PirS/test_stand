@@ -144,7 +144,7 @@ class Stand(object):
 
     def process_reset_scenario_butt(self):
         self.ui.reset_scenario_data()
-        self.main_scenario = Scenario([], "", "", [], 0)
+        self.main_scenario = Scenario([], "", "", [], 0, 0)
 
     def process_add_layer_butt(self):
         try:
@@ -173,7 +173,7 @@ class Stand(object):
             self.ui.logging("Please, write the scenario name!")
             return
         try:
-            channels, trig_src = self.ui.get_channels_data()
+            channels, trig_src, trig_lvl = self.ui.get_channels_data()
         except Exception as e:
             self.ui.logging("ERROR get data about signals: ", e.args[0])
             return
@@ -181,6 +181,7 @@ class Stand(object):
         self.main_scenario.description = desc
         self.main_scenario.channels = channels
         self.main_scenario.trig_src = trig_src
+        self.main_scenario.trig_lvl = trig_lvl
         try:
             self.main_scenario.save_scenario()
         except Exception as e:
@@ -215,15 +216,24 @@ class Stand(object):
         except Exception as e:
             self.ui.logging("ERROR configurate generator: ", e.args[0])
             return
+        self.ui.logging("Successfull configurate generator")
 
     def process_out_toggle_butt(self):
         try:
-            self.visa.v2_toggle_out(1)
+            self.visa.v2_toggle_out1()
         except Exception as e:
             self.ui.logging("ERROR toggle generator out1: ", e.args[0])
             return
+        self.ui.logging("Generator out 1 has been toggled")
 
     def process_measure_butt(self):
+        # delte alll
+        try:
+            a, b, c = self.ui.get_channels_data()
+            self.visa.v2_configurate_oscilloscope_sample(a, b, c)
+        except Exception as e:
+            self.ui.logging("ERROR: ", e.args[0])
+            return
         pass
 
     def process_TEST_BUTT_THAT_IS_MANUAL_START(self):

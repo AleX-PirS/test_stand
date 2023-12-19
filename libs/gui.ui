@@ -9,7 +9,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1152</width>
+    <width>1154</width>
     <height>971</height>
    </rect>
   </property>
@@ -273,7 +273,7 @@
    <widget class="QFrame" name="frame_3">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>0</x>
       <y>490</y>
       <width>301</width>
       <height>141</height>
@@ -599,20 +599,26 @@
       <rect>
        <x>10</x>
        <y>110</y>
-       <width>101</width>
+       <width>51</width>
        <height>20</height>
       </rect>
      </property>
+     <property name="font">
+      <font>
+       <weight>75</weight>
+       <bold>true</bold>
+      </font>
+     </property>
      <property name="text">
-      <string>Trigger source:</string>
+      <string>Trigger:</string>
      </property>
     </widget>
     <widget class="QComboBox" name="trigger_src_box">
      <property name="geometry">
       <rect>
-       <x>140</x>
+       <x>70</x>
        <y>110</y>
-       <width>151</width>
+       <width>101</width>
        <height>21</height>
       </rect>
      </property>
@@ -641,11 +647,61 @@
        <string>Channel 4</string>
       </property>
      </item>
+    </widget>
+    <widget class="Line" name="line_20">
+     <property name="geometry">
+      <rect>
+       <x>0</x>
+       <y>130</y>
+       <width>301</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+    <widget class="QComboBox" name="comboBox_trig_lvl_oscilloscope">
+     <property name="geometry">
+      <rect>
+       <x>240</x>
+       <y>110</y>
+       <width>51</width>
+       <height>21</height>
+      </rect>
+     </property>
      <item>
       <property name="text">
-       <string>Aux</string>
+       <string>mV</string>
       </property>
      </item>
+     <item>
+      <property name="text">
+       <string>V</string>
+      </property>
+     </item>
+    </widget>
+    <widget class="QDoubleSpinBox" name="trig_lvl_oscilloscope">
+     <property name="geometry">
+      <rect>
+       <x>170</x>
+       <y>110</y>
+       <width>71</width>
+       <height>21</height>
+      </rect>
+     </property>
+     <property name="decimals">
+      <number>3</number>
+     </property>
+     <property name="maximum">
+      <double>999.999000000000024</double>
+     </property>
+     <property name="singleStep">
+      <double>1.000000000000000</double>
+     </property>
+     <property name="value">
+      <double>200.000000000000000</double>
+     </property>
     </widget>
    </widget>
    <widget class="QFrame" name="frame_4">
@@ -3058,7 +3114,7 @@
    <widget class="QWidget" name="widget_3" native="true">
     <property name="geometry">
      <rect>
-      <x>0</x>
+      <x>300</x>
       <y>490</y>
       <width>431</width>
       <height>281</height>
@@ -4990,7 +5046,7 @@
         </rect>
        </property>
        <property name="readOnly">
-        <bool>false</bool>
+        <bool>true</bool>
        </property>
       </widget>
      </widget>
@@ -5117,23 +5173,10 @@
      </property>
     </widget>
    </widget>
-   <widget class="Line" name="line_20">
-    <property name="geometry">
-     <rect>
-      <x>430</x>
-      <y>620</y>
-      <width>301</width>
-      <height>21</height>
-     </rect>
-    </property>
-    <property name="orientation">
-     <enum>Qt::Horizontal</enum>
-    </property>
-   </widget>
    <widget class="QWidget" name="widget_43" native="true">
     <property name="geometry">
      <rect>
-      <x>430</x>
+      <x>0</x>
       <y>630</y>
       <width>301</width>
       <height>141</height>

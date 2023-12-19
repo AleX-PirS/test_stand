@@ -26,14 +26,14 @@ COMMAND_ERR_OSCILLOSCOPE = ":SYST:ERR? STR"
 COMMAND_ERR_GENERATOR = ":SYST:ERR?"
 COMMAND_IDN = "*IDN?"
 
-class Sample(object):
-    sample: {}
+# class Sample(object):
+#     sample: {}
 
-    def __init__(self, edge, ampl, fall, freq):
-        self.sample["Edge"] = edge
-        self.sample["Amplitude"] = ampl
-        self.sample["Frequency"] = freq
-        self.sample["Fall"] = fall
+#     def __init__(self, edge, ampl, fall, freq):
+#         self.sample["Edge"] = edge
+#         self.sample["Amplitude"] = ampl
+#         self.sample["Frequency"] = freq
+#         self.sample["Fall"] = fall
 
 
 class Visa(object):
@@ -87,7 +87,7 @@ class Visa(object):
 
         if len(err_string) > 1:
             if err_string[:-1] != "":
-                raise Exception("Get some errors:", err_string[:-1])
+                raise Exception(err_string[:-1])
 
     def connect_resource(self, address: str, query: str) -> visa.Resource:
         res: visa.Resource
@@ -108,18 +108,21 @@ class Visa(object):
     def connect_gen(self, address: str):
         self.generator = self.connect_resource(address, QUERY_GENERATOR)
 
-    def reset_resourse(self, resource: visa.Resource):
+    def clear_resource(self, resource):
         self.send_command(resource, COMMAND_CLEAR)
         self.send_command(resource, COMMAND_RESET)
+
+    def reset_resource(self, resource: visa.Resource):
+        self.clear_resource(resource)
         resource.close()
 
     def reset_oscilloscope(self):
         self.v2_oscilloscope_ping()
-        self.reset_resourse(self.oscilloscope)
+        self.reset_resource(self.oscilloscope)
 
     def reset_generator(self):
         self.v2_generator_ping()
-        self.reset_resourse(self.generator)
+        self.reset_resource(self.generator)
 
     def prep_oscilloscope(self, chan_numb: int, trig_lvl: int):
         self.send_command(
@@ -202,6 +205,7 @@ class Visa(object):
     
     def v2_configurate_generator_sample(self, config:GeneratorSample):
         self.v2_generator_ping()
+        self.clear_resource(self.generator)
         self.send_command(self.generator, f":FUNC {config.signal_type}")
         self.send_command(self.generator, f":FREQ {config.freq}kHz")
         self.send_command(self.generator, f":VOLT:OFFS {config.offset}mV")
@@ -220,48 +224,53 @@ class Visa(object):
                 self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN:TRA {config.trail}ns")
                 self.send_command(self.generator, f":FUNC:{config.signal_type}:DEL {config.delay}ns")
             case "SQU" | "RAMP" | "SIN" | "USER":
-                self.send_command(self.generator, f":FUNC:{config.signal_type}:DEL {config.delay}ns")
+                pass
             case "NOIS":
                 pass
 
         self.detect_errors(self.generator)
     
-    def v2_toggle_out(self, index:int):
+    def v2_toggle_out1(self):
         self.v2_generator_ping()
-        data = self.query(self.generator, f":OUT{index}?")
-        match data:
+        match self.query(self.generator, f":OUTP1?"):
             case "OFF" | "0":
-                self.send_command(self.generator, f":OUT{index} ON")
+                self.send_command(self.generator, ":OUTP1 ON")
             case "ON" | "1":
-                self.send_command(self.generator, f":OUT{index} OFF")
+                self.send_command(self.generator, ":OUTP1 OFF")
         self.detect_errors(self.generator)
 
-    def v2_on_out(self, index:int):
+    def v2_on_out1(self):
         self.v2_generator_ping()
-        self.send_command(self.generator, f":OUT{index} ON")
+        self.send_command(self.generator, f":OUTP1 ON")
         self.detect_errors(self.generator)
     
-    def v2_on_out(self, index:int):
+    def v2_off_out1(self):
         self.v2_generator_ping()
-        self.send_command(self.generator, f":OUT{index} ON")
+        self.send_command(self.generator, f":OUTP1 OFF")
         self.detect_errors(self.generator)
 
-    def v2_configurate_oscilloscope_sample(self, channels:list[Channel], trig_src):
+    def v2_configurate_oscilloscope_sample(self, channels:list[Channel], trig_src, trig_lvl):
         self.v2_oscilloscope_ping()
-        match trig_src:
-            case 0:
-                pass
-            case 5:
-                self.send_command(self.oscilloscope, f"")
-            case 1|2|3|4:
-                self.send_command(self.oscilloscope, f"")
+        self.clear_resource(self.oscilloscope)
+        for ch in channels:
+            self.send_command(self.oscilloscope, f":SELECT:CH{ch.index} ON")
+        # trigger settings
+        self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
+        self.send_command(self.oscilloscope, f":TRIG:EDGE:SOUR CHAN{trig_src}")
+        self.send_command(self.oscilloscope, f":TRIG:LEV CHAN{trig_src}, {trig_lvl}mV")
+        self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
+        # setting type sweep
+        self.send_command(self.oscilloscope, ":TRIG:SWE SING")
 
         self.detect_errors(self.oscilloscope)
 
     def v2_measure_oscilloscope(self):
         self.v2_oscilloscope_ping()
-
+        """
+        too many manipulation to do this
+        """
         self.detect_errors(self.oscilloscope)
+        pass
 
     def v2_generator_ping(self):
         try:

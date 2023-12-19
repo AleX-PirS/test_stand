@@ -373,6 +373,7 @@ class GeneratorSample(object):
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
+
 class Channel(object):
     def __init__(self, name:str, index:int) -> None:
         self.name = name
@@ -390,11 +391,10 @@ class TestSample(object):
 
     
 class Scenario(object):
-    
-
-    def __init__(self, channels:list[Channel] = [], name:str='default name', description:str="", tests:list[TestSample] = [], trig_src=0) -> None:
+    def __init__(self, channels:list[Channel] = [], name:str='default name', description:str="", tests:list[TestSample] = [], trig_src=0, trig_lvl=0) -> None:
         self.channels = channels
         self.trig_src = trig_src
+        self.trig_lvl = trig_lvl
         self.name = name
         self.description = description
         self.total_test_count = 0
@@ -423,6 +423,7 @@ class Scenario(object):
         data = json.load(file)
         self.channels = data['channels']
         self.trig_src = data['trig_src']
+        self.trig_lvl = data['trig_lvl']
         self.description = data['description']
         self.layers_count = data['layers_count']
         self.name = data['name']
