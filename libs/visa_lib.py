@@ -236,6 +236,7 @@ class Visa(object):
     
     def v2_toggle_out1(self):
         self.v2_generator_ping()
+        # Добавить все тоже самое для не out
         match self.query(self.generator, f":OUTP1?"):
             case "OFF" | "0":
                 self.send_command(self.generator, ":OUTP1 ON")
@@ -270,16 +271,24 @@ class Visa(object):
         self.detect_errors(self.oscilloscope)
 
     def v2_set_oscilloscope_Y_scale(self, config:GeneratorSample):
-        pass
+        self.v2_oscilloscope_ping()
+        
+        self.detect_errors(self.oscilloscope)
 
     def v2_set_oscilloscope_X_scale(self, config:GeneratorSample):
-        pass
+        self.v2_oscilloscope_ping()
+        
+        self.detect_errors(self.oscilloscope)
 
     def v2_move_oscilloscope_Y_axis(self, config:GeneratorSample):
-        pass
+        self.v2_oscilloscope_ping()
+        
+        self.detect_errors(self.oscilloscope)
 
     def v2_move_oscilloscope_X_axis(self, config:GeneratorSample):
-        pass
+        self.v2_oscilloscope_ping()
+        
+        self.detect_errors(self.oscilloscope)
 
         """
         # :ACQuire:AVERage ON
