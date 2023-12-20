@@ -208,8 +208,6 @@ class Visa(object):
         self.clear_resource(self.generator)
         self.send_command(self.generator, f":FUNC {config.signal_type}")
         self.send_command(self.generator, f":FREQ {config.freq}kHz")
-        self.send_command(self.generator, f":VOLT:OFFS {config.offset}mV")
-        self.send_command(self.generator, f":VOLT {config.ampl}mV")
         # self.send_command(self.generator, f":VOLT:HIGH {config.offset}mV")
         if config.is_triggered:
             self.send_command(self.generator, f":ARM:SOUR EXT")
@@ -223,9 +221,15 @@ class Visa(object):
                 self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN {config.lead}ns")
                 self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN:TRA {config.trail}ns")
                 self.send_command(self.generator, f":FUNC:{config.signal_type}:DEL {config.delay}ns")
+                self.send_command(self.generator, f":VOLT:HIGH {float(config.ampl)+float(config.offset)}mV")
+                self.send_command(self.generator, f":VOLT:LOW {float(config.offset)}mV")
             case "SQU" | "RAMP" | "SIN" | "USER":
+                self.send_command(self.generator, f":VOLT:OFFS {config.offset}mV")
+                self.send_command(self.generator, f":VOLT {config.ampl}mV")
                 pass
             case "NOIS":
+                self.send_command(self.generator, f":VOLT:OFFS {config.offset}mV")
+                self.send_command(self.generator, f":VOLT {config.ampl}mV")
                 pass
 
         self.detect_errors(self.generator)
@@ -252,8 +256,10 @@ class Visa(object):
     def v2_configurate_oscilloscope_sample(self, channels:list[Channel], trig_src, trig_lvl):
         self.v2_oscilloscope_ping()
         self.clear_resource(self.oscilloscope)
+        for i in range(1, 5):
+            self.send_command(self.oscilloscope, f":CHAN{i} OFF")
         for ch in channels:
-            self.send_command(self.oscilloscope, f":SELECT:CH{ch.index} ON")
+            self.send_command(self.oscilloscope, f":CHAN{ch.index} ON")
         # trigger settings
         self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
         self.send_command(self.oscilloscope, f":TRIG:EDGE:SOUR CHAN{trig_src}")
@@ -261,8 +267,52 @@ class Visa(object):
         self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
         # setting type sweep
         self.send_command(self.oscilloscope, ":TRIG:SWE SING")
-
         self.detect_errors(self.oscilloscope)
+
+    def v2_set_oscilloscope_Y_scale(self, config:GeneratorSample):
+        pass
+
+    def v2_set_oscilloscope_X_scale(self, config:GeneratorSample):
+        pass
+
+    def v2_move_oscilloscope_Y_axis(self, config:GeneratorSample):
+        pass
+
+    def v2_move_oscilloscope_X_axis(self, config:GeneratorSample):
+        pass
+
+        """
+        # :ACQuire:AVERage ON
+        # :ACQuire:COUNt 64
+        # :ACQuire:BANDwidth MAX
+        # :ACQuire:COMPlete 100
+        # :ACQuire:MODE RTIMe
+        # :ACQuire:POINts:AUTO ON
+        # Как будто они и не нужны для тестов
+
+        :WAVeform:STReaming ON ?????
+        :WAVeform:SOURce CHAN1;DATA?
+        :WAVeform:COMPlete?
+
+        Время: X-axis Units = data index x Xincrement + Xorigin
+        :WAVeform:XORigin? старт отсчета точек по времени
+        :WAVeform:XINCrement? шаг по времени
+
+        :WAVeform:POINts? количество точек.
+
+        :TIM:SCAL <время одного квадрата>
+        :TIMebase:RANGe <время всего таймлайна>
+        :TIMebase:WINDow:POSition <позиция по времени для сигналов>
+
+        :CHAN<index>:SCAL <масштаб по сигналу>
+        :CHANnel<N>:RANGe
+        :CHAN3:OFFS <позиция>
+
+        :RUN   когда режим сингл, то всегда будет при run его сохранение
+
+        Y-axis Units = data value x Yincrement + Yorigin (analog channels) , where the data index starts at zero: 0, 1, 2,
+        ..., n-1.
+        """
 
     def v2_measure_oscilloscope(self):
         self.v2_oscilloscope_ping()

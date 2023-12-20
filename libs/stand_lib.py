@@ -237,7 +237,16 @@ class Stand(object):
         pass
 
     def process_TEST_BUTT_THAT_IS_MANUAL_START(self):
-        self.uart.send_start_command()
+        try:
+            if self.ui.ui.chip_desc_plain_text_input.toPlainText() != "":
+                self.visa.send_command(self.visa.oscilloscope, self.ui.ui.chip_desc_plain_text_input.toPlainText())
+            if self.ui.ui.chip_name.text().strip() != "":
+                data = self.visa.query(self.visa.oscilloscope, self.ui.ui.chip_name.text())
+                print(data)
+            self.visa.detect_errors(self.visa.oscilloscope)
+        except Exception as e:
+            self.ui.logging("ERROR: ", e.args[0])
+        # self.uart.send_start_command()
 
 
 if __name__ == "__main__":
