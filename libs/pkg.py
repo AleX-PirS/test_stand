@@ -1,6 +1,8 @@
 import json
 import os
 import glob
+import matplotlib as plt
+import numpy as np
 
 scenarios_path = os.path.dirname(os.path.abspath(__file__)) + r'\scenarios\\'
 
@@ -350,11 +352,7 @@ class RegData(object):
     
     def toJSON(self):
         reg_data_int = [int.from_bytes(i, 'big') for i in self.reg_data]
-        return json.dumps(reg_data_int, default=lambda o: o.__dict__, sort_keys=True, indent=4)
-    
-    # def fromJSON(self, data:str):
-    #     data = self.toJSON()
-    #     json.loads(data)        
+        return json.dumps(reg_data_int, default=lambda o: o.__dict__, sort_keys=True, indent=4)      
 
 
 class GeneratorSample(object):
@@ -378,6 +376,38 @@ class Channel(object):
     def __init__(self, name:str, index:int) -> None:
         self.name = name
         self.index = index
+
+
+class OscilloscopeData(object):
+    def __init__(self, data, origin, delta) -> None:
+        self.data = {1:[[],[]], 2:[[],[]], 3:[[],[]], 4:[[],[]]}
+        for i in range(1, 5):
+            self.data[i][0] = [origin+i*delta for i in range(len(data[i]))]
+            self.data[i][1] = data[i]
+
+    def __str__(self) -> str:
+        res = ""
+        for i in range(1, 5):
+            if len(self.data[i][0]) == 0:
+                continue
+            res += f"Channel{i}:\n"
+            res += f"X Axis:\n"
+            for data in self.data[i][0]:
+                res += f"{data} "
+
+            res += f"\nY Axis:\n"
+            for data in self.data[i][1]:
+                res += f"{data} "
+
+        return res
+    
+    def plot_one(self, index, label):
+        pass
+
+    def plot_all(self, channels):
+        for ch in channels:
+            self.plot_one(ch.index, ch.name)
+
 
 
 class TestSample(object):
@@ -453,7 +483,8 @@ class Scenario(object):
 
     def save_scenario(self)->None:
         with open(scenarios_path + self.name+'.json', 'w') as file:
-            file.write(self.toJSON())
+            data = self.toJSON()
+            file.write(data)
             file.close
 
 def find_scenarios()-> list[Scenario]:
@@ -485,3 +516,4 @@ def process_signal_type(signal) -> str:
             return "USER"
         case _:
             raise Exception("Bad signal type.")
+        

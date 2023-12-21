@@ -231,6 +231,10 @@ class Stand(object):
         try:
             a, b, c = self.ui.get_channels_data()
             self.visa.v2_configurate_oscilloscope_sample(a, b, c)
+            self.visa.v2_set_oscilloscope_X_scale()
+            self.visa.v2_move_oscilloscope_X_axis()
+            self.visa.v2_set_oscilloscope_Y_scale()
+            self.visa.v2_move_oscilloscope_Y_axis(a)
         except Exception as e:
             self.ui.logging("ERROR: ", e.args[0])
             return
@@ -240,12 +244,20 @@ class Stand(object):
         try:
             if self.ui.ui.chip_desc_plain_text_input.toPlainText() != "":
                 self.visa.send_command(self.visa.oscilloscope, self.ui.ui.chip_desc_plain_text_input.toPlainText())
+                return
             if self.ui.ui.chip_name.text().strip() != "":
                 data = self.visa.query(self.visa.oscilloscope, self.ui.ui.chip_name.text())
                 print(data)
-            self.visa.detect_errors(self.visa.oscilloscope)
+                return
+            
         except Exception as e:
             self.ui.logging("ERROR: ", e.args[0])
+        self.visa.v2_oscilloscope_run()
+        sample = self.visa.v2_get_sample()
+        print(len(sample.data[1][1]))
+        print(len(sample.data[2][1]))
+        print(len(sample.data[3][1]))
+        print(len(sample.data[4][1]))
         # self.uart.send_start_command()
 
 

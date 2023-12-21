@@ -1,7 +1,7 @@
 from numpy import mat
 import pyvisa as visa
 
-from pkg import Channel, GeneratorSample
+from pkg import Channel, GeneratorSample, OscilloscopeData
 
 # Queries for connect resources
 QUERY_OSCILLOSCOPE = "MSOS204A"
@@ -205,13 +205,15 @@ class Visa(object):
     
     def v2_configurate_generator_sample(self, config:GeneratorSample):
         self.v2_generator_ping()
+        # :OUTPut[1|2]:IMPedance:EXTernal
+        # :OUTPut[1|2]:POLarity {NORMal|INVerted}
         self.clear_resource(self.generator)
         self.send_command(self.generator, f":FUNC {config.signal_type}")
         self.send_command(self.generator, f":FREQ {config.freq}kHz")
-        # self.send_command(self.generator, f":VOLT:HIGH {config.offset}mV")
         if config.is_triggered:
             self.send_command(self.generator, f":ARM:SOUR EXT")
             self.send_command(self.generator, f":ARM:LEV {config.trig_lvl}mV")
+            self.send_command(self.generator, f":ARM:SENS LEV")
         else:
             self.send_command(self.generator, f":ARM:SOUR IMM")
 
@@ -256,6 +258,11 @@ class Visa(object):
 
     def v2_configurate_oscilloscope_sample(self, channels:list[Channel], trig_src, trig_lvl):
         self.v2_oscilloscope_ping()
+        self.send_command(self.oscilloscope, ":WAV:STR ON")
+        self.send_command(self.oscilloscope, ":ACQ:MODE HRES")
+        self.send_command(self.oscilloscope, ":ACQ:BAND MAX")
+        self.send_command(self.oscilloscope, ":ACQ:COMP 100")
+        self.send_command(self.oscilloscope, ":ACQ:POIN:AUTO ON")
         self.clear_resource(self.oscilloscope)
         for i in range(1, 5):
             self.send_command(self.oscilloscope, f":CHAN{i} OFF")
@@ -270,63 +277,110 @@ class Visa(object):
         self.send_command(self.oscilloscope, ":TRIG:SWE SING")
         self.detect_errors(self.oscilloscope)
 
-    def v2_set_oscilloscope_Y_scale(self, config:GeneratorSample):
+    def v2_set_oscilloscope_Y_scale(self):
         self.v2_oscilloscope_ping()
-        
+        for i in range(1, 5):
+            self.send_command(self.oscilloscope, f":CHAN{i}:RANG 1")
+            # self.send_command(self.oscilloscope, f":CHAN{i}:SCAL 1")
         self.detect_errors(self.oscilloscope)
 
-    def v2_set_oscilloscope_X_scale(self, config:GeneratorSample):
+    def v2_set_oscilloscope_X_scale(self):
         self.v2_oscilloscope_ping()
-        
+        # self.send_command(self.oscilloscope, f":TIM:RANG 0.000000250")
+        self.send_command(self.oscilloscope, f":TIM:SCAL 0.000000250")
         self.detect_errors(self.oscilloscope)
 
-    def v2_move_oscilloscope_Y_axis(self, config:GeneratorSample):
+    def v2_move_oscilloscope_Y_axis(self, channels):
         self.v2_oscilloscope_ping()
-        
+        match len(channels):
+            case 1:
+                pass
+            case 2:
+                scale1 = self.query(self.oscilloscope, f":CHAN{channels[0].index}:SCAL?")
+                scale2 = self.query(self.oscilloscope, f":CHAN{channels[1].index}:SCAL?")
+                self.send_command(self.oscilloscope, f":CHAN{channels[0].index}:OFFS {float(scale1)*2}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[1].index}:OFFS {float(scale2)*(-2)}")
+            case 3:
+                scale1 = self.query(self.oscilloscope, f":CHAN{channels[0].index}:SCAL?")
+                scale2 = self.query(self.oscilloscope, f":CHAN{channels[1].index}:SCAL?")
+                self.send_command(self.oscilloscope, f":CHAN{channels[0].index}:OFFS {float(scale1)*2}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[1].index}:OFFS {float(scale2)*(-2)}")
+            case 4:
+                scale1 = self.query(self.oscilloscope, f":CHAN{channels[0].index}:SCAL?")
+                scale2 = self.query(self.oscilloscope, f":CHAN{channels[1].index}:SCAL?")
+                scale3 = self.query(self.oscilloscope, f":CHAN{channels[2].index}:SCAL?")
+                scale4 = self.query(self.oscilloscope, f":CHAN{channels[3].index}:SCAL?")
+                self.send_command(self.oscilloscope, f":CHAN{channels[0].index}:OFFS {float(scale1)}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[1].index}:OFFS {float(scale2)*(-1)}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[2].index}:OFFS {float(scale3)*3}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[3].index}:OFFS {float(scale4)*(-3)}")
         self.detect_errors(self.oscilloscope)
 
-    def v2_move_oscilloscope_X_axis(self, config:GeneratorSample):
+    def v2_move_oscilloscope_X_axis(self):
         self.v2_oscilloscope_ping()
-        
+        scale = self.query(self.oscilloscope, f":TIM:SCAL?")
+        self.send_command(self.oscilloscope, f":TIM:POS {float(scale)*2.5}")
         self.detect_errors(self.oscilloscope)
 
-        """
-        # :ACQuire:AVERage ON
-        # :ACQuire:COUNt 64
-        # :ACQuire:BANDwidth MAX
-        # :ACQuire:COMPlete 100
-        # :ACQuire:MODE RTIMe
-        # :ACQuire:POINts:AUTO ON
-        # Как будто они и не нужны для тестов
+    def v2_get_oscilloscope_data(self):
+        self.v2_oscilloscope_ping()
+        count = 0
+        while True:
+            self.send_command(self.oscilloscope, f":WAVeform:SOURce CHAN1")
+            if self.query(self.oscilloscope, ":WAV:COMP?") == "100":
+                break
+            self.send_command(self.oscilloscope, f":WAVeform:SOURce CHAN2")
+            if self.query(self.oscilloscope, ":WAV:COMP?") == "100":
+                break
+            self.send_command(self.oscilloscope, f":WAVeform:SOURce CHAN3")
+            if self.query(self.oscilloscope, ":WAV:COMP?") == "100":
+                break
+            self.send_command(self.oscilloscope, f":WAVeform:SOURce CHAN4")
+            if self.query(self.oscilloscope, ":WAV:COMP?") == "100":
+                break
 
-        :WAVeform:STReaming ON ?????
-        :WAVeform:SOURce CHAN1;DATA?
-        :WAVeform:COMPlete?
+            count += 1
+            if count == 5:
+                raise Exception("No waveforms data.")
+        
+        data = {}
+        for i in range(1, 5):
+            match self.query(self.oscilloscope, f":CHAN{i}?"):
+                case "OFF" | "0":
+                    data[i] = []
+                case "ON" | "1":
+                    data[i] = [float(elem) for elem in self.query(self.oscilloscope, f":WAVeform:SOURce CHAN{i};DATA?").split(",")[:-1]]
+        self.detect_errors(self.oscilloscope)
+        return data
+    
+    def v2_get_sample(self) -> OscilloscopeData:
+        self.v2_oscilloscope_ping()
+        sample = OscilloscopeData(
+            self.v2_get_oscilloscope_data(),
+            float(self.query(self.oscilloscope, ":WAV:XOR?")),
+            float(self.query(self.oscilloscope, ":WAV:XINC?")),
+        )
+        self.detect_errors(self.oscilloscope)
+        return sample
 
-        Время: X-axis Units = data index x Xincrement + Xorigin
-        :WAVeform:XORigin? старт отсчета точек по времени
-        :WAVeform:XINCrement? шаг по времени
-
-        :WAVeform:POINts? количество точек.
-
-        :TIM:SCAL <время одного квадрата>
-        :TIMebase:RANGe <время всего таймлайна>
-        :TIMebase:WINDow:POSition <позиция по времени для сигналов>
-
-        :CHAN<index>:SCAL <масштаб по сигналу>
-        :CHANnel<N>:RANGe
-        :CHAN3:OFFS <позиция>
-
-        :RUN   когда режим сингл, то всегда будет при run его сохранение
-
-        Y-axis Units = data value x Yincrement + Yorigin (analog channels) , where the data index starts at zero: 0, 1, 2,
-        ..., n-1.
-        """
+    def v2_oscilloscope_run(self):
+        self.v2_oscilloscope_ping()
+        self.send_command(self.oscilloscope, ":RUN")
+        self.detect_errors(self.oscilloscope)
 
     def v2_measure_oscilloscope(self):
         self.v2_oscilloscope_ping()
         """
         too many manipulation to do this
+        need to return measures from oscilloscope
+
+        Use this function after get data.
+
+        Template:
+        config.osc
+        for t in tests:
+            config.gen
+            
         """
         self.detect_errors(self.oscilloscope)
         pass

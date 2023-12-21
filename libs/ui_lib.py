@@ -432,6 +432,9 @@ class Ui(object):
                 raise Exception(f"Empty signal name for channel #4")
             channels.append(Channel(name, 4))
 
+        if len(channels) == 0:
+            return [], 0, 0
+
         if self.ui.trigger_src_box.currentIndex() == 0:
             raise Exception(f"Need to chose channel to trigger source.")
 
