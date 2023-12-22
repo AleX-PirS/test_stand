@@ -225,19 +225,36 @@ class Ui(object):
 
         return code
 
-    def process_value_power(self, value:float, power:str) -> int:
-        # one is mV, ns, kHz
+    # def process_value_power(self, value:float|int, power:str) -> int|float:
+    #     # one is mV, ns, kHz
+    #     match power:
+    #         case "mV" | "ns" | "kHz":
+    #             return value
+    #         case "V" | "μs" | "MHz":
+    #             return value*10**(3)
+    #         case "ps" | "Hz":
+    #             return value*10**(-3)
+    #         case "ms":
+    #             return value*10**(6)
+    #         case "s":
+    #             return value*10**(9)
+    #         case _:
+    #             raise Exception("Bad dimension.")
+            
+    def process_value_power(self, value:float|int, power:str) -> int|float:
         match power:
-            case "mV" | "ns" | "kHz":
-                return value
-            case "V" | "μs" | "MHz":
+            case "MHz":
                 return value*10**(3)
-            case "ps" | "Hz":
+            case "kHz":
+                return value*10**(3)
+            case "V" | "s" | "Hz":
+                return value
+            case "mV" | "ms":
                 return value*10**(-3)
-            case "ms":
-                return value*10**(6)
-            case "s":
-                return value*10**(9)
+            case "μs":
+                return value*10**(-6)
+            case "ns":
+                return value*10**(-9)
             case _:
                 raise Exception("Bad dimension.")
 
@@ -410,30 +427,32 @@ class Ui(object):
 
     def get_channels_data(self):
         channels = []
-        trig_lvl = self.process_value_power(self.ui.trig_lvl.value(), self.ui.comboBox_trig_lvl.currentText())
+        trig_lvl = self.process_value_power(self.ui.trig_lvl_oscilloscope.value(), self.ui.comboBox_trig_lvl_oscilloscope.currentText())
+        tim_scale = self.process_value_power(self.ui.scale_time.value(), self.ui.comboBox_time_scale.currentText())
+
         if self.ui.checkBox_is_use_chan_1.isChecked():
             name = self.ui.line_chan_1_name.text().strip()
             if name == "":
                 raise Exception(f"Empty signal name for channel #1")
-            channels.append(Channel(name, 1))
+            channels.append(Channel(name, 1, self.process_value_power(self.ui.scale_ch_1.value(), self.ui.scale_ch_1_power.currentText())))
         if self.ui.checkBox_is_use_chan_2.isChecked():
             name = self.ui.line_chan_2_name.text().strip()
             if name == "":
                 raise Exception(f"Empty signal name for channel #2")
-            channels.append(Channel(name, 2))
+            channels.append(Channel(name, 2, self.process_value_power(self.ui.scale_ch_2.value(), self.ui.scale_ch_2_power.currentText())))
         if self.ui.checkBox_is_use_chan_3.isChecked():
             name = self.ui.line_chan_3_name.text().strip()
             if name == "":
                 raise Exception(f"Empty signal name for channel #3")
-            channels.append(Channel(name, 3))
+            channels.append(Channel(name, 3, self.process_value_power(self.ui.scale_ch_3.value(), self.ui.scale_ch_3_power.currentText())))
         if self.ui.checkBox_is_use_chan_4.isChecked():
             name = self.ui.line_chan_4_name.text().strip()
             if name == "":
                 raise Exception(f"Empty signal name for channel #4")
-            channels.append(Channel(name, 4))
+            channels.append(Channel(name, 4, self.process_value_power(self.ui.scale_ch_4.value(), self.ui.scale_ch_4_power.currentText())))
 
         if len(channels) == 0:
-            return [], 0, 0
+            return [], 0, 0, 0
 
         if self.ui.trigger_src_box.currentIndex() == 0:
             raise Exception(f"Need to chose channel to trigger source.")
@@ -447,7 +466,7 @@ class Ui(object):
         if flag == 0:
             raise Exception(f"Trigger source is unused channel.")
         
-        return channels, self.ui.trigger_src_box.currentIndex(), trig_lvl
+        return channels, self.ui.trigger_src_box.currentIndex(), trig_lvl, tim_scale
         
     def delete_last_layer(self):
         if self.ui.spinBox_layer_count.value() == 0:
@@ -505,6 +524,9 @@ class Ui(object):
 
     def get_current_scenario_box_index(self)->int:
         return self.ui.comboBox_scenarios.currentIndex()
+    
+    def get_resource_comm_data(self):
+        return self.ui.comboBox_resources.currentIndex(), self.ui.resource_command_text.text().strip()
 
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)

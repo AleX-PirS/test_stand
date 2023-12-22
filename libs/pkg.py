@@ -1,7 +1,7 @@
 import json
 import os
 import glob
-import matplotlib as plt
+import matplotlib.pyplot  as plt
 import numpy as np
 
 scenarios_path = os.path.dirname(os.path.abspath(__file__)) + r'\scenarios\\'
@@ -373,9 +373,10 @@ class GeneratorSample(object):
 
 
 class Channel(object):
-    def __init__(self, name:str, index:int) -> None:
+    def __init__(self, name:str, index:int, scale:int) -> None:
         self.name = name
         self.index = index
+        self.scale = scale
 
 
 class OscilloscopeData(object):
@@ -402,12 +403,29 @@ class OscilloscopeData(object):
         return res
     
     def plot_one(self, index, label):
-        pass
+        _, ax = plt.subplots(2,2)
+        ax.plot(self.data[index][0], self.data[index][1], linewidth=1.0)
+        plt.show()
 
-    def plot_all(self, channels):
+    def plot_all(self, channels:list[Channel]):
+        fig, axs = plt.subplots(2, 2)
+    
         for ch in channels:
-            self.plot_one(ch.index, ch.name)
-
+            match ch.index:
+                case 1:
+                    axs[0, 0].set_title(ch.name)
+                    axs[0, 0].plot(self.data[1][0], self.data[1][1])
+                case 2:
+                    axs[0, 1].set_title(ch.name)
+                    axs[0, 1].plot(self.data[2][0], self.data[2][1])
+                case 3:
+                    axs[1, 0].set_title(ch.name)
+                    axs[1, 0].plot(self.data[3][0], self.data[3][1])
+                case 4:
+                    axs[1, 1].set_title(ch.name)
+                    axs[1, 1].plot(self.data[4][0], self.data[4][1])
+        
+        plt.show()
 
 
 class TestSample(object):
@@ -421,10 +439,11 @@ class TestSample(object):
 
     
 class Scenario(object):
-    def __init__(self, channels:list[Channel] = [], name:str='default name', description:str="", tests:list[TestSample] = [], trig_src=0, trig_lvl=0) -> None:
+    def __init__(self, channels:list[Channel] = [], name:str='default name', description:str="", tests:list[TestSample] = [], trig_src=0, trig_lvl=0, tim_scale=0) -> None:
         self.channels = channels
         self.trig_src = trig_src
         self.trig_lvl = trig_lvl
+        self.tim_scale = tim_scale
         self.name = name
         self.description = description
         self.total_test_count = 0
@@ -454,6 +473,7 @@ class Scenario(object):
         self.channels = data['channels']
         self.trig_src = data['trig_src']
         self.trig_lvl = data['trig_lvl']
+        self.tim_scale = data['tim_scale']
         self.description = data['description']
         self.layers_count = data['layers_count']
         self.name = data['name']

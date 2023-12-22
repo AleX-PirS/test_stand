@@ -104,40 +104,54 @@ class Visa(object):
 
     def connect_osc(self, address: str):
         self.oscilloscope = self.connect_resource(address, QUERY_OSCILLOSCOPE)
+        self.clear_resource(self.oscilloscope)
+        self.send_command(self.oscilloscope, ":WAV:STR ON")
+        self.send_command(self.oscilloscope, ":ACQ:COMP 100")
+        self.send_command(self.oscilloscope, ":ACQ:POIN:AUTO ON")
+        self.send_command(self.oscilloscope, ":ACQ:MODE HRES")
+        self.detect_errors(self.oscilloscope)
+        return
 
     def connect_gen(self, address: str):
         self.generator = self.connect_resource(address, QUERY_GENERATOR)
+        self.clear_resource(self.generator)
+        self.detect_errors(self.generator)
+        return
 
     def clear_resource(self, resource):
         self.send_command(resource, COMMAND_CLEAR)
         self.send_command(resource, COMMAND_RESET)
+        return
 
     def reset_resource(self, resource: visa.Resource):
         self.clear_resource(resource)
         resource.close()
+        return
 
     def reset_oscilloscope(self):
         self.v2_oscilloscope_ping()
         self.reset_resource(self.oscilloscope)
+        return
 
     def reset_generator(self):
         self.v2_generator_ping()
         self.reset_resource(self.generator)
+        return
 
-    def prep_oscilloscope(self, chan_numb: int, trig_lvl: int):
-        self.send_command(
-            self.oscilloscope, f":CHAN{str(chan_numb)}:PROB {CHANNEL_PROB_CONST}")
-        # self.send_command(self.osc, ":SELECT:CH1 ON")
-        # chose trig mode
-        self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
-        # trigger settings
-        self.send_command(self.oscilloscope,
-                          f":TRIG:EDGE:SOUR CHAN{str(chan_numb)}")
-        self.send_command(self.oscilloscope,
-                          f":TRIG:LEV CHAN{str(chan_numb)}, {str(trig_lvl)}mV")
-        self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
-        # setting type sweep
-        self.send_command(self.oscilloscope, ":TRIG:SWE SING")
+    # def prep_oscilloscope(self, chan_numb: int, trig_lvl: int):
+    #     self.send_command(
+    #         self.oscilloscope, f":CHAN{str(chan_numb)}:PROB {CHANNEL_PROB_CONST}")
+    #     # self.send_command(self.osc, ":SELECT:CH1 ON")
+    #     # chose trig mode
+    #     self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
+    #     # trigger settings
+    #     self.send_command(self.oscilloscope,
+    #                       f":TRIG:EDGE:SOUR CHAN{str(chan_numb)}")
+    #     self.send_command(self.oscilloscope,
+    #                       f":TRIG:LEV CHAN{str(chan_numb)}, {str(trig_lvl)}mV")
+    #     self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
+    #     # setting type sweep
+    #     self.send_command(self.oscilloscope, ":TRIG:SWE SING")
 
     # def configure_generator_sample(self, data: SampleSettings):
     #     signal_type = self.signal_type_from_box(data.get_signal_type())
@@ -206,39 +220,36 @@ class Visa(object):
     def v2_configurate_generator_sample(self, config:GeneratorSample):
         self.v2_generator_ping()
         # :OUTPut[1|2]:IMPedance:EXTernal
-        # :OUTPut[1|2]:POLarity {NORMal|INVerted}
-        self.clear_resource(self.generator)
         self.send_command(self.generator, f":FUNC {config.signal_type}")
-        self.send_command(self.generator, f":FREQ {config.freq}kHz")
+        self.send_command(self.generator, f":FREQ {config.freq}")
         if config.is_triggered:
             self.send_command(self.generator, f":ARM:SOUR EXT")
-            self.send_command(self.generator, f":ARM:LEV {config.trig_lvl}mV")
+            self.send_command(self.generator, f":ARM:LEV {config.trig_lvl}")
             self.send_command(self.generator, f":ARM:SENS LEV")
         else:
             self.send_command(self.generator, f":ARM:SOUR IMM")
 
         match config.signal_type:
             case "PULS":
-                self.send_command(self.generator, f":FUNC:{config.signal_type}:WIDT {config.width}ns")
-                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN {config.lead}ns")
-                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN:TRA {config.trail}ns")
-                self.send_command(self.generator, f":FUNC:{config.signal_type}:DEL {config.delay}ns")
-                self.send_command(self.generator, f":VOLT:HIGH {float(config.ampl)+float(config.offset)}mV")
-                self.send_command(self.generator, f":VOLT:LOW {float(config.offset)}mV")
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:WIDT {config.width}")
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN {config.lead}")
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:TRAN:TRA {config.trail}")
+                self.send_command(self.generator, f":FUNC:{config.signal_type}:DEL {config.delay}")
+                self.send_command(self.generator, f":VOLT:HIGH {float(config.ampl)+float(config.offset)}")
+                self.send_command(self.generator, f":VOLT:LOW {float(config.offset)}")
             case "SQU" | "RAMP" | "SIN" | "USER":
-                self.send_command(self.generator, f":VOLT:OFFS {config.offset}mV")
-                self.send_command(self.generator, f":VOLT {config.ampl}mV")
+                self.send_command(self.generator, f":VOLT:OFFS {config.offset}")
+                self.send_command(self.generator, f":VOLT {config.ampl}")
                 pass
             case "NOIS":
-                self.send_command(self.generator, f":VOLT:OFFS {config.offset}mV")
-                self.send_command(self.generator, f":VOLT {config.ampl}mV")
+                self.send_command(self.generator, f":VOLT:OFFS {config.offset}")
+                self.send_command(self.generator, f":VOLT {config.ampl}")
                 pass
 
         self.detect_errors(self.generator)
     
     def v2_toggle_out1(self):
         self.v2_generator_ping()
-        # Добавить все тоже самое для не out
         match self.query(self.generator, f":OUTP1?"):
             case "OFF" | "0":
                 self.send_command(self.generator, ":OUTP1 ON")
@@ -246,80 +257,70 @@ class Visa(object):
                 self.send_command(self.generator, ":OUTP1 OFF")
         self.detect_errors(self.generator)
 
-    def v2_on_out1(self):
+    def v2_toggle_not_out1(self):
         self.v2_generator_ping()
-        self.send_command(self.generator, f":OUTP1 ON")
-        self.detect_errors(self.generator)
-    
-    def v2_off_out1(self):
-        self.v2_generator_ping()
-        self.send_command(self.generator, f":OUTP1 OFF")
+        match self.query(self.generator, f":OUTP1:COMP?"):
+            case "OFF" | "0":
+                self.send_command(self.generator, ":OUTP1:COMP ON")
+            case "ON" | "1":
+                self.send_command(self.generator, ":OUTP1:COMP OFF")
         self.detect_errors(self.generator)
 
-    def v2_configurate_oscilloscope_sample(self, channels:list[Channel], trig_src, trig_lvl):
+    def v2_on_out1(self, out_index):
+        self.v2_generator_ping()
+        match out_index:
+            case 0:
+                self.send_command(self.generator, f":OUTP1 ON")
+            case 1:
+                self.send_command(self.generator, f":OUTP1:COMP ON")
+        self.detect_errors(self.generator)
+    
+    def v2_off_all_out1(self):
+        self.v2_generator_ping()
+        self.send_command(self.generator, f":OUTP1 OFF")
+        self.send_command(self.generator, f":OUTP1:COMP OFF")
+        self.detect_errors(self.generator)
+
+    def v2_configurate_oscilloscope_scenario(self, channels:list[Channel], trig_src, trig_lvl, tim_scale):
         self.v2_oscilloscope_ping()
-        self.send_command(self.oscilloscope, ":WAV:STR ON")
-        self.send_command(self.oscilloscope, ":ACQ:MODE HRES")
-        self.send_command(self.oscilloscope, ":ACQ:BAND MAX")
-        self.send_command(self.oscilloscope, ":ACQ:COMP 100")
-        self.send_command(self.oscilloscope, ":ACQ:POIN:AUTO ON")
-        self.clear_resource(self.oscilloscope)
+
         for i in range(1, 5):
             self.send_command(self.oscilloscope, f":CHAN{i} OFF")
         for ch in channels:
             self.send_command(self.oscilloscope, f":CHAN{ch.index} ON")
+
         # trigger settings
         self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
         self.send_command(self.oscilloscope, f":TRIG:EDGE:SOUR CHAN{trig_src}")
-        self.send_command(self.oscilloscope, f":TRIG:LEV CHAN{trig_src}, {trig_lvl}mV")
+        self.send_command(self.oscilloscope, f":TRIG:LEV CHAN{trig_src}, {trig_lvl}")
         self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
         # setting type sweep
         self.send_command(self.oscilloscope, ":TRIG:SWE SING")
+
+        self.send_command(self.oscilloscope, f":TIM:SCAL {tim_scale}")
+        self.send_command(self.oscilloscope, f":TIM:POS {tim_scale*2}")
+
+        for ch in channels:
+            self.send_command(self.oscilloscope, f":CHAN{ch.index}:SCAL {ch.scale}")
+
         self.detect_errors(self.oscilloscope)
 
-    def v2_set_oscilloscope_Y_scale(self):
-        self.v2_oscilloscope_ping()
-        for i in range(1, 5):
-            self.send_command(self.oscilloscope, f":CHAN{i}:RANG 1")
-            # self.send_command(self.oscilloscope, f":CHAN{i}:SCAL 1")
-        self.detect_errors(self.oscilloscope)
-
-    def v2_set_oscilloscope_X_scale(self):
-        self.v2_oscilloscope_ping()
-        # self.send_command(self.oscilloscope, f":TIM:RANG 0.000000250")
-        self.send_command(self.oscilloscope, f":TIM:SCAL 0.000000250")
-        self.detect_errors(self.oscilloscope)
-
-    def v2_move_oscilloscope_Y_axis(self, channels):
+    def v2_move_oscilloscope_Y_axis(self, channels:list[Channel]):
         self.v2_oscilloscope_ping()
         match len(channels):
             case 1:
                 pass
             case 2:
-                scale1 = self.query(self.oscilloscope, f":CHAN{channels[0].index}:SCAL?")
-                scale2 = self.query(self.oscilloscope, f":CHAN{channels[1].index}:SCAL?")
-                self.send_command(self.oscilloscope, f":CHAN{channels[0].index}:OFFS {float(scale1)*2}")
-                self.send_command(self.oscilloscope, f":CHAN{channels[1].index}:OFFS {float(scale2)*(-2)}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[0].index}:OFFS {channels[0].scale*2}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[1].index}:OFFS {channels[1].scale*(-2)}")
             case 3:
-                scale1 = self.query(self.oscilloscope, f":CHAN{channels[0].index}:SCAL?")
-                scale2 = self.query(self.oscilloscope, f":CHAN{channels[1].index}:SCAL?")
-                self.send_command(self.oscilloscope, f":CHAN{channels[0].index}:OFFS {float(scale1)*2}")
-                self.send_command(self.oscilloscope, f":CHAN{channels[1].index}:OFFS {float(scale2)*(-2)}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[0].index}:OFFS {channels[0].scale*2}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[1].index}:OFFS {channels[1].scale*(-2)}")
             case 4:
-                scale1 = self.query(self.oscilloscope, f":CHAN{channels[0].index}:SCAL?")
-                scale2 = self.query(self.oscilloscope, f":CHAN{channels[1].index}:SCAL?")
-                scale3 = self.query(self.oscilloscope, f":CHAN{channels[2].index}:SCAL?")
-                scale4 = self.query(self.oscilloscope, f":CHAN{channels[3].index}:SCAL?")
-                self.send_command(self.oscilloscope, f":CHAN{channels[0].index}:OFFS {float(scale1)}")
-                self.send_command(self.oscilloscope, f":CHAN{channels[1].index}:OFFS {float(scale2)*(-1)}")
-                self.send_command(self.oscilloscope, f":CHAN{channels[2].index}:OFFS {float(scale3)*3}")
-                self.send_command(self.oscilloscope, f":CHAN{channels[3].index}:OFFS {float(scale4)*(-3)}")
-        self.detect_errors(self.oscilloscope)
-
-    def v2_move_oscilloscope_X_axis(self):
-        self.v2_oscilloscope_ping()
-        scale = self.query(self.oscilloscope, f":TIM:SCAL?")
-        self.send_command(self.oscilloscope, f":TIM:POS {float(scale)*2.5}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[0].index}:OFFS {channels[0].scale}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[1].index}:OFFS {channels[1].scale*(-1)}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[2].index}:OFFS {channels[2].scale*3}")
+                self.send_command(self.oscilloscope, f":CHAN{channels[3].index}:OFFS {channels[3].scale*(-3)}")
         self.detect_errors(self.oscilloscope)
 
     def v2_get_oscilloscope_data(self):
@@ -340,7 +341,7 @@ class Visa(object):
                 break
 
             count += 1
-            if count == 5:
+            if count == 3:
                 raise Exception("No waveforms data.")
         
         data = {}
@@ -393,6 +394,6 @@ class Visa(object):
 
     def v2_oscilloscope_ping(self):
         try:
-            self.query(self.generator, COMMAND_IDN)
+            self.query(self.oscilloscope, COMMAND_IDN)
         except:
             raise Exception("No oscilloscope connection.")

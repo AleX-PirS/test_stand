@@ -24,13 +24,12 @@ class Stand(object):
         # Constants panel
         self.ui.ui.butt_set_default_regs.clicked.connect(self.process_set_default_reg_values_butt)
         # Environment panel
-        self.ui.ui.oscilloscope_conn_butt.clicked.connect(
-            self.process_oscilloscope_conn_butt)
-        self.ui.ui.generator_conn_butt.clicked.connect(
-            self.process_generator_conn_butt)
+        self.ui.ui.oscilloscope_conn_butt.clicked.connect(self.process_oscilloscope_conn_butt)
+        self.ui.ui.generator_conn_butt.clicked.connect(self.process_generator_conn_butt)
         self.ui.ui.reset_osc_butt.clicked.connect(self.process_reset_osc_butt)
         self.ui.ui.reset_gen_butt.clicked.connect(self.process_reset_gen_butt)
         self.ui.ui.scan_res_butt.clicked.connect(self.process_scan_res_butt)
+        self.ui.ui.command_send_butt.clicked.connect(self.process_send_comm_butt)
         # Generator settings panel
         self.ui.ui.gen_zero_butt.clicked.connect(self.process_set_zeros_generator_butt)
         # Logs panel
@@ -46,6 +45,7 @@ class Stand(object):
         # Manual testing
         self.ui.ui.gen_config_butt.clicked.connect(self.process_config_gen_butt)
         self.ui.ui.gen_out_butt.clicked.connect(self.process_out_toggle_butt)
+        self.ui.ui.gen_not_out_butt.clicked.connect(self.process_not_out_toggle_butt)
         self.ui.ui.measure_butt.clicked.connect(self.process_measure_butt)
 
         # TEST BUTT
@@ -144,7 +144,7 @@ class Stand(object):
 
     def process_reset_scenario_butt(self):
         self.ui.reset_scenario_data()
-        self.main_scenario = Scenario([], "", "", [], 0, 0)
+        self.main_scenario = Scenario([], "", "", [], 0, 0, 0)
 
     def process_add_layer_butt(self):
         try:
@@ -173,7 +173,7 @@ class Stand(object):
             self.ui.logging("Please, write the scenario name!")
             return
         try:
-            channels, trig_src, trig_lvl = self.ui.get_channels_data()
+            channels, trig_src, trig_lvl, tim_scale = self.ui.get_channels_data()
         except Exception as e:
             self.ui.logging("ERROR get data about signals: ", e.args[0])
             return
@@ -182,6 +182,7 @@ class Stand(object):
         self.main_scenario.channels = channels
         self.main_scenario.trig_src = trig_src
         self.main_scenario.trig_lvl = trig_lvl
+        self.main_scenario.tim_scale = tim_scale
         try:
             self.main_scenario.save_scenario()
         except Exception as e:
@@ -224,40 +225,61 @@ class Stand(object):
         except Exception as e:
             self.ui.logging("ERROR toggle generator out1: ", e.args[0])
             return
-        self.ui.logging("Generator out 1 has been toggled")
+        self.ui.logging("Generator out1 has been toggled")
+
+    def process_not_out_toggle_butt(self):
+        try:
+            self.visa.v2_toggle_not_out1()
+        except Exception as e:
+            self.ui.logging("ERROR toggle generator !out1: ", e.args[0])
+            return
+        self.ui.logging("Generator !out1 has been toggled")
+
+    def process_send_comm_butt(self):
+        try:
+            res_index, comm = self.ui.get_resource_comm_data()
+            if comm == "":
+                return
+            match res_index:
+                case 0:
+                    res = self.visa.oscilloscope
+                    self.visa.v2_oscilloscope_ping()
+                case 1:
+                    res = self.visa.generator
+                    self.visa.v2_generator_ping()
+                    
+            if comm[-1] == "?":
+                query = self.visa.query(res, comm)
+                self.ui.logging(f"'{comm}', QUERY:{query}")
+                self.visa.detect_errors(res)
+                return
+            self.visa.send_command(res, comm)
+            self.visa.detect_errors(res)
+        except Exception as e:
+            self.ui.logging("ERROR send command to resource: ", e.args[0])
+            return
 
     def process_measure_butt(self):
-        # delte alll
         try:
-            a, b, c = self.ui.get_channels_data()
-            self.visa.v2_configurate_oscilloscope_sample(a, b, c)
-            self.visa.v2_set_oscilloscope_X_scale()
-            self.visa.v2_move_oscilloscope_X_axis()
-            self.visa.v2_set_oscilloscope_Y_scale()
-            self.visa.v2_move_oscilloscope_Y_axis(a)
+            a, b, c, d = self.ui.get_channels_data()
+            self.visa.v2_configurate_oscilloscope_scenario(a, b, c, d)
         except Exception as e:
-            self.ui.logging("ERROR: ", e.args[0])
+            self.ui.logging("ERROR:", e.args[0])
             return
-        pass
 
     def process_TEST_BUTT_THAT_IS_MANUAL_START(self):
         try:
-            if self.ui.ui.chip_desc_plain_text_input.toPlainText() != "":
-                self.visa.send_command(self.visa.oscilloscope, self.ui.ui.chip_desc_plain_text_input.toPlainText())
-                return
-            if self.ui.ui.chip_name.text().strip() != "":
-                data = self.visa.query(self.visa.oscilloscope, self.ui.ui.chip_name.text())
-                print(data)
-                return
-            
+            channels, _, _, _ = self.ui.get_channels_data()
+            self.visa.v2_oscilloscope_run()
+            sample = self.visa.v2_get_sample()
+            sample.plot_all(channels)
+            print(len(sample.data[1][1]))
+            print(len(sample.data[2][1]))
+            print(len(sample.data[3][1]))
+            print(len(sample.data[4][1]))
         except Exception as e:
-            self.ui.logging("ERROR: ", e.args[0])
-        self.visa.v2_oscilloscope_run()
-        sample = self.visa.v2_get_sample()
-        print(len(sample.data[1][1]))
-        print(len(sample.data[2][1]))
-        print(len(sample.data[3][1]))
-        print(len(sample.data[4][1]))
+            self.ui.logging("ERROR:", e.args[0])
+            return
         # self.uart.send_start_command()
 
 
