@@ -247,6 +247,7 @@ class RegData(object):
 
     def __init__(self,
                  is_zero_init=False,
+                 template_list = [],
                  # Analog
                  CCAL=DEFAULT_CCAL,
                  CCSA=DEFAULT_CCSA,
@@ -285,6 +286,10 @@ class RegData(object):
 
         if is_zero_init:
             self.reg_data = [-1 for _ in range(125)]
+            return
+        
+        if len(template_list) != 0:
+            self.reg_data = [int.to_bytes(int_byte, 1, 'big') for int_byte in template_list]
             return
 
         self.reg_data[registers_metadata_name_to_addr['analog_ctrl_0']] = int.to_bytes(
@@ -470,7 +475,16 @@ class Scenario(object):
     
     def fromJSON(self, file):
         data = json.load(file)
-        self.channels = data['channels']
+        channels = []
+        for ch in data['channels']:
+            chan = Channel(
+                name=ch['name'],
+                index=ch['index'],
+                scale=ch['scale'],
+            )
+            channels.append(chan)
+            
+        self.channels = channels
         self.trig_src = data['trig_src']
         self.trig_lvl = data['trig_lvl']
         self.tim_scale = data['tim_scale']
@@ -511,7 +525,7 @@ def find_scenarios()-> list[Scenario]:
     scenarios = []
     for file in glob.glob(scenarios_path+"*.json"):
         with open(file) as f:
-            data = Scenario()
+            data = Scenario([], "", "", [], 0, 0, 0)
             try:
                 data.fromJSON(f)
             except:

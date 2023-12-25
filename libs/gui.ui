@@ -1081,11 +1081,6 @@
        <string>μs</string>
       </property>
      </item>
-     <item>
-      <property name="text">
-       <string>ps</string>
-      </property>
-     </item>
     </widget>
    </widget>
    <widget class="QFrame" name="frame_4">
@@ -3575,7 +3570,7 @@
       <double>0.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -3641,7 +3636,7 @@
       <number>3</number>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -3674,11 +3669,6 @@
      <item>
       <property name="text">
        <string>μs</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>ps</string>
       </property>
      </item>
     </widget>
@@ -3734,10 +3724,10 @@
       <number>3</number>
      </property>
      <property name="minimum">
-      <double>-999.999000000000024</double>
+      <double>-1000.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -3979,11 +3969,6 @@
        <string>μs</string>
       </property>
      </item>
-     <item>
-      <property name="text">
-       <string>ps</string>
-      </property>
-     </item>
     </widget>
     <widget class="QComboBox" name="comboBox_ampl_2">
      <property name="geometry">
@@ -4018,7 +4003,7 @@
       <number>3</number>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -4053,11 +4038,6 @@
        <string>μs</string>
       </property>
      </item>
-     <item>
-      <property name="text">
-       <string>ps</string>
-      </property>
-     </item>
     </widget>
     <widget class="QDoubleSpinBox" name="width_2">
      <property name="geometry">
@@ -4072,7 +4052,7 @@
       <number>3</number>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -4133,7 +4113,7 @@
       <double>0.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -4152,7 +4132,7 @@
       <number>3</number>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -4190,7 +4170,7 @@
       <number>3</number>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -4225,11 +4205,6 @@
        <string>μs</string>
       </property>
      </item>
-     <item>
-      <property name="text">
-       <string>ps</string>
-      </property>
-     </item>
     </widget>
     <widget class="QDoubleSpinBox" name="trail">
      <property name="geometry">
@@ -4244,7 +4219,7 @@
       <number>3</number>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -4263,7 +4238,7 @@
       <number>3</number>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -4317,11 +4292,6 @@
        <string>μs</string>
       </property>
      </item>
-     <item>
-      <property name="text">
-       <string>ps</string>
-      </property>
-     </item>
     </widget>
     <widget class="QComboBox" name="comboBox_trail_2">
      <property name="geometry">
@@ -4352,11 +4322,6 @@
        <string>μs</string>
       </property>
      </item>
-     <item>
-      <property name="text">
-       <string>ps</string>
-      </property>
-     </item>
     </widget>
     <widget class="QDoubleSpinBox" name="width">
      <property name="geometry">
@@ -4371,7 +4336,7 @@
       <number>3</number>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -4404,11 +4369,6 @@
      <item>
       <property name="text">
        <string>μs</string>
-      </property>
-     </item>
-     <item>
-      <property name="text">
-       <string>ps</string>
       </property>
      </item>
     </widget>
@@ -4637,7 +4597,7 @@
       <double>0.000000000000000</double>
      </property>
      <property name="maximum">
-      <double>999.999000000000024</double>
+      <double>1000.000000000000000</double>
      </property>
      <property name="singleStep">
       <double>1.000000000000000</double>
@@ -4803,7 +4763,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -5802,14 +5762,17 @@
      </property>
     </widget>
    </widget>
-   <widget class="QGraphicsView" name="graphicsView">
+   <widget class="QPushButton" name="butt_set_default_gui">
     <property name="geometry">
      <rect>
-      <x>740</x>
+      <x>760</x>
       <y>500</y>
-      <width>401</width>
-      <height>271</height>
+      <width>371</width>
+      <height>31</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>Set default gui status</string>
     </property>
    </widget>
   </widget>
@@ -5943,7 +5906,6 @@
   <tabstop>line_chan_4_name</tabstop>
   <tabstop>trig_lvl_oscilloscope</tabstop>
   <tabstop>comboBox_trig_lvl_oscilloscope</tabstop>
-  <tabstop>graphicsView</tabstop>
   <tabstop>tabWidget</tabstop>
   <tabstop>isScreenshotable</tabstop>
   <tabstop>comboBox_using_out</tabstop>

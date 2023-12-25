@@ -8,13 +8,15 @@ import sys
 
 class Stand(object):
     def __init__(self) -> None:
-        self.main_scenario = Scenario()
+        self.main_scenario = Scenario([], "", "", [], 0, 0, 0)
         self.list_of_scenarios = list[Scenario]
-        self.scenario_to_start = Scenario()
+        self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
 
         self.ui = Ui()
         self.uart = UART()
         self.visa = Visa()
+        # Main window
+        self.ui.ui.butt_set_default_gui.clicked.connect(self.process_default_gui_butt)
         # Registers panel
         self.ui.ui.com_write_butt.clicked.connect(self.process_com_write_butt)
         self.ui.ui.com_read_all_butt.clicked.connect(self.process_com_read_all_butt)
@@ -200,6 +202,7 @@ class Stand(object):
         if index == -1:
             return
         self.ui.update_scenario_description(self.list_of_scenarios[index].description)
+        self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
         self.scenario_to_start = self.list_of_scenarios[index]
 
     def process_scan_butt(self):
@@ -267,19 +270,30 @@ class Stand(object):
             self.ui.logging("ERROR:", e.args[0])
             return
 
+    def process_default_gui_butt(self):
+        self.ui.set_default_reg_values(RegData())
+        self.ui.set_channels_data_zero()
+        self.ui.set_generator_data_zero()
+        self.ui.clear_chip_metadata()
+        self.process_reset_scenario_butt()
+
     def process_TEST_BUTT_THAT_IS_MANUAL_START(self):
-        try:
-            channels, _, _, _ = self.ui.get_channels_data()
-            self.visa.v2_oscilloscope_run()
-            sample = self.visa.v2_get_sample()
-            sample.plot_all(channels)
-            print(len(sample.data[1][1]))
-            print(len(sample.data[2][1]))
-            print(len(sample.data[3][1]))
-            print(len(sample.data[4][1]))
-        except Exception as e:
-            self.ui.logging("ERROR:", e.args[0])
-            return
+        # self.uart.write_w_regs(RegData(template_list=self.scenario_to_start.tests[0].constants))
+        self.ui.set_reg_values(RegData(template_list=self.scenario_to_start.tests[0].constants))
+        self.ui.set_channels_data(self.scenario_to_start.channels, self.scenario_to_start.trig_src, self.scenario_to_start.trig_lvl, self.scenario_to_start.tim_scale)
+
+        # try:
+        #     channels, _, _, _ = self.ui.get_channels_data()
+        #     self.visa.v2_oscilloscope_run()
+        #     sample = self.visa.v2_get_sample()
+        #     sample.plot_all(channels)
+        #     print(len(sample.data[1][1]))
+        #     print(len(sample.data[2][1]))
+        #     print(len(sample.data[3][1]))
+        #     print(len(sample.data[4][1]))
+        # except Exception as e:
+        #     self.ui.logging("ERROR:", e.args[0])
+        #     return
         # self.uart.send_start_command()
 
 
