@@ -138,69 +138,18 @@ class Visa(object):
         self.reset_resource(self.generator)
         return
 
-    # def prep_oscilloscope(self, chan_numb: int, trig_lvl: int):
-    #     self.send_command(
-    #         self.oscilloscope, f":CHAN{str(chan_numb)}:PROB {CHANNEL_PROB_CONST}")
-    #     # self.send_command(self.osc, ":SELECT:CH1 ON")
-    #     # chose trig mode
-    #     self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
-    #     # trigger settings
-    #     self.send_command(self.oscilloscope,
-    #                       f":TRIG:EDGE:SOUR CHAN{str(chan_numb)}")
-    #     self.send_command(self.oscilloscope,
-    #                       f":TRIG:LEV CHAN{str(chan_numb)}, {str(trig_lvl)}mV")
-    #     self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
-    #     # setting type sweep
-    #     self.send_command(self.oscilloscope, ":TRIG:SWE SING")
+    def v2_meas_osc_data(self, channels:list[Channel]):
+        self.v2_oscilloscope_ping()
+        sample = {}
+        for ch in channels:
+            edge = self.query(self.oscilloscope, f":MEAS:EDGE? CHAN{ch.index}")
+            amplitude = self.query(self.oscilloscope, f":MEAS:VAMP? CHAN{ch.index}")
+            fall = self.query(self.oscilloscope, f":MEAS:FALL? CHAN{ch.index}")
 
-    # def configure_generator_sample(self, data: SampleSettings):
-    #     signal_type = self.signal_type_from_box(data.get_signal_type())
+            sample[ch.index] = {'ampl':amplitude, 'edge':edge, 'fall':fall}
 
-    #     self.send_command(self.generator, f":FUNC {signal_type}")
-    #     self.send_command(self.generator, f":FREQ {data.get_freq()}Hz")
-    #     self.send_command(self.generator, f":VOLT:HIGH {data.get_ampl()}mV")
-    #     self.send_command(self.generator, f":VOLT:LOW 0V")
-    #     self.send_command(
-    #         self.generator, f":FUNC:{signal_type}:WIDT {data.get_width()}ns")
-    #     self.send_command(
-    #         self.generator, f":FUNC:{signal_type}:DEL {data.get_delay()}s")
-    #     self.send_command(
-    #         self.generator, f":FUNC:{signal_type}:TRAN {data.get_lead()}ns")
-    #     self.send_command(
-    #         self.generator, f":FUNC:{signal_type}:TRAN:TRA {data.get_trail()}ns")
-
-    #     errors = self.detect_errors(self.generator)
-
-    #     if errors != "":
-    #         raise Exception("invalid signal settings", errors)
-
-    # def measure(self, chan_num: int) -> Sample:
-    #     Edge = self.query(self.oscilloscope,
-    #                       f":MEAS:EDGE? CHAN{str(chan_num)}")
-    #     Amplitude = self.query(
-    #         self.oscilloscope, f":MEAS:VAMP? CHAN{str(chan_num)}")
-    #     Fall = self.query(self.oscilloscope,
-    #                       f":MEAS:FALL? CHAN{str(chan_num)}")
-    #     Frequency = self.query(
-    #         self.oscilloscope, f":MEAS:FREQ? CHAN{str(chan_num)}")
-
-    #     sample = Sample(edge=Edge, ampl=Amplitude, fall=Fall, freq=Frequency)
-
-    #     return sample
-
-    # def do_sample(self, chan_num: int, generator_settings: SampleSettings, trig_lvl: int):
-    #     self.send_command(self.generator, f":OUTP{str(chan_num)} ON")
-    #     try:
-    #         self.configure_generator_sample(generator_settings)
-    #     except Exception as e:
-    #         if e.args[0] == self.EXCEPTION_INVALID_SIGNAL_SETTINGS:
-    #             print("Bad signal settings")
-    #             return e.args[1]
-    #         return
-
-    #     self.prep_oscilloscope(chan_num, trig_lvl)
-    #     self.send_command(self.oscilloscope, ":SING")
-    #     self.send_command(self.oscilloscope, f":MEAS:SOUR CHAN{str(chan_num)}")
+        self.detect_errors(self.oscilloscope)
+        return sample
 
     def resource_list(self) -> list[tuple[str, str]]:
         result = []

@@ -738,6 +738,18 @@ class Ui(object):
         self.ui.chip_name.setText("")
         self.ui.chip_desc_plain_text_input.setPlainText("")
         return
+    
+    def is_scenario_comp_out_use(self) -> bool:
+        return bool(self.ui.comboBox_scenario_using_out.currentIndex())
+    
+    def is_manual_comp_out_use(self) -> bool:
+        return bool(self.ui.comboBox_using_out.currentIndex())
+    
+    def is_scenario_screenable(self) -> bool:
+        return self.ui.isScreenshotable_scenario.isChecked()
+    
+    def is_manual_screenable(self) -> bool:
+        return self.ui.isScreenshotable.isChecked()
 
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)

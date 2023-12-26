@@ -5,6 +5,8 @@ from pkg import RegData, Scenario, TestSample, find_scenarios
 
 import sys
 
+MANUAL_TEST = 0
+SCENARIO_TEST = 0
 
 class Stand(object):
     def __init__(self) -> None:
@@ -44,14 +46,14 @@ class Stand(object):
         # Start scenario sampling
         self.ui.ui.comboBox_scenarios.currentIndexChanged.connect(self.process_scenario_box)
         self.ui.ui.scan_scen_butt.clicked.connect(self.process_scan_butt)
+        self.ui.ui.start_butt_scenar.clicked.connect(self.process_scenar_start_butt)
         # Manual testing
         self.ui.ui.gen_config_butt.clicked.connect(self.process_config_gen_butt)
         self.ui.ui.gen_out_butt.clicked.connect(self.process_out_toggle_butt)
         self.ui.ui.gen_not_out_butt.clicked.connect(self.process_not_out_toggle_butt)
+        self.ui.ui.osc_config_butt.clicked.connect(self.process_osc_config_butt)
         self.ui.ui.measure_butt.clicked.connect(self.process_measure_butt)
-
-        # TEST BUTT
-        self.ui.ui.start_butt.clicked.connect(self.process_TEST_BUTT_THAT_IS_MANUAL_START)
+        self.ui.ui.start_butt.clicked.connect(self.process_start_butt)
 
     def process_com_write_butt(self):
         try:
@@ -263,12 +265,7 @@ class Stand(object):
             return
 
     def process_measure_butt(self):
-        try:
-            a, b, c, d = self.ui.get_channels_data()
-            self.visa.v2_configurate_oscilloscope_scenario(a, b, c, d)
-        except Exception as e:
-            self.ui.logging("ERROR:", e.args[0])
-            return
+        pass
 
     def process_default_gui_butt(self):
         self.ui.set_default_reg_values(RegData())
@@ -277,8 +274,21 @@ class Stand(object):
         self.ui.clear_chip_metadata()
         self.process_reset_scenario_butt()
 
+    def process_scenar_start_butt(self):
+        self.start_test()
+
+    def process_start_butt(self):
+        self.start_test()
+
+    def process_osc_config_butt(self):
+        try:
+            channels, trig_src, trig_lvl, tim_scale = self.ui.get_channels_data()
+            self.visa.v2_configurate_oscilloscope_scenario(channels, trig_src, trig_lvl, tim_scale)
+        except Exception as e:
+            self.ui.logging("ERROR configurate oscilloscope:", e.args[0])
+        return
+
     def process_TEST_BUTT_THAT_IS_MANUAL_START(self):
-        # self.uart.write_w_regs(RegData(template_list=self.scenario_to_start.tests[0].constants))
         self.ui.set_reg_values(RegData(template_list=self.scenario_to_start.tests[0].constants))
         self.ui.set_channels_data(self.scenario_to_start.channels, self.scenario_to_start.trig_src, self.scenario_to_start.trig_lvl, self.scenario_to_start.tim_scale)
 
@@ -296,6 +306,8 @@ class Stand(object):
         #     return
         # self.uart.send_start_command()
 
+    def start_test(self, is_screening:bool, is_comp_out:bool, testing_type:int):
+        pass
 
 if __name__ == "__main__":
     stand = Stand()
