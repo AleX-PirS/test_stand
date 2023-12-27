@@ -407,29 +407,52 @@ class OscilloscopeData(object):
 
         return res
     
-    def plot_one(self, index, label):
-        _, ax = plt.subplots(2,2)
-        ax.plot(self.data[index][0], self.data[index][1], linewidth=1.0)
-        plt.show()
+    # def plot_one(self, index, label):
+    #     _, ax = plt.subplots(2,2)
+    #     ax.plot(self.data[index][0], self.data[index][1], linewidth=1.0)
+    #     plt.show()
 
     def plot_all(self, channels:list[Channel]):
+        # match len(channels):
+        #     case 1:
+        #         fig, axs = plt.subplots(1, 1)
+        #     case 2:
+        #         fig, axs = plt.subplots(2, 1)
+        #     case 3:
+        #         fig, axs = plt.subplots(2, 2)
+        #     case 4:
+        #         fig, axs = plt.subplots(2, 2)
+
+
+        
         fig, axs = plt.subplots(2, 2)
-    
         for ch in channels:
             match ch.index:
                 case 1:
-                    axs[0, 0].set_title(ch.name)
                     axs[0, 0].plot(self.data[1][0], self.data[1][1])
+                    axs[0, 0].set_title(ch.name)
+                    axs[0, 0].set_xlabel("s")
+                    axs[0, 0].set_ylabel("")
+                    axs[0, 0].grid(True, which='both')
                 case 2:
-                    axs[0, 1].set_title(ch.name)
                     axs[0, 1].plot(self.data[2][0], self.data[2][1])
+                    axs[0, 1].set_title(ch.name)
+                    axs[0, 1].set_xlabel("s")
+                    axs[0, 1].set_ylabel("V")
+                    axs[0, 1].grid(True, which='both')
                 case 3:
-                    axs[1, 0].set_title(ch.name)
                     axs[1, 0].plot(self.data[3][0], self.data[3][1])
+                    axs[1, 0].set_title(ch.name)
+                    axs[1, 0].set_xlabel("s")
+                    axs[1, 0].set_ylabel("V")
+                    axs[1, 0].grid(True, which='both')
                 case 4:
-                    axs[1, 1].set_title(ch.name)
                     axs[1, 1].plot(self.data[4][0], self.data[4][1])
-        
+                    axs[1, 1].set_title(ch.name)
+                    axs[1, 1].set_xlabel("s")
+                    axs[1, 1].set_ylabel("V")
+                    axs[1, 1].grid(True, which='both')
+
         plt.show()
 
 

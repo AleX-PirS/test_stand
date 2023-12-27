@@ -15,7 +15,7 @@ class UART(object):
         self.WRITE_WORD =     int.to_bytes(0b0111_0111, 1, 'big')
         self.READ_WORD =      int.to_bytes(0b0111_0010, 1, 'big')
         self.START_WORD =     int.to_bytes(0b0111_0011, 1, 'big')
-        self.CHIP_DATA_WORD = int.to_bytes(0b0000_0000, 1, 'big')
+        self.CHIP_DATA_WORD = int.to_bytes(0b0110_0100, 1, 'big')
         self.ERR_CHIP_WORD =  int.to_bytes(0b0110_0101, 1, 'big')
 
     def connect_com(self, com: str):
@@ -167,21 +167,42 @@ class UART(object):
 
         if len(data_list) != 12:
             raise Exception("Data is corrupted")
-        data = dict()
-        data['V'] = int.from_bytes((data_list[0]&0b1000_0000)>>7, "big")
-        data['R'] = int.from_bytes((data_list[0]&0b0111_1100)>>2, "big")
-        data['ADR'] = int.from_bytes(((data_list[0]&0b0000_0011)<<1)+((data_list[1]&0b1000_0000)>>7), "big")
-        data['N0'] = int.from_bytes((data_list[1]&0b0111_1000)>>3, "big")
-        data['A0'] = int.from_bytes(((data_list[1]&0b0000_0111)<<7)+((data_list[2]&0b1111_1110)>>1), "big")
-        data['N1'] = int.from_bytes(((data_list[2]&0b0000_0001)<<3)+((data_list[3]&0b1110_0000)>>5), "big")
-        data['A1'] = int.from_bytes(((data_list[3]&0b0001_1111)<<5)+((data_list[4]&0b1111_1000)>>3), "big")
-        data['N2'] = int.from_bytes(((data_list[4]&0b0000_0111)<<1)+((data_list[5]&0b1000_0000)>>7), "big")
-        data['A2'] = int.from_bytes(((data_list[5]&0b0111_1111)<<5)+((data_list[6]&0b1110_0000)>>5), "big")
-        data['N3'] = int.from_bytes((data_list[6]&0b0001_1110)>>1, "big")
-        data['A3'] = int.from_bytes(((data_list[6]&0b0000_0001)<<9)+(data_list[7]<<1)+((data_list[8]&0b1000_0000)>>7), "big")
-        data['N4'] = int.from_bytes((data_list[8]&0b0111_1000)>>3, "big")
-        data['A4'] = int.from_bytes(((data_list[8]&0b0000_0111)<<5)+((data_list[9]&0b1111_1110)>>1), "big")
-        data['O'] = int.from_bytes(data_list[9]&0b0000_0001, "big")
-        data['TIME'] = int.from_bytes((data_list[10]<<8)+data_list[11], "big")
+        
+        str_res = ""
+        for i in data_list:
+            str_res += f"{int.from_bytes(i, 'big'):08b}"
 
-        return data
+        data_in = dict()
+        # data_in['V'] = (int.from_bytes((data_list[0]), "big")&0b1000_0000)>>7
+        # data_in['R'] = (int.from_bytes(data_list[0], "big")&0b0111_1100)>>2
+        # data_in['ADR'] = (((int.from_bytes(data_list[0], "big"))&0b0000_0011)<<1)+(int.from_bytes(data_list[1], "big")&0b1000_0000)>>7
+        # data_in['N0'] = (int.from_bytes(data_list[1], "big")&0b0111_1000)>>3
+        # data_in['A0'] = ((int.from_bytes(data_list[1], "big")&0b0000_0111)<<7)+(int.from_bytes(data_list[2], "big")&0b1111_1110)>>1
+        # data_in['N1'] = ((int.from_bytes(data_list[2], "big")&0b0000_0001)<<3)+(int.from_bytes(data_list[3], "big")&0b1110_0000)>>5
+        # data_in['A1'] = ((int.from_bytes(data_list[3], "big")&0b0001_1111)<<5)+(int.from_bytes(data_list[4], "big")&0b1111_1000)>>3
+        # data_in['N2'] = ((int.from_bytes(data_list[4], "big")&0b0000_0111)<<1)+(int.from_bytes(data_list[5], "big")&0b1000_0000)>>7
+        # data_in['A2'] = ((int.from_bytes(data_list[5], "big")&0b0111_1111)<<5)+(int.from_bytes(data_list[6], "big")&0b1110_0000)>>5
+        # data_in['N3'] = (int.from_bytes(data_list[6], "big")&0b0001_1110)>>1
+        # data_in['A3'] = ((int.from_bytes(data_list[6], "big")&0b0000_0001)<<9)+(int.from_bytes(data_list[7], "big")<<1)+((int.from_bytes(data_list[8], "big")&0b1000_0000)>>7)
+        # data_in['N4'] = (int.from_bytes(data_list[8], "big")&0b0111_1000)>>3
+        # data_in['A4'] = ((int.from_bytes(data_list[8], "big")&0b0000_0111)<<5)+(int.from_bytes(data_list[9], "big")&0b1111_1110)>>1
+        # data_in['O'] = (int.from_bytes(data_list[9], "big")&0b0000_0001)
+        # data_in['TIME'] = (int.from_bytes(data_list[10], "big")<<8)+int.from_bytes(data_list[11], "big")
+
+        data_in['V'] = int(f'0b'+str_res[0], base=0)
+        data_in['R'] = int(f'0b'+str_res[1:6], base=0)
+        data_in['ADR'] = int(f'0b'+str_res[6:9], base=0)
+        data_in['N0'] = int(f'0b'+str_res[9:13], base=0)
+        data_in['A0'] = int(f'0b'+str_res[13:23], base=0)
+        data_in['N1'] = int(f'0b'+str_res[23:27], base=0)
+        data_in['A1'] = int(f'0b'+str_res[27:37], base=0)
+        data_in['N2'] = int(f'0b'+str_res[37:41], base=0)
+        data_in['A2'] = int(f'0b'+str_res[41:51], base=0)
+        data_in['N3'] = int(f'0b'+str_res[51:55], base=0)
+        data_in['A3'] = int(f'0b'+str_res[55:65], base=0)
+        data_in['N4'] = int(f'0b'+str_res[65:69], base=0)
+        data_in['A4'] = int(f'0b'+str_res[69:79], base=0)
+        data_in['O'] = int(f'0b'+str_res[79], base=0)
+        data_in['TIME'] = int(f'0b'+str_res[80:], base=0)
+
+        return data_in

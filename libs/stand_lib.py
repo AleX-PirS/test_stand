@@ -54,6 +54,7 @@ class Stand(object):
         self.ui.ui.osc_config_butt.clicked.connect(self.process_osc_config_butt)
         self.ui.ui.measure_butt.clicked.connect(self.process_measure_butt)
         self.ui.ui.start_butt.clicked.connect(self.process_start_butt)
+        self.ui.ui.osc_run_butt.clicked.connect(self.process_osc_run_butt)
 
     def process_com_write_butt(self):
         try:
@@ -204,6 +205,8 @@ class Stand(object):
         if index == -1:
             return
         self.ui.update_scenario_description(self.list_of_scenarios[index].description)
+        self.ui.set_reg_values(RegData(template_list=self.list_of_scenarios[index].tests[0].constants))
+        self.ui.set_channels_data(self.list_of_scenarios[index].channels, self.list_of_scenarios[index].trig_src, self.list_of_scenarios[index].trig_lvl, self.list_of_scenarios[index].tim_scale)
         self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
         self.scenario_to_start = self.list_of_scenarios[index]
 
@@ -264,21 +267,67 @@ class Stand(object):
             self.ui.logging("ERROR send command to resource: ", e.args[0])
             return
 
+    def process_osc_run_butt(self):
+        try:
+            self.visa.v2_oscilloscope_run()
+        except Exception as e:
+            self.ui.logging("ERROR RUN oscilloscope: ", e.args[0])
+            return
+
     def process_measure_butt(self):
-        pass
+        try:
+            channels, _, _, _ = self.ui.get_channels_data()
+            sample = self.visa.v2_get_sample()
+            sample.plot_all(channels)
+        except Exception as e:
+            self.ui.logging("ERROR measure results oscilloscope: ", e.args[0])
+            return
 
     def process_default_gui_butt(self):
-        self.ui.set_default_reg_values(RegData())
-        self.ui.set_channels_data_zero()
-        self.ui.set_generator_data_zero()
-        self.ui.clear_chip_metadata()
-        self.process_reset_scenario_butt()
+        try:
+            self.ui.set_default_reg_values(RegData())
+            self.ui.set_channels_data_zero()
+            self.ui.set_generator_data_zero()
+            self.ui.clear_chip_metadata()
+            self.process_reset_scenario_butt()
+        except Exception as e:
+            self.ui.logging("ERROR set default gui status: ", e.args[0])
+            return
 
     def process_scenar_start_butt(self):
-        self.start_test()
+        try:
+            self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable, self.ui.is_scenario_comp_out_use, SCENARIO_TEST)
+        except Exception as e:
+            self.ui.logging("ERROR start scenario testing: ", e.args[0])
+            return
+
+    def create_manual_scenario(self):
+        manual_scenar = Scenario([], "", "", [], 0, 0, 0)
+        generator_samples = self.ui.get_generator_data_scenario()
+        manual_scenar.add_layer(
+            TestSample(
+                self.ui.get_w_registers_data(),
+                generator_samples,
+            )
+        )
+        name, desc, _ = self.ui.get_scenario_data()
+        channels, trig_src, trig_lvl, tim_scale = self.ui.get_channels_data()
+
+        manual_scenar.name = name
+        manual_scenar.description = desc
+        manual_scenar.channels = channels
+        manual_scenar.trig_src = trig_src
+        manual_scenar.trig_lvl = trig_lvl
+        manual_scenar.tim_scale = tim_scale
+        return manual_scenar
 
     def process_start_butt(self):
-        self.start_test()
+        # try:
+        manual_scenar = self.create_manual_scenario()
+        self.start_test(manual_scenar, self.ui.is_manual_screenable, self.ui.is_manual_comp_out_use, MANUAL_TEST)
+        # except Exception as e:
+        #     self.ui.logging("ERROR start manual testing: ", e.args[0])
+        #     return
 
     def process_osc_config_butt(self):
         try:
@@ -306,8 +355,19 @@ class Stand(object):
         #     return
         # self.uart.send_start_command()
 
-    def start_test(self, is_screening:bool, is_comp_out:bool, testing_type:int):
-        pass
+    def start_test(self, scenario:Scenario, is_screening:bool, is_comp_out:bool, testing_type:int):
+        chip_data = self.uart.get_chip_data()
+        print(chip_data)
+
+        self.visa.v2_oscilloscope_run()
+        print(self.visa.v2_get_sample())
+        
+        if is_screening:
+            print('before func')
+            data = self.visa.v2_take_screen()
+            print('after func')
+
+        print(f"Type of testing: {testing_type}")
 
 if __name__ == "__main__":
     stand = Stand()

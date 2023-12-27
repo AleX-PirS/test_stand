@@ -4763,7 +4763,7 @@
      </rect>
     </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="tab">
      <attribute name="title">
@@ -5072,6 +5072,19 @@
        </property>
        <property name="text">
         <string>Configure oscilloscope</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="osc_run_butt">
+       <property name="geometry">
+        <rect>
+         <x>10</x>
+         <y>150</y>
+         <width>231</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="text">
+        <string>Run oscilloscope</string>
        </property>
       </widget>
      </widget>

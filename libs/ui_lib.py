@@ -732,7 +732,10 @@ class Ui(object):
         return self.ui.comboBox_resources.currentIndex(), self.ui.resource_command_text.text().strip()
     
     def get_chip_metadata(self) -> (str, str):
-        return self.ui.chip_name.text().strip(), self.ui.chip_desc_plain_text_input.toPlainText().strip()
+        name = self.ui.chip_name.text().strip()
+        if name == "":
+            raise Exception("Empty chip name.")
+        return name, self.ui.chip_desc_plain_text_input.toPlainText().strip()
     
     def clear_chip_metadata(self):
         self.ui.chip_name.setText("")
