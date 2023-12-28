@@ -344,6 +344,9 @@ class RegData(object):
             (EMUL_ADDR_i << 5)+(EMUL_DATA_i), 1, 'big')
         return
 
+    def to_int_list(self):
+        return [int.from_bytes(i, 'big') for i in self.reg_data]
+
     def __str__(self) -> str:
         res = ""
         for i in range(len(self.reg_data)):
@@ -359,6 +362,13 @@ class RegData(object):
         reg_data_int = [int.from_bytes(i, 'big') for i in self.reg_data]
         return json.dumps(reg_data_int, default=lambda o: o.__dict__, sort_keys=True, indent=4)      
 
+def differenence(sended_int, got_int):
+        diff = {}
+        for idx, _ in enumerate(sended_int):
+            if sended_int[idx] != got_int[idx]:
+                diff[registers_metadata_addr_to_name[idx]] = f'Sended:{sended_int[idx]:08b}, got{got_int[idx]:08b}'
+
+        return diff
 
 class GeneratorSample(object):
     def __init__(self, signal_type, offset, delay, width, lead, trail, ampl, freq, is_triggered, trig_lvl) -> None:
@@ -573,4 +583,9 @@ def process_signal_type(signal) -> str:
             return "USER"
         case _:
             raise Exception("Bad signal type.")
+        
+
+class Result(object):
+    def __init__(self, scenario:Scenario, ) -> None:
+        pass
         

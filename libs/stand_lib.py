@@ -1,14 +1,18 @@
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import RegData, Scenario, TestSample, find_scenarios
+from pkg import RegData, Scenario, TestSample, find_scenarios, differenence
 
 import sys
+import time
+import os
 
-MANUAL_TEST = 0
-SCENARIO_TEST = 0
+tests_path = os.path.dirname(os.path.abspath(__file__)) + r'\tests\\'
 
 class Stand(object):
+    MANUAL_TEST = 0
+    SCENARIO_TEST = 0
+
     def __init__(self) -> None:
         self.main_scenario = Scenario([], "", "", [], 0, 0, 0)
         self.list_of_scenarios = list[Scenario]
@@ -63,14 +67,6 @@ class Stand(object):
         except Exception as e:
             self.ui.logging("ERROR send constants: ", e.args[0])
             return
-        # Send custom data
-        # try:
-        #     self.uart.write_reg(int.to_bytes(65, 1, 'big'), [int.to_bytes(255, 1, 'big') for i in range(70)])
-        #     self.ui.logging("Constants sended succesfully")
-        # except Exception as e:
-        #     self.ui.logging("ERROR send constants: ", e.args[0])
-        #     return
-
 
     def process_com_read_all_butt(self):
         try:
@@ -296,7 +292,7 @@ class Stand(object):
 
     def process_scenar_start_butt(self):
         try:
-            self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable, self.ui.is_scenario_comp_out_use, SCENARIO_TEST)
+            self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
         except Exception as e:
             self.ui.logging("ERROR start scenario testing: ", e.args[0])
             return
@@ -322,12 +318,12 @@ class Stand(object):
         return manual_scenar
 
     def process_start_butt(self):
-        # try:
-        manual_scenar = self.create_manual_scenario()
-        self.start_test(manual_scenar, self.ui.is_manual_screenable, self.ui.is_manual_comp_out_use, MANUAL_TEST)
-        # except Exception as e:
-        #     self.ui.logging("ERROR start manual testing: ", e.args[0])
-        #     return
+        try:
+            manual_scenar = self.create_manual_scenario()
+            self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
+        except Exception as e:
+            self.ui.logging("ERROR start manual testing: ", e.args[0])
+            return
 
     def process_osc_config_butt(self):
         try:
@@ -355,19 +351,68 @@ class Stand(object):
         #     return
         # self.uart.send_start_command()
 
-    def start_test(self, scenario:Scenario, is_screening:bool, is_comp_out:bool, testing_type:int):
-        chip_data = self.uart.get_chip_data()
-        print(chip_data)
+    def start_test(self, scenario:Scenario, is_screening:bool, out_index:int, testing_type:int):
+        try:
+            self.visa.v2_generator_ping()
+            self.visa.v2_oscilloscope_ping()
+            self.uart.is_connection_open()
+        except:
+            raise Exception("Need to connect other instruments.")
 
-        self.visa.v2_oscilloscope_run()
-        print(self.visa.v2_get_sample())
-        
-        if is_screening:
-            print('before func')
-            data = self.visa.v2_take_screen()
-            print('after func')
+        chip_name, chip_desc = self.ui.get_chip_metadata()
 
-        print(f"Type of testing: {testing_type}")
+        self.visa.v2_off_all_out1()
+        if len(scenario.channels) != 0:
+            self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
+            self.ui.set_channels_data(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
+            
+        match testing_type:
+            case self.MANUAL_TEST:
+                self.ui.logging(f"Start manual test for chip: {chip_name}")
+                self.ui.change_rw_constants()
+                self.ui.change_rw_channels()
+                self.ui.change_rw_gen()
+
+                self.ui.set_reg_values(RegData(template_list=scenario.tests[0].constants))
+                # self.uart.write_w_regs(RegData(template_list=scenario.tests[0].constants))
+                
+                sended = scenario.tests[0].constants
+                # get = self.uart.read_rw_regs().to_int_list()
+                get = RegData().to_int_list()
+                if sended != get:
+                    diff = differenence(sended, get)
+                    for k,v in diff.items():
+                        self.ui.logging(f"WARNING! constants mismatch. reg:{k}, mismatch: {v}")
+
+                for idx, test_sample in enumerate(scenario.tests[0].samples):
+                    self.ui.logging(f"Start sample #{idx} of {scenario.total_test_count}")
+                    self.ui.set_generator_sample(test_sample)
+                    self.visa.v2_configurate_generator_sample(test_sample)
+                    self.visa.v2_oscilloscope_run()
+                    self.visa.v2_on_out1(out_index)
+
+                    self.uart.send_start_command()
+
+                    sample_data = self.visa.v2_get_sample()
+                    chip_data = self.uart.get_chip_data()
+                    if is_screening:
+                        screen_data = self.visa.v2_take_screen()
+                    self.visa.v2_off_all_out1()
+                    # Почему то логи не пишутся сразу, а только после окончания функции.
+                    self.ui.logging(f"Finish sample #{idx} of {scenario.total_test_count}")
+                self.ui.logging(f"Finish manual test for chip: {chip_name}")
+            case self.SCENARIO_TEST:
+                pass
+
+        self.ui.set_constants_writeable()
+        self.ui.set_channels_writeable()
+        self.ui.set_gen_writeable()
+
+    def save_manual_data(self, chip_name, chip_data, plots, dots, screen_bytes):
+        pass
+
+    def save_scenario_data(self, chip_name, chip_data, plots, dots, screen_bytes):
+        pass
 
 if __name__ == "__main__":
     stand = Stand()

@@ -10,7 +10,7 @@ QUERY_GENERATOR = "811"
 CHANNEL_PROB_CONST = "1.0"
 
 # Start resource configuration
-RESOURCE_TIMEOUT = 1000
+RESOURCE_TIMEOUT = 1500
 RESOURCE_QUERY_DELAY = 0.1
 RESOURCE_CHUNCK_SIZE = 100_000
 RESOURCE_TERM_CHARS = ""
@@ -290,7 +290,7 @@ class Visa(object):
                 break
 
             count += 1
-            if count == 3:
+            if count == 5:
                 raise Exception("No waveforms data.")
         
         data = {}
@@ -352,7 +352,6 @@ class Visa(object):
         self.send_command(self.oscilloscope, ":DISPlay:DATA? PNG")
         bts = b''
         while True:
-            print("in WHILE LOOP")
             try:
                 bts += self.oscilloscope.read_bytes(size)
             except:

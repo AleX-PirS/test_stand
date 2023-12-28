@@ -15,6 +15,8 @@ from pkg import process_signal_type
 
 class Ui(object):
     is_regs_readonly = False
+    is_channels_readonly = False
+    is_gen_readonly = False
 
     def __init__(self) -> None:
         self.app = QtWidgets.QApplication(sys.argv)
@@ -682,7 +684,137 @@ class Ui(object):
             data += part + "\n"
         self.ui.scenario_status_plain_text.setPlainText(data)
 
-    def change_rw_constants(self) -> bool:
+    def change_rw_gen(self):
+        self.ui.signal_type_box.setEnabled(self.is_gen_readonly)
+        self.ui.offset.setEnabled(self.is_gen_readonly)
+        self.ui.delay.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_offset.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_delay.setEnabled(self.is_gen_readonly)
+        self.ui.width.setEnabled(self.is_gen_readonly)
+        self.ui.width_2.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_width_times.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_width.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_width_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_width_delta.setEnabled(self.is_gen_readonly)
+        self.ui.lead.setEnabled(self.is_gen_readonly)
+        self.ui.lead_2.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_lead_times.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_lead.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_lead_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_lead_delta.setEnabled(self.is_gen_readonly)
+        self.ui.trail.setEnabled(self.is_gen_readonly)
+        self.ui.trail_2.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_trail_times.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_trail.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_trail_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_trail_delta.setEnabled(self.is_gen_readonly)
+        self.ui.ampl.setEnabled(self.is_gen_readonly)
+        self.ui.ampl_2.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_ampl_times.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_ampl.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_ampl_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_ampl_delta.setEnabled(self.is_gen_readonly)
+        self.ui.freq.setEnabled(self.is_gen_readonly)
+        self.ui.freq_2.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_freq_times.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_freq.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_freq_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_freq_delta.setEnabled(self.is_gen_readonly)
+        self.ui.checkBox_is_triggered.setEnabled(self.is_gen_readonly)
+        self.ui.trig_lvl.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_trig_lvl.setEnabled(self.is_gen_readonly)
+        self.is_gen_readonly = not self.is_gen_readonly
+
+    def set_gen_writeable(self):
+        self.ui.signal_type_box.setEnabled(True)
+        self.ui.offset.setEnabled(True)
+        self.ui.delay.setEnabled(True)
+        self.ui.comboBox_offset.setEnabled(True)
+        self.ui.comboBox_delay.setEnabled(True)
+        self.ui.width.setEnabled(True)
+        self.ui.width_2.setEnabled(True)
+        self.ui.spinBox_width_times.setEnabled(True)
+        self.ui.comboBox_width.setEnabled(True)
+        self.ui.comboBox_width_2.setEnabled(True)
+        self.ui.comboBox_width_delta.setEnabled(True)
+        self.ui.lead.setEnabled(True)
+        self.ui.lead_2.setEnabled(True)
+        self.ui.spinBox_lead_times.setEnabled(True)
+        self.ui.comboBox_lead.setEnabled(True)
+        self.ui.comboBox_lead_2.setEnabled(True)
+        self.ui.comboBox_lead_delta.setEnabled(True)
+        self.ui.trail.setEnabled(True)
+        self.ui.trail_2.setEnabled(True)
+        self.ui.spinBox_trail_times.setEnabled(True)
+        self.ui.comboBox_trail.setEnabled(True)
+        self.ui.comboBox_trail_2.setEnabled(True)
+        self.ui.comboBox_trail_delta.setEnabled(True)
+        self.ui.ampl.setEnabled(True)
+        self.ui.ampl_2.setEnabled(True)
+        self.ui.spinBox_ampl_times.setEnabled(True)
+        self.ui.comboBox_ampl.setEnabled(True)
+        self.ui.comboBox_ampl_2.setEnabled(True)
+        self.ui.comboBox_ampl_delta.setEnabled(True)
+        self.ui.freq.setEnabled(True)
+        self.ui.freq_2.setEnabled(True)
+        self.ui.spinBox_freq_times.setEnabled(True)
+        self.ui.comboBox_freq.setEnabled(True)
+        self.ui.comboBox_freq_2.setEnabled(True)
+        self.ui.comboBox_freq_delta.setEnabled(True)
+        self.ui.checkBox_is_triggered.setEnabled(True)
+        self.ui.trig_lvl.setEnabled(True)
+        self.ui.comboBox_trig_lvl.setEnabled(True)
+        self.is_gen_readonly = False
+
+    def change_rw_channels(self):
+        self.ui.scale_time.setEnabled(self.is_channels_readonly)
+        self.ui.comboBox_time_scale.setEnabled(self.is_channels_readonly)
+        self.ui.checkBox_is_use_chan_1.setEnabled(self.is_channels_readonly)
+        self.ui.line_chan_1_name.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_1.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_1_power.setEnabled(self.is_channels_readonly)
+        self.ui.checkBox_is_use_chan_2.setEnabled(self.is_channels_readonly)
+        self.ui.line_chan_2_name.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_2.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_2_power.setEnabled(self.is_channels_readonly)
+        self.ui.checkBox_is_use_chan_3.setEnabled(self.is_channels_readonly)
+        self.ui.line_chan_3_name.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_3.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_3_power.setEnabled(self.is_channels_readonly)
+        self.ui.checkBox_is_use_chan_4.setEnabled(self.is_channels_readonly)
+        self.ui.line_chan_4_name.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_4.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_4_power.setEnabled(self.is_channels_readonly)
+        self.ui.trigger_src_box.setEnabled(self.is_channels_readonly)
+        self.ui.trig_lvl_oscilloscope.setEnabled(self.is_channels_readonly)
+        self.ui.comboBox_trig_lvl_oscilloscope.setEnabled(self.is_channels_readonly)
+        self.is_channels_readonly = not self.is_channels_readonly
+
+    def set_channels_writeable(self):
+        self.ui.scale_time.setEnabled(True)
+        self.ui.comboBox_time_scale.setEnabled(True)
+        self.ui.checkBox_is_use_chan_1.setEnabled(True)
+        self.ui.line_chan_1_name.setEnabled(True)
+        self.ui.scale_ch_1.setEnabled(True)
+        self.ui.scale_ch_1_power.setEnabled(True)
+        self.ui.checkBox_is_use_chan_2.setEnabled(True)
+        self.ui.line_chan_2_name.setEnabled(True)
+        self.ui.scale_ch_2.setEnabled(True)
+        self.ui.scale_ch_2_power.setEnabled(True)
+        self.ui.checkBox_is_use_chan_3.setEnabled(True)
+        self.ui.line_chan_3_name.setEnabled(True)
+        self.ui.scale_ch_3.setEnabled(True)
+        self.ui.scale_ch_3_power.setEnabled(True)
+        self.ui.checkBox_is_use_chan_4.setEnabled(True)
+        self.ui.line_chan_4_name.setEnabled(True)
+        self.ui.scale_ch_4.setEnabled(True)
+        self.ui.scale_ch_4_power.setEnabled(True)
+        self.ui.trigger_src_box.setEnabled(True)
+        self.ui.trig_lvl_oscilloscope.setEnabled(True)
+        self.ui.comboBox_trig_lvl_oscilloscope.setEnabled(True)
+        self.is_channels_readonly = False
+
+    def change_rw_constants(self):
         self.ui.comboBox_CCAL.setEnabled(self.is_regs_readonly)
         self.ui.comboBox_CCSA.setEnabled(self.is_regs_readonly)
         self.ui.comboBox_GAIN.setEnabled(self.is_regs_readonly)
@@ -717,6 +849,41 @@ class Ui(object):
         self.ui.butt_set_default_regs.setEnabled(self.is_regs_readonly)
         self.is_regs_readonly = not self.is_regs_readonly
 
+    def set_constants_writeable(self):
+        self.ui.comboBox_CCAL.setEnabled(True)
+        self.ui.comboBox_CCSA.setEnabled(True)
+        self.ui.comboBox_GAIN.setEnabled(True)
+        self.ui.comboBox_ICSA.setEnabled(True)
+        self.ui.comboBox_SHA.setEnabled(True)
+        self.ui.comboBox_SHTR.setEnabled(True)
+        self.ui.comboBox_POL.setEnabled(True)
+        self.ui.comboBox_BIAS_CORE_CUR.setEnabled(True)
+        self.ui.comboBox_EMUL_ADDR_i.setEnabled(True)
+        self.ui.comboBox_EMUL_EN_L0.setEnabled(True)
+        self.ui.comboBox_EMUL_EN_L1.setEnabled(True)
+        self.ui.comboBox_EMUL_tau_v.setEnabled(True)
+        self.ui.comboBox_EMUL_L0_v.setEnabled(True)
+        self.ui.comboBox_CMP_TH.setEnabled(True)
+        self.ui.comboBox_CFG_SW_force_EN.setEnabled(True)
+        self.ui.spinBox_DAC_CAL.setEnabled(True)
+        self.ui.spinBox_REZ.setEnabled(True)
+        self.ui.spinBox_CAL_EN_CH.setEnabled(True)
+        self.ui.spinBox_AN_CH_DISABLE.setEnabled(True)
+        self.ui.spinBox_CFG_p1_in_time.setEnabled(True)
+        self.ui.spinBox_CFG_p1_L0_over.setEnabled(True)
+        self.ui.spinBox_CFG_p2_puls_SOC.setEnabled(True)
+        self.ui.spinBox_CFG_p2_puls_SWM.setEnabled(True)
+        self.ui.spinBox_CFG_p2_puls_EOC.setEnabled(True)
+        self.ui.spinBox_CFG_p3_L1_over.setEnabled(True)
+        self.ui.spinBox_CFG_rst_puls_EOC.setEnabled(True)
+        self.ui.spinBox_CFG_SW_force_num.setEnabled(True)
+        self.ui.spinBox_CFG_OUT_INT.setEnabled(True)
+        self.ui.spinBox_ADC_EMU_CFG.setEnabled(True)
+        self.ui.spinBox_EMUL_DATA_i.setEnabled(True)
+        self.ui.spinBox_EMUL_L1_v.setEnabled(True)
+        self.ui.butt_set_default_regs.setEnabled(True)
+        self.is_regs_readonly = False
+
     def update_scenario_combo_box(self, scenarios:list[Scenario]):
         self.ui.comboBox_scenarios.clear()
         for scenario in scenarios:
@@ -742,11 +909,11 @@ class Ui(object):
         self.ui.chip_desc_plain_text_input.setPlainText("")
         return
     
-    def is_scenario_comp_out_use(self) -> bool:
-        return bool(self.ui.comboBox_scenario_using_out.currentIndex())
+    def scenario_comp_out_use_index(self) -> bool:
+        return self.ui.comboBox_scenario_using_out.currentIndex()
     
-    def is_manual_comp_out_use(self) -> bool:
-        return bool(self.ui.comboBox_using_out.currentIndex())
+    def manual_comp_out_use_index(self) -> bool:
+        return self.ui.comboBox_using_out.currentIndex()
     
     def is_scenario_screenable(self) -> bool:
         return self.ui.isScreenshotable_scenario.isChecked()
