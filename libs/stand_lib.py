@@ -6,6 +6,8 @@ from pkg import RegData, Scenario, TestSample, find_scenarios, differenence
 import sys
 import time
 import os
+import datetime
+from pytz import timezone
 
 tests_path = os.path.dirname(os.path.abspath(__file__)) + r'\tests\\'
 
@@ -135,7 +137,7 @@ class Stand(object):
         self.ui.log_resources(self.visa.resource_list())
 
     def process_set_default_reg_values_butt(self):
-        self.ui.set_default_reg_values(RegData())
+        self.ui.set_default_reg_values(RegData(is_zero_init=False))
 
     def process_set_zeros_generator_butt(self):
         self.ui.set_generator_data_zero()
@@ -201,7 +203,7 @@ class Stand(object):
         if index == -1:
             return
         self.ui.update_scenario_description(self.list_of_scenarios[index].description)
-        self.ui.set_reg_values(RegData(template_list=self.list_of_scenarios[index].tests[0].constants))
+        self.ui.set_reg_values(RegData(is_zero_init=False, template_list=self.list_of_scenarios[index].tests[0].constants))
         self.ui.set_channels_data(self.list_of_scenarios[index].channels, self.list_of_scenarios[index].trig_src, self.list_of_scenarios[index].trig_lvl, self.list_of_scenarios[index].tim_scale)
         self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
         self.scenario_to_start = self.list_of_scenarios[index]
@@ -281,7 +283,7 @@ class Stand(object):
 
     def process_default_gui_butt(self):
         try:
-            self.ui.set_default_reg_values(RegData())
+            self.ui.set_default_reg_values(RegData(is_zero_init=False))
             self.ui.set_channels_data_zero()
             self.ui.set_generator_data_zero()
             self.ui.clear_chip_metadata()
@@ -306,11 +308,10 @@ class Stand(object):
                 generator_samples,
             )
         )
-        name, desc, _ = self.ui.get_scenario_data()
         channels, trig_src, trig_lvl, tim_scale = self.ui.get_channels_data()
 
-        manual_scenar.name = name
-        manual_scenar.description = desc
+        manual_scenar.name = str(datetime.datetime.now(tz=timezone('Europe/Moscow')))
+        manual_scenar.description = "manual test"
         manual_scenar.channels = channels
         manual_scenar.trig_src = trig_src
         manual_scenar.trig_lvl = trig_lvl
@@ -318,12 +319,15 @@ class Stand(object):
         return manual_scenar
 
     def process_start_butt(self):
-        try:
-            manual_scenar = self.create_manual_scenario()
-            self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
-        except Exception as e:
-            self.ui.logging("ERROR start manual testing: ", e.args[0])
-            return
+        # try:
+        manual_scenar = self.create_manual_scenario()
+        # for s in manual_scenar.tests[0].samples:
+        #     print(s.toJSON())
+        #     pass
+        self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
+        # except Exception as e:
+        #     self.ui.logging("ERROR start manual testing: ", e.args[0])
+        #     return
 
     def process_osc_config_butt(self):
         try:
@@ -333,25 +337,7 @@ class Stand(object):
             self.ui.logging("ERROR configurate oscilloscope:", e.args[0])
         return
 
-    def process_TEST_BUTT_THAT_IS_MANUAL_START(self):
-        self.ui.set_reg_values(RegData(template_list=self.scenario_to_start.tests[0].constants))
-        self.ui.set_channels_data(self.scenario_to_start.channels, self.scenario_to_start.trig_src, self.scenario_to_start.trig_lvl, self.scenario_to_start.tim_scale)
-
-        # try:
-        #     channels, _, _, _ = self.ui.get_channels_data()
-        #     self.visa.v2_oscilloscope_run()
-        #     sample = self.visa.v2_get_sample()
-        #     sample.plot_all(channels)
-        #     print(len(sample.data[1][1]))
-        #     print(len(sample.data[2][1]))
-        #     print(len(sample.data[3][1]))
-        #     print(len(sample.data[4][1]))
-        # except Exception as e:
-        #     self.ui.logging("ERROR:", e.args[0])
-        #     return
-        # self.uart.send_start_command()
-
-    def start_test(self, scenario:Scenario, is_screening:bool, out_index:int, testing_type:int):
+    def check_instruments_connection(self):
         try:
             self.visa.v2_generator_ping()
             self.visa.v2_oscilloscope_ping()
@@ -359,54 +345,96 @@ class Stand(object):
         except:
             raise Exception("Need to connect other instruments.")
 
-        chip_name, chip_desc = self.ui.get_chip_metadata()
+    def change_rw_gui(self):
+        self.ui.change_rw_constants()
+        self.ui.change_rw_channels()
+        self.ui.change_rw_gen()
 
-        self.visa.v2_off_all_out1()
-        if len(scenario.channels) != 0:
-            self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
-            self.ui.set_channels_data(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
-            
-        match testing_type:
-            case self.MANUAL_TEST:
-                self.ui.logging(f"Start manual test for chip: {chip_name}")
-                self.ui.change_rw_constants()
-                self.ui.change_rw_channels()
-                self.ui.change_rw_gen()
-
-                self.ui.set_reg_values(RegData(template_list=scenario.tests[0].constants))
-                # self.uart.write_w_regs(RegData(template_list=scenario.tests[0].constants))
-                
-                sended = scenario.tests[0].constants
-                # get = self.uart.read_rw_regs().to_int_list()
-                get = RegData().to_int_list()
-                if sended != get:
-                    diff = differenence(sended, get)
-                    for k,v in diff.items():
-                        self.ui.logging(f"WARNING! constants mismatch. reg:{k}, mismatch: {v}")
-
-                for idx, test_sample in enumerate(scenario.tests[0].samples):
-                    self.ui.logging(f"Start sample #{idx} of {scenario.total_test_count}")
-                    self.ui.set_generator_sample(test_sample)
-                    self.visa.v2_configurate_generator_sample(test_sample)
-                    self.visa.v2_oscilloscope_run()
-                    self.visa.v2_on_out1(out_index)
-
-                    self.uart.send_start_command()
-
-                    sample_data = self.visa.v2_get_sample()
-                    chip_data = self.uart.get_chip_data()
-                    if is_screening:
-                        screen_data = self.visa.v2_take_screen()
-                    self.visa.v2_off_all_out1()
-                    # Почему то логи не пишутся сразу, а только после окончания функции.
-                    self.ui.logging(f"Finish sample #{idx} of {scenario.total_test_count}")
-                self.ui.logging(f"Finish manual test for chip: {chip_name}")
-            case self.SCENARIO_TEST:
-                pass
-
+    def set_writeable_gui(self): 
         self.ui.set_constants_writeable()
         self.ui.set_channels_writeable()
         self.ui.set_gen_writeable()
+
+    def start_test(self, scenario:Scenario, is_screening:bool, out_index:int, testing_type:int):
+        self.check_instruments_connection()
+        self.ui.clear_log()
+
+        chip_name, chip_desc = self.ui.get_chip_metadata()
+
+        self.visa.v2_off_all_out1()
+            
+        match testing_type:
+            case self.MANUAL_TEST:
+                self.ui.logging(f"Start manual test for chip:{chip_name}")
+            case self.SCENARIO_TEST:
+                self.ui.logging(f"Start scenario:{scenario.name} test for chip:{chip_name}")
+
+        if len(scenario.channels) != 0:
+            self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
+            self.ui.set_channels_data(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
+
+        self.change_rw_gui()    
+
+        self.ui.set_reg_values(RegData(is_zero_init=False, template_list=scenario.tests[0].constants))
+        self.uart.write_w_regs(RegData(is_zero_init=False, template_list=scenario.tests[0].constants))
+        
+        test_idx = 1
+        for idx_layer, test in enumerate(scenario.tests):
+            sended = test.constants
+            get = self.uart.read_rw_regs()
+            if sended != get:
+                diff = differenence(sended, get)
+                for k,v in diff.items():
+                    match testing_type:
+                        case self.MANUAL_TEST:
+                            self.ui.logging(f"WARNING! constants mismatch. reg:{k}, mismatch:{v}")
+                        case self.SCENARIO_TEST:
+                            self.ui.logging(f"WARNING! Layer#{idx_layer+1}. Constants mismatch. reg:{k}, mismatch:{v}")
+
+            for _, test_sample in enumerate(test.samples):
+                match testing_type:
+                    case self.MANUAL_TEST:
+                        self.ui.logging(f"Start sample #{test_idx} of {scenario.total_test_count}")
+                    case self.SCENARIO_TEST:
+                        self.ui.logging(f"Layer#{idx_layer+1}. Start sample#{test_idx} of {test.test_count}. Total tests:{scenario.total_test_count}")
+                
+                self.ui.set_generator_sample(test_sample)
+                self.visa.v2_configurate_generator_sample(test_sample)
+                self.visa.v2_oscilloscope_run()
+                self.visa.v2_on_out1(out_index)
+
+                self.uart.send_start_command()
+
+                sample_data = self.visa.v2_get_sample()
+                chip_data = self.uart.get_chip_data()
+                match testing_type:
+                    case self.MANUAL_TEST:
+                        self.ui.logging(f"Get chip data:{chip_data} (Sample#{test_idx} of {scenario.total_test_count})")
+                    case self.SCENARIO_TEST:
+                        self.ui.logging(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{test_idx} of {test.test_count}. Total tests:{scenario.total_test_count})")
+                
+                if is_screening:
+                    screen_data = self.visa.v2_take_screen()
+                    time.sleep(5)
+
+                self.visa.v2_off_all_out1()
+                match testing_type:
+                    case self.MANUAL_TEST:
+                        self.ui.logging(f"Finish sample #{test_idx} of {scenario.total_test_count}")
+                    case self.SCENARIO_TEST:
+                        self.ui.logging(f"Layer#{idx_layer+1}. Finish sample#{test_idx} of {test.test_count}. Total tests:{scenario.total_test_count}")
+                
+                test_idx += 1
+                
+        match testing_type:
+            case self.MANUAL_TEST:
+                self.ui.logging(f"Finish manual test for chip:{chip_name}")
+            case self.SCENARIO_TEST:
+                self.ui.logging(f"Finish scenario:{scenario.name} test for chip:{chip_name}")
+            
+        logs = self.ui.get_logs()
+
+        self.set_writeable_gui()
 
     def save_manual_data(self, chip_name, chip_data, plots, dots, screen_bytes):
         pass

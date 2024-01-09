@@ -362,11 +362,15 @@ class RegData(object):
         reg_data_int = [int.from_bytes(i, 'big') for i in self.reg_data]
         return json.dumps(reg_data_int, default=lambda o: o.__dict__, sort_keys=True, indent=4)      
 
-def differenence(sended_int, got_int):
+def differenence(sended_int, got_reg:RegData):
         diff = {}
         for idx, _ in enumerate(sended_int):
-            if sended_int[idx] != got_int[idx]:
-                diff[registers_metadata_addr_to_name[idx]] = f'Sended:{sended_int[idx]:08b}, got{got_int[idx]:08b}'
+            if idx not in registers_metadata_addr_to_name:
+                continue
+            if got_reg.reg_data[idx] == -1:
+                continue
+            if sended_int[idx] != int.from_bytes(got_reg.reg_data[idx], 'big'):
+                diff[registers_metadata_addr_to_name[idx]] = f'Sended:{sended_int[idx]:08b}, got:{int.from_bytes(got_reg.reg_data[idx], "big"):08b}'
 
         return diff
 

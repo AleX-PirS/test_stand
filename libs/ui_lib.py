@@ -1,5 +1,7 @@
 from re import M
 from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem
+from PyQt5.QtGui import QImage, QPixmap
 import sys
 import datetime
 import regex
@@ -26,15 +28,16 @@ class Ui(object):
 
     def logging(self, *messages: str):
         date = str(datetime.datetime.now(tz=timezone('Europe/Moscow')))
-        history = self.ui.logs_plain_text.toPlainText()
-        if history != "":
-            history += "\n"
+        # history = self.ui.logs_plain_text.toPlainText()
+        # if history != "":
+        #     history += "\n"
 
         res = date + "| "
         for i in messages:
             res += str(i)
 
-        self.ui.logs_plain_text.setPlainText(history+res)
+        self.ui.logs_plain_text.appendPlainText(res)
+        self.ui.logs_plain_text.repaint()
 
     def clear_log(self):
         self.ui.logs_plain_text.setPlainText("")
@@ -102,43 +105,78 @@ class Ui(object):
 
     def set_default_reg_values(self, regs:RegData):
         self.ui.comboBox_CCAL.setCurrentIndex(0)
+        self.ui.comboBox_CCAL.repaint()
         self.ui.comboBox_CCSA.setCurrentIndex(0)
+        self.ui.comboBox_CCSA.repaint()
         self.ui.comboBox_GAIN.setCurrentIndex(0)
+        self.ui.comboBox_GAIN.repaint()
         self.ui.comboBox_ICSA.setCurrentIndex(0)
+        self.ui.comboBox_ICSA.repaint()
         self.ui.comboBox_SHA.setCurrentIndex(0)
+        self.ui.comboBox_SHA.repaint()
         self.ui.comboBox_SHTR.setCurrentIndex(0)
+        self.ui.comboBox_SHTR.repaint()
         self.ui.comboBox_POL.setCurrentIndex(0)
+        self.ui.comboBox_POL.repaint()
         self.ui.comboBox_BIAS_CORE_CUR.setCurrentIndex(0)
+        self.ui.comboBox_BIAS_CORE_CUR.repaint()
         self.ui.spinBox_DAC_CAL.setValue(regs.DEFAULT_DAC_CAL)
+        self.ui.spinBox_DAC_CAL.repaint()
         self.ui.spinBox_REZ.setValue(regs.DEFAULT_REZ)
+        self.ui.spinBox_REZ.repaint()
         self.ui.spinBox_CAL_EN_CH.setValue(regs.DEFAULT_CAL_EN_CH)
+        self.ui.spinBox_CAL_EN_CH.repaint()
         self.ui.spinBox_AN_CH_DISABLE.setValue(regs.DEFAULT_AN_CH_DISABLE)
+        self.ui.spinBox_AN_CH_DISABLE.repaint()
         self.ui.comboBox_CMP_TH.setCurrentIndex(0)
+        self.ui.comboBox_CMP_TH.repaint()
         self.ui.spinBox_CFG_p1_in_time.setValue(regs.DEFAULT_CFG_p1_in_time)
+        self.ui.spinBox_CFG_p1_in_time.repaint()
         self.ui.spinBox_CFG_p1_L0_over.setValue(regs.DEFAULT_CFG_p1_L0_over)
+        self.ui.spinBox_CFG_p1_L0_over.repaint()
         self.ui.spinBox_CFG_p2_puls_SOC.setValue(regs.DEFAULT_CFG_p2_plus_SOC)
+        self.ui.spinBox_CFG_p2_puls_SOC.repaint()
         self.ui.spinBox_CFG_p2_puls_SWM.setValue(regs.DEFAULT_CFG_p2_plus_SWM)
+        self.ui.spinBox_CFG_p2_puls_SWM.repaint()
         self.ui.spinBox_CFG_p2_puls_EOC.setValue(regs.DEFAULT_CFG_p2_plus_EOC)
+        self.ui.spinBox_CFG_p2_puls_EOC.repaint()
         self.ui.spinBox_CFG_p3_L1_over.setValue(regs.DEFAULT_CFG_p3_L1_over)
+        self.ui.spinBox_CFG_p3_L1_over.repaint()
         self.ui.spinBox_CFG_rst_puls_EOC.setValue(regs.DEFAULT_CFG_rst_plus_EOC)
+        self.ui.spinBox_CFG_rst_puls_EOC.repaint()
         self.ui.spinBox_CFG_SW_force_num.setValue(regs.DEFAULT_CFG_SW_force_num)
+        self.ui.spinBox_CFG_SW_force_num.repaint()
         self.ui.comboBox_CFG_SW_force_EN.setCurrentIndex(0)
+        self.ui.comboBox_CFG_SW_force_EN.repaint()
         self.ui.spinBox_CFG_OUT_INT.setValue(regs.DEFAULT_CFG_OUT_INT)
+        self.ui.spinBox_CFG_OUT_INT.repaint()
         self.ui.spinBox_ADC_EMU_CFG.setValue(regs.DEFAULT_ADC_EMU_CFG)
+        self.ui.spinBox_ADC_EMU_CFG.repaint()
         self.ui.spinBox_EMUL_DATA_i.setValue(regs.DEFAULT_EMUL_DATA_i)
+        self.ui.spinBox_EMUL_DATA_i.repaint()
         self.ui.comboBox_EMUL_ADDR_i.setCurrentIndex(0)
+        self.ui.comboBox_EMUL_ADDR_i.repaint()
         self.ui.comboBox_EMUL_EN_L0.setCurrentIndex(0)
+        self.ui.comboBox_EMUL_EN_L0.repaint()
         self.ui.comboBox_EMUL_EN_L1.setCurrentIndex(0)
+        self.ui.comboBox_EMUL_EN_L1.repaint()
         self.ui.comboBox_EMUL_tau_v.setCurrentIndex(0)
+        self.ui.comboBox_EMUL_tau_v.repaint()
         self.ui.comboBox_EMUL_L0_v.setCurrentIndex(0)
+        self.ui.comboBox_EMUL_L0_v.repaint()
         self.ui.spinBox_EMUL_L1_v.setValue(regs.DEFAULT_EMUL_L1_v)
+        self.ui.spinBox_EMUL_L1_v.repaint()
 
     def set_reg_values(self, regs:RegData):
         # Analog
         self.ui.spinBox_DAC_CAL.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['dac_cal']], "big"))
+        self.ui.spinBox_DAC_CAL.repaint()
         self.ui.spinBox_REZ.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['rez']], "big"))
+        self.ui.spinBox_REZ.repaint()
         self.ui.spinBox_CAL_EN_CH.setValue((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cal_en_0']], "big")<<2)+(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cal_en_1']], "big")>>6))
+        self.ui.spinBox_CAL_EN_CH.repaint()
         self.ui.spinBox_AN_CH_DISABLE.setValue((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['an_ch_disable_15']], "big")<<2)+(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['an_ch_disable_16']], "big")>>6))
+        self.ui.spinBox_AN_CH_DISABLE.repaint()
         
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['analog_ctrl_0']], "big")&0b1100_0000)>>6):
             case 0b00:
@@ -149,6 +187,7 @@ class Ui(object):
                 self.ui.comboBox_CCAL.setCurrentIndex(2)
             case 0b11:
                 self.ui.comboBox_CCAL.setCurrentIndex(3)
+        self.ui.comboBox_CCAL.repaint()
 
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['analog_ctrl_0']], "big")&0b0011_0000)>>4):
             case 0b00:
@@ -159,18 +198,21 @@ class Ui(object):
                 self.ui.comboBox_CCSA.setCurrentIndex(2)
             case 0b11:
                 self.ui.comboBox_CCSA.setCurrentIndex(3)
+        self.ui.comboBox_CCSA.repaint()
         
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['analog_ctrl_0']], "big")&0b0000_1000)>>3):
             case 0b0:
                 self.ui.comboBox_GAIN.setCurrentIndex(0)
             case 0b1:
                 self.ui.comboBox_GAIN.setCurrentIndex(1)
+        self.ui.comboBox_GAIN.repaint()
 
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['analog_ctrl_0']], "big")&0b0000_0100)>>2):
             case 0b0:
                 self.ui.comboBox_ICSA.setCurrentIndex(0)
             case 0b1:
                 self.ui.comboBox_ICSA.setCurrentIndex(1)
+        self.ui.comboBox_ICSA.repaint()
 
         match (int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['analog_ctrl_0']], "big")&0b0000_0011):
             case 0b11:
@@ -179,6 +221,7 @@ class Ui(object):
                 self.ui.comboBox_SHA.setCurrentIndex(1)
             case 0b01:
                 self.ui.comboBox_SHA.setCurrentIndex(2)
+        self.ui.comboBox_SHA.repaint()
 
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['analog_ctrl_1']], "big")&0b1100_0000)>>6):
             case 0b10:
@@ -187,12 +230,14 @@ class Ui(object):
                 self.ui.comboBox_SHTR.setCurrentIndex(1)
             case 0b00:
                 self.ui.comboBox_SHTR.setCurrentIndex(2)
+        self.ui.comboBox_SHTR.repaint()
 
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['analog_ctrl_1']], "big")&0b0010_0000)>>5):
             case 0b1:
                 self.ui.comboBox_POL.setCurrentIndex(0)
             case 0b0:
                 self.ui.comboBox_POL.setCurrentIndex(1)
+        self.ui.comboBox_POL.repaint()
 
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['analog_ctrl_1']], "big")&0b0001_1000)>>3):
             case 0b00:
@@ -203,6 +248,7 @@ class Ui(object):
                 self.ui.comboBox_BIAS_CORE_CUR.setCurrentIndex(2)
             case 0b11:
                 self.ui.comboBox_BIAS_CORE_CUR.setCurrentIndex(3)
+        self.ui.comboBox_BIAS_CORE_CUR.repaint()
 
         # Analog-digital
         match (int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['digit_analog_ctrl_0']], "big")&0b0000_1111):
@@ -216,26 +262,40 @@ class Ui(object):
                 self.ui.comboBox_CMP_TH.setCurrentIndex(3)
             case 0b1111:
                 self.ui.comboBox_CMP_TH.setCurrentIndex(4)
+        self.ui.comboBox_CMP_TH.repaint()
         
         # Digital
         self.ui.spinBox_CFG_p1_in_time.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_p1_in_time']], "big"))
+        self.ui.spinBox_CFG_p1_in_time.repaint()
         self.ui.spinBox_CFG_p1_L0_over.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_p1_l0_over']], "big"))
+        self.ui.spinBox_CFG_p1_L0_over.repaint()
         self.ui.spinBox_CFG_p2_puls_SOC.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_p2_plus_soc']], "big"))
+        self.ui.spinBox_CFG_p2_puls_SOC.repaint()
         self.ui.spinBox_CFG_p2_puls_SWM.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_p2_plus_swm']], "big"))
+        self.ui.spinBox_CFG_p2_puls_SWM.repaint()
         self.ui.spinBox_CFG_p2_puls_EOC.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_p2_plus_eoc']], "big"))
+        self.ui.spinBox_CFG_p2_puls_EOC.repaint()
         self.ui.spinBox_CFG_rst_puls_EOC.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_rst_plus_eoc']], "big"))
+        self.ui.spinBox_CFG_rst_puls_EOC.repaint()
         self.ui.spinBox_CFG_SW_force_num.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_sw_force_num']], "big"))
+        self.ui.spinBox_CFG_SW_force_num.repaint()
         self.ui.spinBox_CFG_OUT_INT.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_out_int']], "big"))
+        self.ui.spinBox_CFG_OUT_INT.repaint()
         self.ui.spinBox_CFG_p3_L1_over.setValue((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_p3_l1_over_0']], "big")<<5)+(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_p3_l1_over_1']], "big")))
+        self.ui.spinBox_CFG_p3_L1_over.repaint()
         self.ui.spinBox_ADC_EMU_CFG.setValue((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_clk_gen_0']], "big")<<2)+(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_clk_gen_1']], "big")>>6))
+        self.ui.spinBox_ADC_EMU_CFG.repaint()
         self.ui.spinBox_EMUL_L1_v.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_ch_emul_2']], "big"))
+        self.ui.spinBox_EMUL_L1_v.repaint()
         self.ui.spinBox_EMUL_DATA_i.setValue(int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_ch_emul_4']], "big")&0b0001_1111)
+        self.ui.spinBox_EMUL_DATA_i.repaint()
 
         match (int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_sw_force_en']], "big")&0b0000_0001):
             case 0b0:
                 self.ui.comboBox_CFG_SW_force_EN.setCurrentIndex(0)
             case 0b1:
                 self.ui.comboBox_CFG_SW_force_EN.setCurrentIndex(1)
+        self.ui.comboBox_CFG_SW_force_EN.repaint()
 
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_ch_emul_4']], "big")&0b1110_0000)>>5):
             case 0b000:
@@ -254,18 +314,21 @@ class Ui(object):
                 self.ui.comboBox_EMUL_ADDR_i.setCurrentIndex(6)
             case 0b111:
                 self.ui.comboBox_EMUL_ADDR_i.setCurrentIndex(7)
+        self.ui.comboBox_EMUL_ADDR_i.repaint()
 
         match (int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_ch_emul_3']], "big")&0b0000_0001):
             case 0b0:
                 self.ui.comboBox_EMUL_EN_L0.setCurrentIndex(0)
             case 0b1:
                 self.ui.comboBox_EMUL_EN_L0.setCurrentIndex(1)
+        self.ui.comboBox_EMUL_EN_L0.repaint()
 
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_ch_emul_3']], "big")&0b0000_0010)>>1):
             case 0b0:
                 self.ui.comboBox_EMUL_EN_L1.setCurrentIndex(0)
             case 0b1:
                 self.ui.comboBox_EMUL_EN_L1.setCurrentIndex(1)
+        self.ui.comboBox_EMUL_EN_L1.repaint()
 
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_ch_emul_3']], "big")&0b0000_1100)>>2):
             case 0b00:
@@ -276,6 +339,7 @@ class Ui(object):
                 self.ui.comboBox_EMUL_tau_v.setCurrentIndex(2)
             case 0b11:
                 self.ui.comboBox_EMUL_tau_v.setCurrentIndex(3)
+        self.ui.comboBox_EMUL_tau_v.repaint()
 
         match ((int.from_bytes(regs.reg_data[registers_metadata_name_to_addr['cfg_ch_emul_3']], "big")&0b0011_0000)>>4):
             case 0b00:
@@ -286,6 +350,7 @@ class Ui(object):
                 self.ui.comboBox_EMUL_L0_v.setCurrentIndex(2)
             case 0b11:
                 self.ui.comboBox_EMUL_L0_v.setCurrentIndex(3)
+        self.ui.comboBox_EMUL_L0_v.repaint()
 
         return
 
@@ -388,14 +453,14 @@ class Ui(object):
             case "linear":
                 step = (finish-start)/(count-1)
                 for i in range(count):
-                    result.append(round(i*step+start, 3))
+                    result.append(i*step+start)
                 return result
             case "logarithmic":
                 if start == 0.0 or finish == 0.0:
                     raise Exception("Forbidden to use zero value with logarithmic scale.")
                 step = (finish/start)**(1/(count-1))
                 for i in range(count):
-                    result.append(round(start*step**i, 3))
+                    result.append(start*step**i)
                 return result
             case _:
                 raise Exception("Bad sequence rule.")
@@ -406,6 +471,7 @@ class Ui(object):
         delay = self.process_value_power(self.ui.delay.value(), self.ui.comboBox_delay.currentText())
         trig = self.process_value_power(self.ui.trig_lvl.value(), self.ui.comboBox_trig_lvl.currentText())
         is_triggered = self.ui.checkBox_is_triggered.isChecked()
+
         width_sequence = self.create_sequence_samples(
             start=self.process_value_power(self.ui.width.value(), self.ui.comboBox_width.currentText()),
             finish=self.process_value_power(self.ui.width_2.value(), self.ui.comboBox_width_2.currentText()),
@@ -466,43 +532,81 @@ class Ui(object):
 
     def set_generator_data_zero(self) -> None:
         self.ui.signal_type_box.setCurrentIndex(0)
+        self.ui.signal_type_box.repaint()
         self.ui.offset.setValue(0)
+        self.ui.offset.repaint()
         self.ui.delay.setValue(0)
+        self.ui.delay.repaint()
         self.ui.comboBox_offset.setCurrentIndex(0)
+        self.ui.comboBox_offset.repaint()
         self.ui.comboBox_delay.setCurrentIndex(0)
+        self.ui.comboBox_delay.repaint()
         self.ui.width.setValue(0)
+        self.ui.width.repaint()
         self.ui.width_2.setValue(0)
+        self.ui.width_2.repaint()
         self.ui.spinBox_width_times.setValue(0)
+        self.ui.spinBox_width_times.repaint()
         self.ui.comboBox_width.setCurrentIndex(0)
+        self.ui.comboBox_width.repaint()
         self.ui.comboBox_width_2.setCurrentIndex(0)
+        self.ui.comboBox_width_2.repaint()
         self.ui.comboBox_width_delta.setCurrentIndex(0)
+        self.ui.comboBox_width_delta.repaint()
         self.ui.lead.setValue(0)
+        self.ui.lead.repaint()
         self.ui.lead_2.setValue(0)
+        self.ui.lead_2.repaint()
         self.ui.spinBox_lead_times.setValue(0)
+        self.ui.spinBox_lead_times.repaint()
         self.ui.comboBox_lead.setCurrentIndex(0)
+        self.ui.comboBox_lead.repaint()
         self.ui.comboBox_lead_2.setCurrentIndex(0)
+        self.ui.comboBox_lead_2.repaint()
         self.ui.comboBox_lead_delta.setCurrentIndex(0)
+        self.ui.comboBox_lead_delta.repaint()
         self.ui.trail.setValue(0)
+        self.ui.trail.repaint()
         self.ui.trail_2.setValue(0)
+        self.ui.trail_2.repaint()
         self.ui.spinBox_trail_times.setValue(0)
+        self.ui.spinBox_trail_times.repaint()
         self.ui.comboBox_trail.setCurrentIndex(0)
+        self.ui.comboBox_trail.repaint()
         self.ui.comboBox_trail_2.setCurrentIndex(0)
+        self.ui.comboBox_trail_2.repaint()
         self.ui.comboBox_trail_delta.setCurrentIndex(0)
+        self.ui.comboBox_trail_delta.repaint()
         self.ui.ampl.setValue(0)
+        self.ui.ampl.repaint()
         self.ui.ampl_2.setValue(0)
+        self.ui.ampl_2.repaint()
         self.ui.spinBox_ampl_times.setValue(0)
+        self.ui.spinBox_ampl_times.repaint()
         self.ui.comboBox_ampl.setCurrentIndex(0)
+        self.ui.comboBox_ampl.repaint()
         self.ui.comboBox_ampl_2.setCurrentIndex(0)
+        self.ui.comboBox_ampl_2.repaint()
         self.ui.comboBox_ampl_delta.setCurrentIndex(0)
+        self.ui.comboBox_ampl_delta.repaint()
         self.ui.freq.setValue(0)
+        self.ui.freq.repaint()
         self.ui.freq_2.setValue(0)
+        self.ui.freq_2.repaint()
         self.ui.spinBox_freq_times.setValue(0)
+        self.ui.spinBox_freq_times.repaint()
         self.ui.comboBox_freq.setCurrentIndex(0)
+        self.ui.comboBox_freq.repaint()
         self.ui.comboBox_freq_2.setCurrentIndex(0)
+        self.ui.comboBox_freq_2.repaint()
         self.ui.comboBox_freq_delta.setCurrentIndex(0)
+        self.ui.comboBox_freq_delta.repaint()
         self.ui.checkBox_is_triggered.setChecked(True)
+        self.ui.checkBox_is_triggered.repaint()
         self.ui.trig_lvl.setValue(200)
+        self.ui.trig_lvl.repaint()
         self.ui.comboBox_trig_lvl.setCurrentIndex(0)
+        self.ui.comboBox_trig_lvl.repaint()
 
     def reset_scenario_data(self)->None:
         self.ui.scenario_name.setText("")
@@ -525,28 +629,49 @@ class Ui(object):
 
     def set_channels_data_zero(self):
         self.ui.trigger_src_box.setCurrentIndex(0)
+        self.ui.trigger_src_box.repaint()
         self.ui.trig_lvl_oscilloscope.setValue(200)
+        self.ui.trig_lvl_oscilloscope.repaint()
         self.ui.comboBox_trig_lvl_oscilloscope.setCurrentIndex(0)
+        self.ui.comboBox_trig_lvl_oscilloscope.repaint()
 
         self.ui.scale_time.setValue(100)
+        self.ui.scale_time.repaint()
         self.ui.comboBox_time_scale.setCurrentIndex(0)
+        self.ui.comboBox_time_scale.repaint()
         
         self.ui.checkBox_is_use_chan_1.setChecked(False)
+        self.ui.checkBox_is_use_chan_1.repaint()
         self.ui.line_chan_1_name.setText("")
+        self.ui.line_chan_1_name.repaint()
         self.ui.scale_ch_1.setValue(200)
+        self.ui.scale_ch_1.repaint()
         self.ui.scale_ch_1_power.setCurrentIndex(0)
+        self.ui.scale_ch_1_power.repaint()
         self.ui.checkBox_is_use_chan_2.setChecked(False)
+        self.ui.checkBox_is_use_chan_2.repaint()
         self.ui.line_chan_2_name.setText("")
+        self.ui.line_chan_2_name.repaint()
         self.ui.scale_ch_2.setValue(200)
+        self.ui.scale_ch_2.repaint()
         self.ui.scale_ch_2_power.setCurrentIndex(0)
+        self.ui.scale_ch_2_power.repaint()
         self.ui.checkBox_is_use_chan_3.setChecked(False)
+        self.ui.checkBox_is_use_chan_3.repaint()
         self.ui.line_chan_3_name.setText("")
+        self.ui.line_chan_3_name.repaint()
         self.ui.scale_ch_3.setValue(200)
+        self.ui.scale_ch_3.repaint()
         self.ui.scale_ch_3_power.setCurrentIndex(0)
+        self.ui.scale_ch_3_power.repaint()
         self.ui.checkBox_is_use_chan_4.setChecked(False)
+        self.ui.checkBox_is_use_chan_4.repaint()
         self.ui.line_chan_4_name.setText("")
+        self.ui.line_chan_4_name.repaint()
         self.ui.scale_ch_4.setValue(200)
+        self.ui.scale_ch_4.repaint()
         self.ui.scale_ch_4_power.setCurrentIndex(0)
+        self.ui.scale_ch_4_power.repaint()
         return
 
     def set_channels_data(self, channels:list[Channel], trig_src, trig_lvl, tim_scale):
@@ -555,79 +680,118 @@ class Ui(object):
             return
 
         self.ui.trigger_src_box.setCurrentIndex(trig_src)
+        self.ui.trigger_src_box.repaint()
         trig_lvl_value, trig_lvl_index = self.process_power_to_value(trig_lvl, "V")
         self.ui.trig_lvl_oscilloscope.setValue(trig_lvl_value)
+        self.ui.trig_lvl_oscilloscope.repaint()
         self.ui.comboBox_trig_lvl_oscilloscope.setCurrentIndex(trig_lvl_index)
+        self.ui.comboBox_trig_lvl_oscilloscope.repaint()
 
         time_scale_value, time_scale_index = self.process_power_to_value(tim_scale, "s")
         self.ui.scale_time.setValue(time_scale_value)
+        self.ui.scale_time.repaint()
         self.ui.comboBox_time_scale.setCurrentIndex(time_scale_index)
+        self.ui.comboBox_time_scale.repaint()
 
         for ch in channels:
             match ch.index:
                 case 1:
                     self.ui.checkBox_is_use_chan_1.setChecked(True)
+                    self.ui.checkBox_is_use_chan_1.repaint()
                     self.ui.line_chan_1_name.setText(ch.name)
+                    self.ui.line_chan_1_name.repaint()
                     ch_1_value, ch_1_index = self.process_power_to_value(ch.scale, "V")
                     self.ui.scale_ch_1.setValue(ch_1_value)
+                    self.ui.scale_ch_1.repaint()
                     self.ui.scale_ch_1_power.setCurrentIndex(ch_1_index)
+                    self.ui.scale_ch_1_power.repaint()
                 case 2:
                     self.ui.checkBox_is_use_chan_2.setChecked(True)
+                    self.ui.checkBox_is_use_chan_2.repaint()
                     self.ui.line_chan_2_name.setText(ch.name)
+                    self.ui.line_chan_2_name.repaint()
                     ch_2_value, ch_2_index = self.process_power_to_value(ch.scale, "V")
                     self.ui.scale_ch_2.setValue(ch_2_value)
+                    self.ui.scale_ch_2.repaint()
                     self.ui.scale_ch_2_power.setCurrentIndex(ch_2_index)
+                    self.ui.scale_ch_2_power.repaint()
                 case 3:
                     self.ui.checkBox_is_use_chan_3.setChecked(True)
+                    self.ui.checkBox_is_use_chan_3.repaint()
                     self.ui.line_chan_3_name.setText(ch.name)
+                    self.ui.line_chan_3_name.repaint()
                     ch_3_value, ch_3_index = self.process_power_to_value(ch.scale, "V")
                     self.ui.scale_ch_3.setValue(ch_3_value)
+                    self.ui.scale_ch_3.repaint()
                     self.ui.scale_ch_3_power.setCurrentIndex(ch_3_index)
+                    self.ui.scale_ch_3_power.repaint()
                 case 4:
                     self.ui.checkBox_is_use_chan_4.setChecked(True)
+                    self.ui.checkBox_is_use_chan_4.repaint()
                     self.ui.line_chan_4_name.setText(ch.name)
+                    self.ui.line_chan_4_name.repaint()
                     ch_4_value, ch_4_index = self.process_power_to_value(ch.scale, "V")
                     self.ui.scale_ch_4.setValue(ch_4_value)
+                    self.ui.scale_ch_4.repaint()
                     self.ui.scale_ch_4_power.setCurrentIndex(ch_4_index)
+                    self.ui.scale_ch_4_power.repaint()
         return
     
     def set_generator_sample(self, sample:GeneratorSample):
         self.set_generator_data_zero()
 
         self.ui.signal_type_box.setCurrentIndex(self.process_signal_type_to_ui(sample.signal_type))
+        self.ui.signal_type_box.repaint()
         
         offset_value, offset_index = self.process_power_to_value(sample.offset, "V")
         self.ui.offset.setValue(offset_value)
+        self.ui.offset.repaint()
         self.ui.comboBox_offset.setCurrentIndex(offset_index)
+        self.ui.comboBox_offset.repaint()
 
         delay_value, delay_index = self.process_power_to_value(sample.delay, "s")
         self.ui.delay.setValue(delay_value)
+        self.ui.delay.repaint()
         self.ui.comboBox_delay.setCurrentIndex(delay_index)
+        self.ui.comboBox_delay.repaint()
 
         width_value, width_index = self.process_power_to_value(sample.width, "s")
         self.ui.width.setValue(width_value)
+        self.ui.width.repaint()
         self.ui.comboBox_width.setCurrentIndex(width_index)
+        self.ui.comboBox_width.repaint()
 
         lead_value, lead_index = self.process_power_to_value(sample.lead, "s")
         self.ui.lead.setValue(lead_value)
+        self.ui.lead.repaint()
         self.ui.comboBox_lead.setCurrentIndex(lead_index)
+        self.ui.comboBox_lead.repaint()
 
         trail_value, trail_index = self.process_power_to_value(sample.trail, "s")
         self.ui.trail.setValue(trail_value)
+        self.ui.trail.repaint()
         self.ui.comboBox_trail.setCurrentIndex(trail_index)
+        self.ui.comboBox_trail.repaint()
 
         ampl_value, ampl_index = self.process_power_to_value(sample.ampl, "V")
         self.ui.ampl.setValue(ampl_value)
+        self.ui.ampl.repaint()
         self.ui.comboBox_ampl.setCurrentIndex(ampl_index)
+        self.ui.comboBox_ampl.repaint()
 
         freq_value, freq_index = self.process_power_to_value(sample.freq, "Hz")
         self.ui.freq.setValue(freq_value)
+        self.ui.freq.repaint()
         self.ui.comboBox_freq.setCurrentIndex(freq_index)
+        self.ui.comboBox_freq.repaint()
 
         self.ui.checkBox_is_triggered.setChecked(sample.is_triggered)
+        self.ui.checkBox_is_triggered.repaint()
         trig_value, trig_index = self.process_power_to_value(sample.trig_lvl, "V")
         self.ui.trig_lvl.setValue(trig_value)
+        self.ui.trig_lvl.repaint()
         self.ui.comboBox_trig_lvl.setCurrentIndex(trig_index)
+        self.ui.comboBox_trig_lvl.repaint()
 
     
     def get_channels_data(self):
@@ -686,202 +850,384 @@ class Ui(object):
 
     def change_rw_gen(self):
         self.ui.signal_type_box.setEnabled(self.is_gen_readonly)
+        self.ui.signal_type_box.repaint()
         self.ui.offset.setEnabled(self.is_gen_readonly)
+        self.ui.offset.repaint()
         self.ui.delay.setEnabled(self.is_gen_readonly)
+        self.ui.delay.repaint()
         self.ui.comboBox_offset.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_offset.repaint()
         self.ui.comboBox_delay.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_delay.repaint()
         self.ui.width.setEnabled(self.is_gen_readonly)
+        self.ui.width.repaint()
         self.ui.width_2.setEnabled(self.is_gen_readonly)
+        self.ui.width_2.repaint()
         self.ui.spinBox_width_times.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_width_times.repaint()
         self.ui.comboBox_width.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_width.repaint()
         self.ui.comboBox_width_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_width_2.repaint()
         self.ui.comboBox_width_delta.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_width_delta.repaint()
         self.ui.lead.setEnabled(self.is_gen_readonly)
+        self.ui.lead.repaint()
         self.ui.lead_2.setEnabled(self.is_gen_readonly)
+        self.ui.lead_2.repaint()
         self.ui.spinBox_lead_times.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_lead_times.repaint()
         self.ui.comboBox_lead.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_lead.repaint()
         self.ui.comboBox_lead_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_lead_2.repaint()
         self.ui.comboBox_lead_delta.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_lead_delta.repaint()
         self.ui.trail.setEnabled(self.is_gen_readonly)
+        self.ui.trail.repaint()
         self.ui.trail_2.setEnabled(self.is_gen_readonly)
+        self.ui.trail_2.repaint()
         self.ui.spinBox_trail_times.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_trail_times.repaint()
         self.ui.comboBox_trail.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_trail.repaint()
         self.ui.comboBox_trail_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_trail_2.repaint()
         self.ui.comboBox_trail_delta.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_trail_delta.repaint()
         self.ui.ampl.setEnabled(self.is_gen_readonly)
+        self.ui.ampl.repaint()
         self.ui.ampl_2.setEnabled(self.is_gen_readonly)
+        self.ui.ampl_2.repaint()
         self.ui.spinBox_ampl_times.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_ampl_times.repaint()
         self.ui.comboBox_ampl.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_ampl.repaint()
         self.ui.comboBox_ampl_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_ampl_2.repaint()
         self.ui.comboBox_ampl_delta.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_ampl_delta.repaint()
         self.ui.freq.setEnabled(self.is_gen_readonly)
+        self.ui.freq.repaint()
         self.ui.freq_2.setEnabled(self.is_gen_readonly)
+        self.ui.freq_2.repaint()
         self.ui.spinBox_freq_times.setEnabled(self.is_gen_readonly)
+        self.ui.spinBox_freq_times.repaint()
         self.ui.comboBox_freq.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_freq.repaint()
         self.ui.comboBox_freq_2.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_freq_2.repaint()
         self.ui.comboBox_freq_delta.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_freq_delta.repaint()
         self.ui.checkBox_is_triggered.setEnabled(self.is_gen_readonly)
+        self.ui.checkBox_is_triggered.repaint()
         self.ui.trig_lvl.setEnabled(self.is_gen_readonly)
+        self.ui.trig_lvl.repaint()
         self.ui.comboBox_trig_lvl.setEnabled(self.is_gen_readonly)
+        self.ui.comboBox_trig_lvl.repaint()
         self.is_gen_readonly = not self.is_gen_readonly
 
     def set_gen_writeable(self):
         self.ui.signal_type_box.setEnabled(True)
+        self.ui.signal_type_box.repaint()
         self.ui.offset.setEnabled(True)
+        self.ui.offset.repaint()
         self.ui.delay.setEnabled(True)
+        self.ui.delay.repaint()
         self.ui.comboBox_offset.setEnabled(True)
+        self.ui.comboBox_offset.repaint()
         self.ui.comboBox_delay.setEnabled(True)
+        self.ui.comboBox_delay.repaint()
         self.ui.width.setEnabled(True)
+        self.ui.width.repaint()
         self.ui.width_2.setEnabled(True)
+        self.ui.width_2.repaint()
         self.ui.spinBox_width_times.setEnabled(True)
+        self.ui.spinBox_width_times.repaint()
         self.ui.comboBox_width.setEnabled(True)
+        self.ui.comboBox_width.repaint()
         self.ui.comboBox_width_2.setEnabled(True)
+        self.ui.comboBox_width_2.repaint()
         self.ui.comboBox_width_delta.setEnabled(True)
+        self.ui.comboBox_width_delta.repaint()
         self.ui.lead.setEnabled(True)
+        self.ui.lead.repaint()
         self.ui.lead_2.setEnabled(True)
+        self.ui.lead_2.repaint()
         self.ui.spinBox_lead_times.setEnabled(True)
+        self.ui.spinBox_lead_times.repaint()
         self.ui.comboBox_lead.setEnabled(True)
+        self.ui.comboBox_lead.repaint()
         self.ui.comboBox_lead_2.setEnabled(True)
+        self.ui.comboBox_lead_2.repaint()
         self.ui.comboBox_lead_delta.setEnabled(True)
+        self.ui.comboBox_lead_delta.repaint()
         self.ui.trail.setEnabled(True)
+        self.ui.trail.repaint()
         self.ui.trail_2.setEnabled(True)
+        self.ui.trail_2.repaint()
         self.ui.spinBox_trail_times.setEnabled(True)
+        self.ui.spinBox_trail_times.repaint()
         self.ui.comboBox_trail.setEnabled(True)
+        self.ui.comboBox_trail.repaint()
         self.ui.comboBox_trail_2.setEnabled(True)
+        self.ui.comboBox_trail_2.repaint()
         self.ui.comboBox_trail_delta.setEnabled(True)
+        self.ui.comboBox_trail_delta.repaint()
         self.ui.ampl.setEnabled(True)
+        self.ui.ampl.repaint()
         self.ui.ampl_2.setEnabled(True)
+        self.ui.ampl_2.repaint()
         self.ui.spinBox_ampl_times.setEnabled(True)
+        self.ui.spinBox_ampl_times.repaint()
         self.ui.comboBox_ampl.setEnabled(True)
+        self.ui.comboBox_ampl.repaint()
         self.ui.comboBox_ampl_2.setEnabled(True)
+        self.ui.comboBox_ampl_2.repaint()
         self.ui.comboBox_ampl_delta.setEnabled(True)
+        self.ui.comboBox_ampl_delta.repaint()
         self.ui.freq.setEnabled(True)
+        self.ui.freq.repaint()
         self.ui.freq_2.setEnabled(True)
+        self.ui.freq_2.repaint()
         self.ui.spinBox_freq_times.setEnabled(True)
+        self.ui.spinBox_freq_times.repaint()
         self.ui.comboBox_freq.setEnabled(True)
+        self.ui.comboBox_freq.repaint()
         self.ui.comboBox_freq_2.setEnabled(True)
+        self.ui.comboBox_freq_2.repaint()
         self.ui.comboBox_freq_delta.setEnabled(True)
+        self.ui.comboBox_freq_delta.repaint()
         self.ui.checkBox_is_triggered.setEnabled(True)
+        self.ui.checkBox_is_triggered.repaint()
         self.ui.trig_lvl.setEnabled(True)
+        self.ui.trig_lvl.repaint()
         self.ui.comboBox_trig_lvl.setEnabled(True)
+        self.ui.comboBox_trig_lvl.repaint()
         self.is_gen_readonly = False
 
     def change_rw_channels(self):
         self.ui.scale_time.setEnabled(self.is_channels_readonly)
+        self.ui.scale_time.repaint()
         self.ui.comboBox_time_scale.setEnabled(self.is_channels_readonly)
+        self.ui.comboBox_time_scale.repaint()
         self.ui.checkBox_is_use_chan_1.setEnabled(self.is_channels_readonly)
+        self.ui.checkBox_is_use_chan_1.repaint()
         self.ui.line_chan_1_name.setEnabled(self.is_channels_readonly)
+        self.ui.line_chan_1_name.repaint()
         self.ui.scale_ch_1.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_1.repaint()
         self.ui.scale_ch_1_power.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_1_power.repaint()
         self.ui.checkBox_is_use_chan_2.setEnabled(self.is_channels_readonly)
+        self.ui.checkBox_is_use_chan_2.repaint()
         self.ui.line_chan_2_name.setEnabled(self.is_channels_readonly)
+        self.ui.line_chan_2_name.repaint()
         self.ui.scale_ch_2.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_2.repaint()
         self.ui.scale_ch_2_power.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_2_power.repaint()
         self.ui.checkBox_is_use_chan_3.setEnabled(self.is_channels_readonly)
+        self.ui.checkBox_is_use_chan_3.repaint()
         self.ui.line_chan_3_name.setEnabled(self.is_channels_readonly)
+        self.ui.line_chan_3_name.repaint()
         self.ui.scale_ch_3.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_3.repaint()
         self.ui.scale_ch_3_power.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_3_power.repaint()
         self.ui.checkBox_is_use_chan_4.setEnabled(self.is_channels_readonly)
+        self.ui.checkBox_is_use_chan_4.repaint()
         self.ui.line_chan_4_name.setEnabled(self.is_channels_readonly)
+        self.ui.line_chan_4_name.repaint()
         self.ui.scale_ch_4.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_4.repaint()
         self.ui.scale_ch_4_power.setEnabled(self.is_channels_readonly)
+        self.ui.scale_ch_4_power.repaint()
         self.ui.trigger_src_box.setEnabled(self.is_channels_readonly)
+        self.ui.trigger_src_box.repaint()
         self.ui.trig_lvl_oscilloscope.setEnabled(self.is_channels_readonly)
+        self.ui.trig_lvl_oscilloscope.repaint()
         self.ui.comboBox_trig_lvl_oscilloscope.setEnabled(self.is_channels_readonly)
+        self.ui.comboBox_trig_lvl_oscilloscope.repaint()
         self.is_channels_readonly = not self.is_channels_readonly
 
     def set_channels_writeable(self):
         self.ui.scale_time.setEnabled(True)
+        self.ui.scale_time.repaint()
         self.ui.comboBox_time_scale.setEnabled(True)
+        self.ui.comboBox_time_scale.repaint()
         self.ui.checkBox_is_use_chan_1.setEnabled(True)
+        self.ui.checkBox_is_use_chan_1.repaint()
         self.ui.line_chan_1_name.setEnabled(True)
+        self.ui.line_chan_1_name.repaint()
         self.ui.scale_ch_1.setEnabled(True)
+        self.ui.scale_ch_1.repaint()
         self.ui.scale_ch_1_power.setEnabled(True)
+        self.ui.scale_ch_1_power.repaint()
         self.ui.checkBox_is_use_chan_2.setEnabled(True)
+        self.ui.checkBox_is_use_chan_2.repaint()
         self.ui.line_chan_2_name.setEnabled(True)
+        self.ui.line_chan_2_name.repaint()
         self.ui.scale_ch_2.setEnabled(True)
+        self.ui.scale_ch_2.repaint()
         self.ui.scale_ch_2_power.setEnabled(True)
+        self.ui.scale_ch_2_power.repaint()
         self.ui.checkBox_is_use_chan_3.setEnabled(True)
+        self.ui.checkBox_is_use_chan_3.repaint()
         self.ui.line_chan_3_name.setEnabled(True)
+        self.ui.line_chan_3_name.repaint()
         self.ui.scale_ch_3.setEnabled(True)
+        self.ui.scale_ch_3.repaint()
         self.ui.scale_ch_3_power.setEnabled(True)
+        self.ui.scale_ch_3_power.repaint()
         self.ui.checkBox_is_use_chan_4.setEnabled(True)
+        self.ui.checkBox_is_use_chan_4.repaint()
         self.ui.line_chan_4_name.setEnabled(True)
+        self.ui.line_chan_4_name.repaint()
         self.ui.scale_ch_4.setEnabled(True)
+        self.ui.scale_ch_4.repaint()
         self.ui.scale_ch_4_power.setEnabled(True)
+        self.ui.scale_ch_4_power.repaint()
         self.ui.trigger_src_box.setEnabled(True)
+        self.ui.trigger_src_box.repaint()
         self.ui.trig_lvl_oscilloscope.setEnabled(True)
+        self.ui.trig_lvl_oscilloscope.repaint()
         self.ui.comboBox_trig_lvl_oscilloscope.setEnabled(True)
+        self.ui.comboBox_trig_lvl_oscilloscope.repaint()
         self.is_channels_readonly = False
 
     def change_rw_constants(self):
         self.ui.comboBox_CCAL.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_CCAL.repaint()
         self.ui.comboBox_CCSA.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_CCSA.repaint()
         self.ui.comboBox_GAIN.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_GAIN.repaint()
         self.ui.comboBox_ICSA.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_ICSA.repaint()
         self.ui.comboBox_SHA.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_SHA.repaint()
         self.ui.comboBox_SHTR.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_SHTR.repaint()
         self.ui.comboBox_POL.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_POL.repaint()
         self.ui.comboBox_BIAS_CORE_CUR.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_BIAS_CORE_CUR.repaint()
         self.ui.comboBox_EMUL_ADDR_i.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_ADDR_i.repaint()
         self.ui.comboBox_EMUL_EN_L0.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_EN_L0.repaint()
         self.ui.comboBox_EMUL_EN_L1.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_EN_L1.repaint()
         self.ui.comboBox_EMUL_tau_v.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_tau_v.repaint()
         self.ui.comboBox_EMUL_L0_v.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_EMUL_L0_v.repaint()
         self.ui.comboBox_CMP_TH.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_CMP_TH.repaint()
         self.ui.comboBox_CFG_SW_force_EN.setEnabled(self.is_regs_readonly)
+        self.ui.comboBox_CFG_SW_force_EN.repaint()
         self.ui.spinBox_DAC_CAL.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_DAC_CAL.repaint()
         self.ui.spinBox_REZ.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_REZ.repaint()
         self.ui.spinBox_CAL_EN_CH.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CAL_EN_CH.repaint()
         self.ui.spinBox_AN_CH_DISABLE.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_AN_CH_DISABLE.repaint()
         self.ui.spinBox_CFG_p1_in_time.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p1_in_time.repaint()
         self.ui.spinBox_CFG_p1_L0_over.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p1_L0_over.repaint()
         self.ui.spinBox_CFG_p2_puls_SOC.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p2_puls_SOC.repaint()
         self.ui.spinBox_CFG_p2_puls_SWM.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p2_puls_SWM.repaint()
         self.ui.spinBox_CFG_p2_puls_EOC.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p2_puls_EOC.repaint()
         self.ui.spinBox_CFG_p3_L1_over.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_p3_L1_over.repaint()
         self.ui.spinBox_CFG_rst_puls_EOC.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_rst_puls_EOC.repaint()
         self.ui.spinBox_CFG_SW_force_num.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_SW_force_num.repaint()
         self.ui.spinBox_CFG_OUT_INT.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_CFG_OUT_INT.repaint()
         self.ui.spinBox_ADC_EMU_CFG.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_ADC_EMU_CFG.repaint()
         self.ui.spinBox_EMUL_DATA_i.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_EMUL_DATA_i.repaint()
         self.ui.spinBox_EMUL_L1_v.setEnabled(self.is_regs_readonly)
+        self.ui.spinBox_EMUL_L1_v.repaint()
         self.ui.butt_set_default_regs.setEnabled(self.is_regs_readonly)
+        self.ui.butt_set_default_regs.repaint()
         self.is_regs_readonly = not self.is_regs_readonly
 
     def set_constants_writeable(self):
         self.ui.comboBox_CCAL.setEnabled(True)
+        self.ui.comboBox_CCAL.repaint()
         self.ui.comboBox_CCSA.setEnabled(True)
+        self.ui.comboBox_CCSA.repaint()
         self.ui.comboBox_GAIN.setEnabled(True)
+        self.ui.comboBox_GAIN.repaint()
         self.ui.comboBox_ICSA.setEnabled(True)
+        self.ui.comboBox_ICSA.repaint()
         self.ui.comboBox_SHA.setEnabled(True)
+        self.ui.comboBox_SHA.repaint()
         self.ui.comboBox_SHTR.setEnabled(True)
+        self.ui.comboBox_SHTR.repaint()
         self.ui.comboBox_POL.setEnabled(True)
+        self.ui.comboBox_POL.repaint()
         self.ui.comboBox_BIAS_CORE_CUR.setEnabled(True)
+        self.ui.comboBox_BIAS_CORE_CUR.repaint()
         self.ui.comboBox_EMUL_ADDR_i.setEnabled(True)
+        self.ui.comboBox_EMUL_ADDR_i.repaint()
         self.ui.comboBox_EMUL_EN_L0.setEnabled(True)
+        self.ui.comboBox_EMUL_EN_L0.repaint()
         self.ui.comboBox_EMUL_EN_L1.setEnabled(True)
+        self.ui.comboBox_EMUL_EN_L1.repaint()
         self.ui.comboBox_EMUL_tau_v.setEnabled(True)
+        self.ui.comboBox_EMUL_tau_v.repaint()
         self.ui.comboBox_EMUL_L0_v.setEnabled(True)
+        self.ui.comboBox_EMUL_L0_v.repaint()
         self.ui.comboBox_CMP_TH.setEnabled(True)
+        self.ui.comboBox_CMP_TH.repaint()
         self.ui.comboBox_CFG_SW_force_EN.setEnabled(True)
+        self.ui.comboBox_CFG_SW_force_EN.repaint()
         self.ui.spinBox_DAC_CAL.setEnabled(True)
+        self.ui.spinBox_DAC_CAL.repaint()
         self.ui.spinBox_REZ.setEnabled(True)
+        self.ui.spinBox_REZ.repaint()
         self.ui.spinBox_CAL_EN_CH.setEnabled(True)
+        self.ui.spinBox_CAL_EN_CH.repaint()
         self.ui.spinBox_AN_CH_DISABLE.setEnabled(True)
+        self.ui.spinBox_AN_CH_DISABLE.repaint()
         self.ui.spinBox_CFG_p1_in_time.setEnabled(True)
+        self.ui.spinBox_CFG_p1_in_time.repaint()
         self.ui.spinBox_CFG_p1_L0_over.setEnabled(True)
+        self.ui.spinBox_CFG_p1_L0_over.repaint()
         self.ui.spinBox_CFG_p2_puls_SOC.setEnabled(True)
+        self.ui.spinBox_CFG_p2_puls_SOC.repaint()
         self.ui.spinBox_CFG_p2_puls_SWM.setEnabled(True)
+        self.ui.spinBox_CFG_p2_puls_SWM.repaint()
         self.ui.spinBox_CFG_p2_puls_EOC.setEnabled(True)
+        self.ui.spinBox_CFG_p2_puls_EOC.repaint()
         self.ui.spinBox_CFG_p3_L1_over.setEnabled(True)
+        self.ui.spinBox_CFG_p3_L1_over.repaint()
         self.ui.spinBox_CFG_rst_puls_EOC.setEnabled(True)
+        self.ui.spinBox_CFG_rst_puls_EOC.repaint()
         self.ui.spinBox_CFG_SW_force_num.setEnabled(True)
+        self.ui.spinBox_CFG_SW_force_num.repaint()
         self.ui.spinBox_CFG_OUT_INT.setEnabled(True)
+        self.ui.spinBox_CFG_OUT_INT.repaint()
         self.ui.spinBox_ADC_EMU_CFG.setEnabled(True)
+        self.ui.spinBox_ADC_EMU_CFG.repaint()
         self.ui.spinBox_EMUL_DATA_i.setEnabled(True)
+        self.ui.spinBox_EMUL_DATA_i.repaint()
         self.ui.spinBox_EMUL_L1_v.setEnabled(True)
+        self.ui.spinBox_EMUL_L1_v.repaint()
         self.ui.butt_set_default_regs.setEnabled(True)
+        self.ui.butt_set_default_regs.repaint()
         self.is_regs_readonly = False
 
     def update_scenario_combo_box(self, scenarios:list[Scenario]):
@@ -920,6 +1266,22 @@ class Ui(object):
     
     def is_manual_screenable(self) -> bool:
         return self.ui.isScreenshotable.isChecked()
+    
+    def get_logs(self):
+        return self.ui.logs_plain_text.toPlainText()
+    
+    def clean_plots_data(self):
+        self.ui.graphicsView_plots.items().clear()
+
+    def set_plots_data(self, file_name):
+        scene = QGraphicsScene()
+        self.image_qt = QImage(file_name)
+
+        pic = QGraphicsPixmapItem()
+        pic.setPixmap(QPixmap.fromImage(self.image_qt))
+        # scene.setSceneRect(0, 0, 400, 400)
+        scene.addItem(pic)
+        self.ui.graphicsView_plots.setScene(scene)
 
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)

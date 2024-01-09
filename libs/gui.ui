@@ -5801,6 +5801,16 @@
      <string>Set default gui status</string>
     </property>
    </widget>
+   <widget class="QGraphicsView" name="graphicsView_plots">
+    <property name="geometry">
+     <rect>
+      <x>760</x>
+      <y>540</y>
+      <width>371</width>
+      <height>221</height>
+     </rect>
+    </property>
+   </widget>
   </widget>
  </widget>
  <tabstops>

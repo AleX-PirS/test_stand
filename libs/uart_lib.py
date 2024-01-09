@@ -1,4 +1,5 @@
 import serial
+import time
 
 from pkg import RegData, rw_regs_start_addr_count, r_regs_start_addr_count
 
@@ -34,6 +35,7 @@ class UART(object):
         )
 
     def read_i_regs(self, settings: tuple) -> RegData:
+        time.sleep(0.01)
         reg_data = RegData(is_zero_init=True)
         for tupl in settings:
             data = self.read_reg(
@@ -63,6 +65,7 @@ class UART(object):
                 int.to_bytes(start_addr, 1, "big"),
                 data.reg_data[start_addr:start_addr+count],
             )
+            time.sleep(0.001)
 
     def send_start_command(self):
         self.is_connection_open()
