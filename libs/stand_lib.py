@@ -1,7 +1,8 @@
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import RegData, Scenario, TestSample, find_scenarios, differenence
+from pkg import RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result
+from pkg import find_scenarios, differenence
 
 import sys
 import time
@@ -9,7 +10,14 @@ import os
 import datetime
 from pytz import timezone
 
-tests_path = os.path.dirname(os.path.abspath(__file__)) + r'\tests\\'
+TESTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), r'tests')
+MANUAL_TESTS_PATH = os.path.join(TESTS_PATH, r'manual')
+SCENARIO_TESTS_PATH = os.path.join(TESTS_PATH, r'scenario')
+PICTURES_PLOTS_FOLDER = r'plots'
+PICTURES_SCREENSHOTS_FOLDER = r'screenshots'
+RAW_DATA_FOLDER = r'points'
+LOGS_FOLDER = r'logs'
+
 
 class Stand(object):
     MANUAL_TEST = 0
@@ -160,7 +168,7 @@ class Stand(object):
         self.ui.add_log_layer_data(count, len(samples))
 
         self.main_scenario.add_layer(
-            TestSample(
+            Layer(
                 self.ui.get_w_registers_data(),
                 samples,
             )
@@ -203,7 +211,7 @@ class Stand(object):
         if index == -1:
             return
         self.ui.update_scenario_description(self.list_of_scenarios[index].description)
-        self.ui.set_reg_values(RegData(is_zero_init=False, template_list=self.list_of_scenarios[index].tests[0].constants))
+        self.ui.set_reg_values(RegData(is_zero_init=False, template_list=self.list_of_scenarios[index].layers[0].constants))
         self.ui.set_channels_data(self.list_of_scenarios[index].channels, self.list_of_scenarios[index].trig_src, self.list_of_scenarios[index].trig_lvl, self.list_of_scenarios[index].tim_scale)
         self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
         self.scenario_to_start = self.list_of_scenarios[index]
@@ -303,7 +311,7 @@ class Stand(object):
         manual_scenar = Scenario([], "", "", [], 0, 0, 0)
         generator_samples = self.ui.get_generator_data_scenario()
         manual_scenar.add_layer(
-            TestSample(
+            Layer(
                 self.ui.get_w_registers_data(),
                 generator_samples,
             )
@@ -319,15 +327,12 @@ class Stand(object):
         return manual_scenar
 
     def process_start_butt(self):
-        # try:
-        manual_scenar = self.create_manual_scenario()
-        # for s in manual_scenar.tests[0].samples:
-        #     print(s.toJSON())
-        #     pass
-        self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
-        # except Exception as e:
-        #     self.ui.logging("ERROR start manual testing: ", e.args[0])
-        #     return
+        try:
+            manual_scenar = self.create_manual_scenario()
+            self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
+        except Exception as e:
+            self.ui.logging("ERROR start manual testing: ", e)
+            return
 
     def process_osc_config_butt(self):
         try:
@@ -356,6 +361,8 @@ class Stand(object):
         self.ui.set_gen_writeable()
 
     def start_test(self, scenario:Scenario, is_screening:bool, out_index:int, testing_type:int):
+        start_time = str(datetime.datetime.now(tz=timezone('Europe/Moscow'))).replace(":", ".")[:-13].replace(" ", "_")
+
         self.check_instruments_connection()
         self.ui.clear_log()
 
@@ -375,13 +382,15 @@ class Stand(object):
 
         self.change_rw_gui()    
 
-        self.ui.set_reg_values(RegData(is_zero_init=False, template_list=scenario.tests[0].constants))
-        self.uart.write_w_regs(RegData(is_zero_init=False, template_list=scenario.tests[0].constants))
         
         test_idx = 1
-        for idx_layer, test in enumerate(scenario.tests):
+        for idx_layer, test in enumerate(scenario.layers):
+            self.ui.set_reg_values(RegData(is_zero_init=False, template_list=test.constants))
+            self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
+            
             sended = test.constants
             get = self.uart.read_rw_regs()
+
             if sended != get:
                 diff = differenence(sended, get)
                 for k,v in diff.items():
@@ -406,16 +415,40 @@ class Stand(object):
                 self.uart.send_start_command()
 
                 sample_data = self.visa.v2_get_sample()
-                chip_data = self.uart.get_chip_data()
+                chip_data, RAW_data = self.uart.get_chip_data()
+
+                chip_data_output = ChipData(
+                    V=chip_data['V'],
+                    R=chip_data['R'],
+                    ADR=chip_data['ADR'],
+                    N0=chip_data['N0'],
+                    A0=chip_data['A0'],
+                    N1=chip_data['N1'],
+                    A1=chip_data['A1'],
+                    N2=chip_data['N2'],
+                    A2=chip_data['A2'],
+                    N3=chip_data['N3'],
+                    A3=chip_data['A3'],
+                    N4=chip_data['N4'],
+                    A4=chip_data['A4'],
+                    O=chip_data['O'],
+                    TIME=chip_data['TIME'],
+                    RAW=RAW_data,
+                )
+
                 match testing_type:
                     case self.MANUAL_TEST:
                         self.ui.logging(f"Get chip data:{chip_data} (Sample#{test_idx} of {scenario.total_test_count})")
                     case self.SCENARIO_TEST:
                         self.ui.logging(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{test_idx} of {test.test_count}. Total tests:{scenario.total_test_count})")
                 
+                screen_file = ""
                 if is_screening:
+                    self.ui.logging(f"Taking screenshot.")
                     screen_data = self.visa.v2_take_screen()
+                    screen_file = self.save_screenshot(start_time, chip_name, scenario.name, screen_data, testing_type, idx_layer, test_idx)
                     time.sleep(5)
+                    self.ui.logging(f"Screenshot saved.")
 
                 self.visa.v2_off_all_out1()
                 match testing_type:
@@ -424,6 +457,23 @@ class Stand(object):
                     case self.SCENARIO_TEST:
                         self.ui.logging(f"Layer#{idx_layer+1}. Finish sample#{test_idx} of {test.test_count}. Total tests:{scenario.total_test_count}")
                 
+                test_result = TestSample(
+                    chip_data=chip_data_output,
+                    amplitude=test_sample.ampl,
+                    delay=test_sample.delay,
+                    frequency=test_sample.freq,
+                    is_triggered=test_sample.is_triggered,
+                    lead=test_sample.lead,
+                    offset=test_sample.offset,
+                    signal_type=test_sample.signal_type,
+                    trail=test_sample.trail,
+                    trigger_lvl=test_sample.trig_lvl,
+                    width=test_sample.width,
+                    screenshot=screen_file,
+                    points_data="",
+                    plots="",
+                )
+
                 test_idx += 1
                 
         match testing_type:
@@ -436,11 +486,24 @@ class Stand(object):
 
         self.set_writeable_gui()
 
-    def save_manual_data(self, chip_name, chip_data, plots, dots, screen_bytes):
-        pass
+    def save_screenshot(self, start_time, chip_name, scenario_name, screenshot_data, testing_type, layer_index, sample_index):
+        file_name = f"screenshot_sample_{sample_index}.png"
+        match testing_type:
+            case self.MANUAL_TEST:
+                path = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_SCREENSHOTS_FOLDER)
+            case self.SCENARIO_TEST:
+                path = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index}", PICTURES_SCREENSHOTS_FOLDER)
+        
+        try:
+            os.makedirs(path)
+        except:
+            pass
 
-    def save_scenario_data(self, chip_name, chip_data, plots, dots, screen_bytes):
-        pass
+        f = open(path+"\\"+file_name, "wb")
+        f.write(screenshot_data)
+        f.close()
+
+        return path+file_name
 
 if __name__ == "__main__":
     stand = Stand()

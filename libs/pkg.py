@@ -2,7 +2,10 @@ import json
 import os
 import glob
 import matplotlib.pyplot  as plt
+from matplotlib.figure import Figure
 import numpy as np
+import datetime
+from pytz import timezone
 
 scenarios_path = os.path.dirname(os.path.abspath(__file__)) + r'\scenarios\\'
 
@@ -438,7 +441,7 @@ class OscilloscopeData(object):
         #         fig, axs = plt.subplots(2, 2)
 
 
-        
+        fig = Figure()
         fig, axs = plt.subplots(2, 2)
         for ch in channels:
             match ch.index:
@@ -470,7 +473,7 @@ class OscilloscopeData(object):
         plt.show()
 
 
-class TestSample(object):
+class Layer(object):
     def __init__(self, constants:RegData, samples:list[GeneratorSample]) -> None:
         self.test_count = len(samples)
         self.constants = [int.from_bytes(i, 'big') for i in constants.reg_data]
@@ -481,7 +484,7 @@ class TestSample(object):
 
     
 class Scenario(object):
-    def __init__(self, channels:list[Channel] = [], name:str='default name', description:str="", tests:list[TestSample] = [], trig_src=0, trig_lvl=0, tim_scale=0) -> None:
+    def __init__(self, channels:list[Channel] = [], name:str='default name', description:str="", layers:list[Layer] = [], trig_src=0, trig_lvl=0, tim_scale=0) -> None:
         self.channels = channels
         self.trig_src = trig_src
         self.trig_lvl = trig_lvl
@@ -489,22 +492,22 @@ class Scenario(object):
         self.name = name
         self.description = description
         self.total_test_count = 0
-        self.layers_count = len(tests)
-        for i in tests:
+        self.layers_count = len(layers)
+        for i in layers:
             self.total_test_count += i.test_count
-        self.tests = tests
+        self.layers = layers
 
-    def add_layer(self, test:TestSample):
+    def add_layer(self, test:Layer):
         self.layers_count += 1
-        self.tests.append(test)
+        self.layers.append(test)
         self.total_test_count += test.test_count
 
     def delete_last_layer(self):
         if self.layers_count == 0:
             return
         self.layers_count -= 1
-        test = self.tests[-1]
-        self.tests = self.tests[:-1]
+        test = self.layers[-1]
+        self.layers = self.layers[:-1]
         self.total_test_count -= test.test_count
 
     def toJSON(self):
@@ -530,11 +533,11 @@ class Scenario(object):
         self.name = data['name']
         self.total_test_count = data['total_test_count']
 
-        for test in data['tests']:
+        for test in data['layers']:
             test_reg_bytes = RegData()
             test_reg_bytes.reg_data = [int.to_bytes(i, 1, 'big') for i in test['constants']]
-            tests = TestSample(test_reg_bytes, [])
-            tests.test_count = test['test_count']
+            layers = Layer(test_reg_bytes, [])
+            layers.test_count = test['test_count']
 
             for sample in test['samples']:
                 smpl = GeneratorSample(
@@ -549,8 +552,8 @@ class Scenario(object):
                     width=sample['width'],
                     trig_lvl=sample['trig_lvl'],
                 )
-                tests.samples.append(smpl)
-            self.tests.append(tests)
+                layers.samples.append(smpl)
+            self.layers.append(layers)
 
     def save_scenario(self)->None:
         with open(scenarios_path + self.name+'.json', 'w') as file:
@@ -587,9 +590,99 @@ def process_signal_type(signal) -> str:
             return "USER"
         case _:
             raise Exception("Bad signal type.")
-        
+
+
+class ChipData(object):
+    def __init__(self, V, R, ADR, N0, N1, N2, N3, N4, A0, A1, A2, A3, A4, O, TIME, RAW) -> None:
+        self.V = V
+        self.R = R
+        self.ADR = ADR
+        self.N0 = N0
+        self.A0 = A0
+        self.N1 = N1
+        self.A1 = A1
+        self.N2 = N2
+        self.A2 = A2
+        self.N3 = N3
+        self.A3 = A3
+        self.N4 = N4
+        self.A4 = A4
+        self.O = O
+        self.TIME = TIME
+        self.RAW = RAW
+
+
+class TestSample(object):
+    def __init__(
+            self,
+            signal_type:str,
+            offset:float,
+            delay:float,
+            width:float,
+            lead:float,
+            trail:float,
+            amplitude:float,
+            frequency:float,
+            is_triggered:bool,
+            trigger_lvl:float,
+            points_data:str,
+            plots:str,
+            chip_data:ChipData,
+            screenshot:str,
+        ) -> None:
+        self.signal_type = signal_type
+        self.offset = offset
+        self.delay = delay
+        self.width = width
+        self.lead = lead
+        self.trail = trail
+        self.amplitude = amplitude
+        self.frequency = frequency
+        self.is_triggered = is_triggered
+        self.trigger_lvl = trigger_lvl
+        self.points_data = points_data 
+        self.plots = plots 
+        self.chip_data = chip_data 
+        self.screenshot = screenshot 
+
+
+class ResultLayer(object):
+    def __init__(self, test_count:int, constants:list[int], samples:list[TestSample]) -> None:
+        self.test_count = test_count
+        self.constants = constants
+        self.samples = samples
+
 
 class Result(object):
-    def __init__(self, scenario:Scenario, ) -> None:
-        pass
-        
+    def __init__(
+            self,
+            chip_name:str,
+            chip_description:str,
+            test_name:str,
+            test_description:str,
+            channels:list[Channel],
+            trig_src:int,
+            trig_lvl:float,
+            tim_scale:float,
+            total_test_count:int,
+            layers_count:int,
+            layers:ResultLayer,
+            logs:str,   
+        ) -> None:
+        self.chip_name = chip_name 
+        self.chip_description = chip_description
+        self.date = datetime.datetime.now(tz=timezone('Europe/Moscow'))
+        self.test_name = test_name
+        self.test_description = test_description
+        self.channels = channels
+        self.trig_src = trig_src
+        self.trig_lvl = trig_lvl
+        self.tim_scale = tim_scale
+        self.total_test_count = total_test_count
+        self.layers_count = layers_count
+        self.layers = layers
+        self.logs = logs
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+    

@@ -11,7 +11,7 @@ class UART(object):
         self.BYTESIZE = 8
         self.PARITY = serial.PARITY_NONE
         self.STOPBITS = 1
-        self.TIMEOUT = 0.5
+        self.TIMEOUT = 0.1
 
         self.WRITE_WORD =     int.to_bytes(0b0111_0111, 1, 'big')
         self.READ_WORD =      int.to_bytes(0b0111_0010, 1, 'big')
@@ -35,7 +35,7 @@ class UART(object):
         )
 
     def read_i_regs(self, settings: tuple) -> RegData:
-        time.sleep(0.01)
+        time.sleep(0.02)
         reg_data = RegData(is_zero_init=True)
         for tupl in settings:
             data = self.read_reg(
@@ -140,8 +140,8 @@ class UART(object):
         err_count = 0
         while True:
             try:
-                data = self.read_chip_data()
-                return data
+                data, str_res = self.read_chip_data()
+                return data, str_res
             except:
                 err_count += 1
                 if err_count == 3:
@@ -208,4 +208,4 @@ class UART(object):
         data_in['O'] = int(f'0b'+str_res[79], base=0)
         data_in['TIME'] = int(f'0b'+str_res[80:], base=0)
 
-        return data_in
+        return data_in, str_res
