@@ -663,7 +663,7 @@ class Result(object):
             tim_scale:float,
             total_test_count:int,
             layers_count:int,
-            layers:ResultLayer,
+            layers:list[ResultLayer],
             logs:str,   
         ) -> None:
         self.chip_name = chip_name 

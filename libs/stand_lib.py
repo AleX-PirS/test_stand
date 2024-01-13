@@ -305,6 +305,7 @@ class Stand(object):
         try:
             self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
         except Exception as e:
+            self.set_writeable_gui()
             self.ui.logging("ERROR start scenario testing: ", e.args[0])
             return
 
@@ -332,6 +333,7 @@ class Stand(object):
             manual_scenar = self.create_manual_scenario()
             self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
         except Exception as e:
+            self.set_writeable_gui()
             self.ui.logging("ERROR start manual testing: ", e)
             return
 
@@ -385,7 +387,23 @@ class Stand(object):
 
         
         test_idx = 1
+        result = Result(
+            chip_name=chip_name,
+            chip_description=chip_desc,
+            test_name=scenario.name,
+            test_description=scenario.description,
+            channels=scenario.channels,
+            trig_src=scenario.trig_src,
+            trig_lvl=scenario.trig_lvl,
+            tim_scale=scenario.tim_scale,
+            logs="",
+            layers=[],
+            layers_count=0,
+            total_test_count=0,
+        )
+
         for idx_layer, test in enumerate(scenario.layers):
+            result_layer = ResultLayer(0, test.constants, [])
             self.ui.set_reg_values(RegData(is_zero_init=False, template_list=test.constants))
             self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
             
@@ -479,6 +497,13 @@ class Stand(object):
                 )
 
                 test_idx += 1
+                result_layer.test_count += 1
+                result_layer.samples.append(test_result)
+
+            result.layers.append(result_layer)
+            result.layers_count += 1
+            result.total_test_count += result_layer.test_count
+
                 
         match testing_type:
             case self.MANUAL_TEST:
@@ -487,8 +512,32 @@ class Stand(object):
                 self.ui.logging(f"Finish scenario:{scenario.name} test for chip:{chip_name}")
             
         logs = self.ui.get_logs()
+        logs_file = self.save_logs(start_time, chip_name, scenario.name, testing_type, logs)
+
+        result.logs = logs_file
+
+        self.save_results(result, start_time, chip_name, scenario.name, testing_type)
 
         self.set_writeable_gui()
+
+    def save_results(self, data:Result, start_time, chip_name, scenario_name, testing_type):
+        file_name = f"result.json"
+        match testing_type:
+            case self.MANUAL_TEST:
+                path = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time)
+            case self.SCENARIO_TEST:
+                path = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time)
+        
+        try:
+            os.makedirs(path)
+        except:
+            pass
+
+        with open(path+"\\"+file_name, 'w') as file:
+            file.write(data.toJSON())
+            file.close()
+
+        return path+"\\"+file_name
 
     def save_screenshot(self, start_time, chip_name, scenario_name, screenshot_data, testing_type, layer_index, sample_index):
         file_name = f"screenshot_sample_{sample_index}.png"
@@ -507,7 +556,7 @@ class Stand(object):
         f.write(screenshot_data)
         f.close()
 
-        return path+file_name
+        return path+"\\"+file_name
     
     def save_points(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:OscilloscopeData, channels):
         file_name_points = f"channels_data_{sample_index}.json"
@@ -540,10 +589,26 @@ class Stand(object):
 
         data.plot_all(channels).savefig(path_plots+"\\"+file_name_plots, format='pdf')
 
-        return path_points+file_name_points, path_plots+file_name_plots
+        return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
     
-    def save_logs(self):
-        pass
+    def save_logs(self, start_time, chip_name, scenario_name, testing_type, logs:str):
+        file_name = f"logs.txt"
+        match testing_type:
+            case self.MANUAL_TEST:
+                path = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, LOGS_FOLDER)
+            case self.SCENARIO_TEST:
+                path = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, LOGS_FOLDER)
+        
+        try:
+            os.makedirs(path)
+        except:
+            pass
+
+        f = open(path+"\\"+file_name, "wb")
+        f.write(logs)
+        f.close()
+
+        return path+"\\"+file_name
 
 if __name__ == "__main__":
     stand = Stand()
