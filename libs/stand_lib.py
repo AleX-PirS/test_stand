@@ -1,13 +1,14 @@
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result
+from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result
 from pkg import find_scenarios, differenence
 
 import sys
 import time
 import os
 import datetime
+import csv
 from pytz import timezone
 
 TESTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), r'tests')
@@ -415,6 +416,9 @@ class Stand(object):
                 self.uart.send_start_command()
 
                 sample_data = self.visa.v2_get_sample()
+
+                points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels)
+
                 chip_data, RAW_data = self.uart.get_chip_data()
 
                 chip_data_output = ChipData(
@@ -470,8 +474,8 @@ class Stand(object):
                     trigger_lvl=test_sample.trig_lvl,
                     width=test_sample.width,
                     screenshot=screen_file,
-                    points_data="",
-                    plots="",
+                    points_data=points_file,
+                    plots=plots_file,
                 )
 
                 test_idx += 1
@@ -504,6 +508,42 @@ class Stand(object):
         f.close()
 
         return path+file_name
+    
+    def save_points(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:OscilloscopeData, channels):
+        file_name_points = f"channels_data_{sample_index}.json"
+        match testing_type:
+            case self.MANUAL_TEST:
+                path_points = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, RAW_DATA_FOLDER)
+            case self.SCENARIO_TEST:
+                path_points = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index}", RAW_DATA_FOLDER)
+        
+        try:
+            os.makedirs(path_points)
+        except:
+            pass
+
+        with open(path_points+"\\"+file_name_points, 'w') as file:
+            file.write(data.toJSON())
+            file.close()
+
+        file_name_plots = f"plots_{sample_index}.pdf"
+        match testing_type:
+            case self.MANUAL_TEST:
+                path_plots = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_PLOTS_FOLDER)
+            case self.SCENARIO_TEST:
+                path_plots = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index}", PICTURES_PLOTS_FOLDER)
+        
+        try:
+            os.makedirs(path_plots)
+        except:
+            pass
+
+        data.plot_all(channels).savefig(path_plots+"\\"+file_name_plots, format='pdf')
+
+        return path_points+file_name_points, path_plots+file_name_plots
+    
+    def save_logs(self):
+        pass
 
 if __name__ == "__main__":
     stand = Stand()

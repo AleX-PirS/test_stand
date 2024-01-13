@@ -6,6 +6,7 @@ from matplotlib.figure import Figure
 import numpy as np
 import datetime
 from pytz import timezone
+import tkinter as tk
 
 scenarios_path = os.path.dirname(os.path.abspath(__file__)) + r'\scenarios\\'
 
@@ -421,8 +422,11 @@ class OscilloscopeData(object):
             res += f"\nY Axis:\n"
             for data in self.data[i][1]:
                 res += f"{data} "
-
+            res += "\n"
         return res
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
     
     # def plot_one(self, index, label):
     #     _, ax = plt.subplots(2,2)
@@ -430,19 +434,12 @@ class OscilloscopeData(object):
     #     plt.show()
 
     def plot_all(self, channels:list[Channel]):
-        # match len(channels):
-        #     case 1:
-        #         fig, axs = plt.subplots(1, 1)
-        #     case 2:
-        #         fig, axs = plt.subplots(2, 1)
-        #     case 3:
-        #         fig, axs = plt.subplots(2, 2)
-        #     case 4:
-        #         fig, axs = plt.subplots(2, 2)
+        root = tk.Tk()
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        root.destroy()
 
-
-        fig = Figure()
-        fig, axs = plt.subplots(2, 2)
+        fig, axs = plt.subplots(ncols=2, nrows=2, figsize=(screen_width / 150, screen_height / 150))
         for ch in channels:
             match ch.index:
                 case 1:
@@ -469,8 +466,8 @@ class OscilloscopeData(object):
                     axs[1, 1].set_xlabel("s")
                     axs[1, 1].set_ylabel("V")
                     axs[1, 1].grid(True, which='both')
-
-        plt.show()
+                    
+        return fig
 
 
 class Layer(object):
@@ -559,7 +556,7 @@ class Scenario(object):
         with open(scenarios_path + self.name+'.json', 'w') as file:
             data = self.toJSON()
             file.write(data)
-            file.close
+            file.close()
 
 def find_scenarios()-> list[Scenario]:
     scenarios = []
