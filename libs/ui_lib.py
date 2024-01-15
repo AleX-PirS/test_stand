@@ -17,6 +17,12 @@ from pkg import process_signal_type
 
 class Ui(object):
     is_regs_readonly = False
+    is_env_readonly = False
+    is_uart_readonly = False
+    is_testing_readonly = False
+    is_logs_readonly = False
+    is_gui_buttons_readonly = False
+    is_triggs_readonly = False
     is_channels_readonly = False
     is_gen_readonly = False
 
@@ -925,6 +931,8 @@ class Ui(object):
         self.ui.trig_lvl.repaint()
         self.ui.comboBox_trig_lvl.setEnabled(self.is_gen_readonly)
         self.ui.comboBox_trig_lvl.repaint()
+        self.ui.gen_zero_butt.setEnabled(self.is_gen_readonly)
+        self.ui.gen_zero_butt.repaint()
         self.is_gen_readonly = not self.is_gen_readonly
 
     def set_gen_writeable(self):
@@ -1004,6 +1012,8 @@ class Ui(object):
         self.ui.trig_lvl.repaint()
         self.ui.comboBox_trig_lvl.setEnabled(True)
         self.ui.comboBox_trig_lvl.repaint()
+        self.ui.gen_zero_butt.setEnabled(True)
+        self.ui.gen_zero_butt.repaint()
         self.is_gen_readonly = False
 
     def change_rw_channels(self):
@@ -1230,6 +1240,254 @@ class Ui(object):
         self.ui.butt_set_default_regs.repaint()
         self.is_regs_readonly = False
 
+    def set_env_writeable(self):
+        self.ui.oscilloscope_conn_butt.setEnabled(True)
+        self.ui.oscilloscope_conn_butt.repaint()
+        self.ui.reset_osc_butt.setEnabled(True)
+        self.ui.reset_osc_butt.repaint()
+        self.ui.oscilloscope_addr.setEnabled(True)
+        self.ui.oscilloscope_addr.repaint()
+        self.ui.generator_addr.setEnabled(True)
+        self.ui.generator_addr.repaint()
+        self.ui.reset_gen_butt.setEnabled(True)
+        self.ui.reset_gen_butt.repaint()
+        self.ui.generator_conn_butt.setEnabled(True)
+        self.ui.generator_conn_butt.repaint()
+        self.ui.comboBox_resources.setEnabled(True)
+        self.ui.comboBox_resources.repaint()
+        self.ui.command_send_butt.setEnabled(True)
+        self.ui.command_send_butt.repaint()
+        self.ui.scan_res_butt.setEnabled(True)
+        self.ui.scan_res_butt.repaint()
+        self.is_env_readonly = False
+        pass
+
+    def change_rw_env(self):
+        self.ui.oscilloscope_conn_butt.setEnabled(self.is_env_readonly)
+        self.ui.oscilloscope_conn_butt.repaint()
+        self.ui.reset_osc_butt.setEnabled(self.is_env_readonly)
+        self.ui.reset_osc_butt.repaint()
+        self.ui.oscilloscope_addr.setEnabled(self.is_env_readonly)
+        self.ui.oscilloscope_addr.repaint()
+        self.ui.generator_addr.setEnabled(self.is_env_readonly)
+        self.ui.generator_addr.repaint()
+        self.ui.reset_gen_butt.setEnabled(self.is_env_readonly)
+        self.ui.reset_gen_butt.repaint()
+        self.ui.generator_conn_butt.setEnabled(self.is_env_readonly)
+        self.ui.generator_conn_butt.repaint()
+        self.ui.comboBox_resources.setEnabled(self.is_env_readonly)
+        self.ui.comboBox_resources.repaint()
+        self.ui.command_send_butt.setEnabled(self.is_env_readonly)
+        self.ui.command_send_butt.repaint()
+        self.ui.scan_res_butt.setEnabled(self.is_env_readonly)
+        self.ui.scan_res_butt.repaint()
+        self.is_env_readonly = not self.is_env_readonly
+        pass
+
+    def set_uart_writeable(self):
+        self.ui.com_addr.setEnabled(True)
+        self.ui.com_addr.repaint()
+        self.ui.com_conn_butt.setEnabled(True)
+        self.ui.com_conn_butt.repaint()
+        self.ui.com_write_butt.setEnabled(True)
+        self.ui.com_write_butt.repaint()
+        self.ui.com_read_all_butt.setEnabled(True)
+        self.ui.com_read_all_butt.repaint()
+        self.ui.com_read_r_butt.setEnabled(True)
+        self.ui.com_read_r_butt.repaint()
+        self.ui.com_read_rw_butt.setEnabled(True)
+        self.ui.com_read_rw_butt.repaint()
+        self.is_uart_readonly = False
+        pass
+
+    def change_rw_uart(self):
+        self.ui.com_addr.setEnabled(self.is_uart_readonly)
+        self.ui.com_addr.repaint()
+        self.ui.com_conn_butt.setEnabled(self.is_uart_readonly)
+        self.ui.com_conn_butt.repaint()
+        self.ui.com_write_butt.setEnabled(self.is_uart_readonly)
+        self.ui.com_write_butt.repaint()
+        self.ui.com_read_all_butt.setEnabled(self.is_uart_readonly)
+        self.ui.com_read_all_butt.repaint()
+        self.ui.com_read_r_butt.setEnabled(self.is_uart_readonly)
+        self.ui.com_read_r_butt.repaint()
+        self.ui.com_read_rw_butt.setEnabled(self.is_uart_readonly)
+        self.ui.com_read_rw_butt.repaint()
+        self.is_uart_readonly = not self.is_uart_readonly
+        pass
+
+    def set_testing_writeable(self):
+        self.ui.isScreenshotable.setEnabled(True)
+        self.ui.isScreenshotable.repaint()
+        self.ui.isScreenshotable_scenario.setEnabled(True)
+        self.ui.isScreenshotable_scenario.repaint()
+        self.ui.comboBox_using_out.setEnabled(True)
+        self.ui.comboBox_using_out.repaint()
+        self.ui.comboBox_scenario_using_out.setEnabled(True)
+        self.ui.comboBox_scenario_using_out.repaint()
+        self.ui.start_butt.setEnabled(True)
+        self.ui.start_butt.repaint()
+        self.ui.start_butt_scenar.setEnabled(True)
+        self.ui.start_butt_scenar.repaint()
+        self.ui.gen_config_butt.setEnabled(True)
+        self.ui.gen_config_butt.repaint()
+        self.ui.osc_config_butt.setEnabled(True)
+        self.ui.osc_config_butt.repaint()
+        self.ui.gen_out_butt.setEnabled(True)
+        self.ui.gen_out_butt.repaint()
+        self.ui.gen_not_out_butt.setEnabled(True)
+        self.ui.gen_not_out_butt.repaint()
+        self.ui.osc_run_butt.setEnabled(True)
+        self.ui.osc_run_butt.repaint()
+        self.ui.measure_butt.setEnabled(True)
+        self.ui.measure_butt.repaint()
+        self.ui.scan_scen_butt.setEnabled(True)
+        self.ui.scan_scen_butt.repaint()
+        self.ui.comboBox_scenarios.setEnabled(True)
+        self.ui.comboBox_scenarios.repaint()
+        self.ui.generate_scen_butt.setEnabled(True)
+        self.ui.generate_scen_butt.repaint()
+        self.ui.add_layer_scen_butt.setEnabled(True)
+        self.ui.add_layer_scen_butt.repaint()
+        self.ui.delete_layer_scen_butt.setEnabled(True)
+        self.ui.delete_layer_scen_butt.repaint()
+        self.ui.reset_scen_butt.setEnabled(True)
+        self.ui.reset_scen_butt.repaint()
+        self.ui.scenario_desc_plain_text_input.setEnabled(True)
+        self.ui.scenario_desc_plain_text_input.repaint()
+        self.ui.scenario_name.setEnabled(True)
+        self.ui.scenario_name.repaint()
+        self.is_testing_readonly = False
+        pass
+
+    def change_rw_testing(self):
+        self.ui.isScreenshotable.setEnabled(self.is_testing_readonly)
+        self.ui.isScreenshotable.repaint()
+        self.ui.isScreenshotable_scenario.setEnabled(self.is_testing_readonly)
+        self.ui.isScreenshotable_scenario.repaint()
+        self.ui.comboBox_using_out.setEnabled(self.is_testing_readonly)
+        self.ui.comboBox_using_out.repaint()
+        self.ui.comboBox_scenario_using_out.setEnabled(self.is_testing_readonly)
+        self.ui.comboBox_scenario_using_out.repaint()
+        self.ui.start_butt.setEnabled(self.is_testing_readonly)
+        self.ui.start_butt.repaint()
+        self.ui.start_butt_scenar.setEnabled(self.is_testing_readonly)
+        self.ui.start_butt_scenar.repaint()
+        self.ui.gen_config_butt.setEnabled(self.is_testing_readonly)
+        self.ui.gen_config_butt.repaint()
+        self.ui.osc_config_butt.setEnabled(self.is_testing_readonly)
+        self.ui.osc_config_butt.repaint()
+        self.ui.gen_out_butt.setEnabled(self.is_testing_readonly)
+        self.ui.gen_out_butt.repaint()
+        self.ui.gen_not_out_butt.setEnabled(self.is_testing_readonly)
+        self.ui.gen_not_out_butt.repaint()
+        self.ui.osc_run_butt.setEnabled(self.is_testing_readonly)
+        self.ui.osc_run_butt.repaint()
+        self.ui.measure_butt.setEnabled(self.is_testing_readonly)
+        self.ui.measure_butt.repaint()
+        self.ui.scan_scen_butt.setEnabled(self.is_testing_readonly)
+        self.ui.scan_scen_butt.repaint()
+        self.ui.comboBox_scenarios.setEnabled(self.is_testing_readonly)
+        self.ui.comboBox_scenarios.repaint()
+        self.ui.generate_scen_butt.setEnabled(self.is_testing_readonly)
+        self.ui.generate_scen_butt.repaint()
+        self.ui.add_layer_scen_butt.setEnabled(self.is_testing_readonly)
+        self.ui.add_layer_scen_butt.repaint()
+        self.ui.delete_layer_scen_butt.setEnabled(self.is_testing_readonly)
+        self.ui.delete_layer_scen_butt.repaint()
+        self.ui.reset_scen_butt.setEnabled(self.is_testing_readonly)
+        self.ui.reset_scen_butt.repaint()
+        self.ui.scenario_desc_plain_text_input.setEnabled(self.is_testing_readonly)
+        self.ui.scenario_desc_plain_text_input.repaint()
+        self.ui.scenario_name.setEnabled(self.is_testing_readonly)
+        self.ui.scenario_name.repaint()
+        self.is_testing_readonly = not self.is_testing_readonly
+        pass
+
+    def set_logs_writeable(self):
+        self.ui.clean_log_butt.setEnabled(True)
+        self.ui.clean_log_butt.repaint()
+        self.is_logs_readonly = False
+        pass
+
+    def change_rw_logs(self):
+        self.ui.clean_log_butt.setEnabled(self.is_logs_readonly)
+        self.ui.clean_log_butt.repaint()
+        self.is_logs_readonly = not self.is_logs_readonly
+        pass
+
+    def set_gui_buttons_writeable(self):
+        self.ui.butt_set_default_gui.setEnabled(True)
+        self.ui.butt_set_default_gui.repaint()
+        self.ui.butt_show_res.setEnabled(True)
+        self.ui.butt_show_res.repaint()
+        self.is_gui_buttons_readonly = False
+        pass
+
+    def change_rw_gui_buttons(self):
+        self.ui.butt_set_default_gui.setEnabled(self.is_gui_buttons_readonly)
+        self.ui.butt_set_default_gui.repaint()
+        self.ui.butt_show_res.setEnabled(self.is_gui_buttons_readonly)
+        self.ui.butt_show_res.repaint()
+        self.is_gui_buttons_readonly = not self.is_gui_buttons_readonly
+        pass
+
+    def change_rw_triggs(self):
+        self.ui.L0.setEnabled(self.is_triggs_readonly)
+        self.ui.L0.repaint()
+        self.ui.spinBox_L0_times.setEnabled(self.is_triggs_readonly)
+        self.ui.spinBox_L0_times.repaint()
+        self.ui.L0_2.setEnabled(self.is_triggs_readonly)
+        self.ui.L0_2.repaint()
+        self.ui.comboBox_L0.setEnabled(self.is_triggs_readonly)
+        self.ui.comboBox_L0.repaint()
+        self.ui.comboBox_L0_2.setEnabled(self.is_triggs_readonly)
+        self.ui.comboBox_L0_2.repaint()
+        self.ui.comboBox_L0_delta.setEnabled(self.is_triggs_readonly)
+        self.ui.comboBox_L0_delta.repaint()
+        self.ui.L1.setEnabled(self.is_triggs_readonly)
+        self.ui.L1.repaint()
+        self.ui.spinBox_L1_times.setEnabled(self.is_triggs_readonly)
+        self.ui.spinBox_L1_times.repaint()
+        self.ui.L1_2.setEnabled(self.is_triggs_readonly)
+        self.ui.L1_2.repaint()
+        self.ui.comboBox_L1.setEnabled(self.is_triggs_readonly)
+        self.ui.comboBox_L1.repaint()
+        self.ui.comboBox_L1_2.setEnabled(self.is_triggs_readonly)
+        self.ui.comboBox_L1_2.repaint()
+        self.ui.comboBox_L1_delta.setEnabled(self.is_triggs_readonly)
+        self.ui.comboBox_L1_delta.repaint()
+        self.is_triggs_readonly = not self.is_triggs_readonly
+        pass
+
+    def set_triggs_writeable(self):
+        self.ui.L0.setEnabled(True)
+        self.ui.L0.repaint()
+        self.ui.spinBox_L0_times.setEnabled(True)
+        self.ui.spinBox_L0_times.repaint()
+        self.ui.L0_2.setEnabled(True)
+        self.ui.L0_2.repaint()
+        self.ui.comboBox_L0.setEnabled(True)
+        self.ui.comboBox_L0.repaint()
+        self.ui.comboBox_L0_2.setEnabled(True)
+        self.ui.comboBox_L0_2.repaint()
+        self.ui.comboBox_L0_delta.setEnabled(True)
+        self.ui.comboBox_L0_delta.repaint()
+        self.ui.L1.setEnabled(True)
+        self.ui.L1.repaint()
+        self.ui.spinBox_L1_times.setEnabled(True)
+        self.ui.spinBox_L1_times.repaint()
+        self.ui.L1_2.setEnabled(True)
+        self.ui.L1_2.repaint()
+        self.ui.comboBox_L1.setEnabled(True)
+        self.ui.comboBox_L1.repaint()
+        self.ui.comboBox_L1_2.setEnabled(True)
+        self.ui.comboBox_L1_2.repaint()
+        self.ui.comboBox_L1_delta.setEnabled(True)
+        self.ui.comboBox_L1_delta.repaint()
+        self.is_triggs_readonly = False
+        pass
+
     def update_scenario_combo_box(self, scenarios:list[Scenario]):
         self.ui.comboBox_scenarios.clear()
         for scenario in scenarios:
@@ -1271,7 +1529,9 @@ class Ui(object):
         return self.ui.logs_plain_text.toPlainText()
     
     def clean_plots_data(self):
-        self.ui.graphicsView_plots.items().clear()
+        scene = QGraphicsScene()
+        self.ui.graphicsView_plots.setScene(scene)
+        self.ui.graphicsView_plots.repaint()
 
     def set_plots_data(self, file_name):
         scene = QGraphicsScene()
@@ -1282,6 +1542,7 @@ class Ui(object):
         # scene.setSceneRect(0, 0, 400, 400)
         scene.addItem(pic)
         self.ui.graphicsView_plots.setScene(scene)
+        self.ui.graphicsView_plots.repaint()
 
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_EnableHighDpiScaling, True)
 # QtWidgets.QApplication.setAttribute(QtCore.Qt.AA_UseHighDpiPixmaps, True)

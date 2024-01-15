@@ -35,7 +35,6 @@ class UART(object):
         )
 
     def read_i_regs(self, settings: tuple) -> RegData:
-        time.sleep(0.02)
         reg_data = RegData(is_zero_init=True)
         for tupl in settings:
             data = self.read_reg(
@@ -45,7 +44,8 @@ class UART(object):
 
             for byte_idx in range(len(data)):
                 reg_data.reg_data[byte_idx+tupl[0]] = data[byte_idx]
-
+            time.sleep(0.02)
+            
         return reg_data
 
     def read_all_regs(self) -> RegData:
@@ -65,7 +65,7 @@ class UART(object):
                 int.to_bytes(start_addr, 1, "big"),
                 data.reg_data[start_addr:start_addr+count],
             )
-            time.sleep(0.001)
+            time.sleep(0.002)
 
     def send_start_command(self):
         self.is_connection_open()
@@ -108,7 +108,7 @@ class UART(object):
                     get_flag = 1
 
                 data = self.ser.read(1)
-                print(f'Get payload from uart:"{int.from_bytes(data, "big"):08b}"')
+                # print(f'Get payload from uart:"{int.from_bytes(data, "big"):08b}"')
 
                 if data == b'':
                     break
@@ -117,7 +117,7 @@ class UART(object):
                 if len(read_data) == int.from_bytes(count, "big"):
                     break
             
-            print(f'Asked len={int.from_bytes(count, "big")}, get len={len(read_data)}')
+            # print(f'Asked len={int.from_bytes(count, "big")}, get len={len(read_data)}')
             if int.from_bytes(count, "big") != len(read_data):
                 print(f"Packet corrupted. Try again with: start_addr:{int.from_bytes(start_addr, 'big')}, count:{int.from_bytes(count, 'big')}")
                 corrupt_count+=1

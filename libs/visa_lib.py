@@ -348,7 +348,7 @@ class Visa(object):
             raise Exception("No oscilloscope connection.")
         
     def v2_take_screen(self) -> list[bytes]:
-        size = 1000
+        size = 64
         self.send_command(self.oscilloscope, ":DISPlay:DATA? PNG")
         bts = b''
         while True:

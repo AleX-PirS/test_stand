@@ -440,35 +440,63 @@ class OscilloscopeData(object):
         root.destroy()
 
         fig, axs = plt.subplots(ncols=2, nrows=2, figsize=(screen_width / 150, screen_height / 150))
+        plt.subplots_adjust(wspace=0.3, hspace=0.3)
+        
+        fig = self.plot(channels, fig, axs)
+                    
+        return fig
+    
+    def show_all(self, channels:list[Channel]):
+        self.plot_all(channels).show()
+
+    def plot_for_gui(self, channels:list[Channel]):
+        fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
+
         for ch in channels:
             match ch.index:
                 case 1:
-                    axs[0, 0].plot(self.data[1][0], self.data[1][1])
-                    axs[0, 0].set_title(ch.name)
-                    axs[0, 0].set_xlabel("s")
-                    axs[0, 0].set_ylabel("")
-                    axs[0, 0].grid(True, which='both')
+                    axs.plot(self.data[1][0], self.data[1][1], color='y')
                 case 2:
-                    axs[0, 1].plot(self.data[2][0], self.data[2][1])
-                    axs[0, 1].set_title(ch.name)
-                    axs[0, 1].set_xlabel("s")
-                    axs[0, 1].set_ylabel("V")
-                    axs[0, 1].grid(True, which='both')
+                    axs.plot(self.data[2][0], self.data[2][1], color='g')
                 case 3:
-                    axs[1, 0].plot(self.data[3][0], self.data[3][1])
-                    axs[1, 0].set_title(ch.name)
-                    axs[1, 0].set_xlabel("s")
-                    axs[1, 0].set_ylabel("V")
-                    axs[1, 0].grid(True, which='both')
+                    axs.plot(self.data[3][0], self.data[3][1], color='b')
                 case 4:
-                    axs[1, 1].plot(self.data[4][0], self.data[4][1])
-                    axs[1, 1].set_title(ch.name)
-                    axs[1, 1].set_xlabel("s")
-                    axs[1, 1].set_ylabel("V")
-                    axs[1, 1].grid(True, which='both')
-                    
+                    axs.plot(self.data[4][0], self.data[4][1], color='r')
+
+        axs.set_xlabel("Time, sec")
+        axs.set_ylabel("Voltage, V")
+        axs.grid(True, which='both')
+
         return fig
 
+    def plot(self, channels:list[Channel], fig:Figure, axs):
+        for ch in channels:
+            match ch.index:
+                case 1:
+                    axs[0, 0].plot(self.data[1][0], self.data[1][1], color='y')
+                    axs[0, 0].set_title(ch.name)
+                    axs[0, 0].set_xlabel("Time, sec")
+                    axs[0, 0].set_ylabel("Voltage, V")
+                    axs[0, 0].grid(True, which='both')
+                case 2:
+                    axs[0, 1].plot(self.data[2][0], self.data[2][1], color='g')
+                    axs[0, 1].set_title(ch.name)
+                    axs[0, 1].set_xlabel("Time, sec")
+                    axs[0, 1].set_ylabel("Voltage, V")
+                    axs[0, 1].grid(True, which='both')
+                case 3:
+                    axs[1, 0].plot(self.data[3][0], self.data[3][1], color='b')
+                    axs[1, 0].set_title(ch.name)
+                    axs[1, 0].set_xlabel("Time, sec")
+                    axs[1, 0].set_ylabel("Voltage, V")
+                    axs[1, 0].grid(True, which='both')
+                case 4:
+                    axs[1, 1].plot(self.data[4][0], self.data[4][1], color='r')
+                    axs[1, 1].set_title(ch.name)
+                    axs[1, 1].set_xlabel("Time, sec")
+                    axs[1, 1].set_ylabel("Voltage, V")
+                    axs[1, 1].grid(True, which='both')
+        return fig
 
 class Layer(object):
     def __init__(self, constants:RegData, samples:list[GeneratorSample]) -> None:
@@ -668,7 +696,7 @@ class Result(object):
         ) -> None:
         self.chip_name = chip_name 
         self.chip_description = chip_description
-        self.date = datetime.datetime.now(tz=timezone('Europe/Moscow'))
+        self.date = str(datetime.datetime.now(tz=timezone('Europe/Moscow')))
         self.test_name = test_name
         self.test_description = test_description
         self.channels = channels

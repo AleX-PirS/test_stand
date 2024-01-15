@@ -8,13 +8,14 @@ import sys
 import time
 import os
 import datetime
-import csv
 from pytz import timezone
+import matplotlib.pyplot as plt
 
 TESTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), r'tests')
 MANUAL_TESTS_PATH = os.path.join(TESTS_PATH, r'manual')
 SCENARIO_TESTS_PATH = os.path.join(TESTS_PATH, r'scenario')
 PICTURES_PLOTS_FOLDER = r'plots'
+PICTURES_FOLDER = r'pictures'
 PICTURES_SCREENSHOTS_FOLDER = r'screenshots'
 RAW_DATA_FOLDER = r'points'
 LOGS_FOLDER = r'logs'
@@ -22,18 +23,20 @@ LOGS_FOLDER = r'logs'
 
 class Stand(object):
     MANUAL_TEST = 0
-    SCENARIO_TEST = 0
+    SCENARIO_TEST = 1
 
     def __init__(self) -> None:
         self.main_scenario = Scenario([], "", "", [], 0, 0, 0)
         self.list_of_scenarios = list[Scenario]
         self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
+        self.results_folder = ""
 
         self.ui = Ui()
         self.uart = UART()
         self.visa = Visa()
         # Main window
         self.ui.ui.butt_set_default_gui.clicked.connect(self.process_default_gui_butt)
+        self.ui.ui.butt_show_res.clicked.connect(self.process_show_res_butt)
         # Registers panel
         self.ui.ui.com_write_butt.clicked.connect(self.process_com_write_butt)
         self.ui.ui.com_read_all_butt.clicked.connect(self.process_com_read_all_butt)
@@ -70,6 +73,9 @@ class Stand(object):
         self.ui.ui.measure_butt.clicked.connect(self.process_measure_butt)
         self.ui.ui.start_butt.clicked.connect(self.process_start_butt)
         self.ui.ui.osc_run_butt.clicked.connect(self.process_osc_run_butt)
+
+    def process_show_res_butt(self):
+        os.system(f'explorer.exe "{self.results_folder}"')
 
     def process_com_write_butt(self):
         try:
@@ -211,7 +217,7 @@ class Stand(object):
         index = self.ui.get_current_scenario_box_index()
         if index == -1:
             return
-        self.ui.update_scenario_description(self.list_of_scenarios[index].description)
+        self.ui.update_scenario_description(self.list_of_scenarios[index].description+f'Totat test count:{self.list_of_scenarios[index].total_test_count}')
         self.ui.set_reg_values(RegData(is_zero_init=False, template_list=self.list_of_scenarios[index].layers[0].constants))
         self.ui.set_channels_data(self.list_of_scenarios[index].channels, self.list_of_scenarios[index].trig_src, self.list_of_scenarios[index].trig_lvl, self.list_of_scenarios[index].tim_scale)
         self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
@@ -285,7 +291,7 @@ class Stand(object):
         try:
             channels, _, _, _ = self.ui.get_channels_data()
             sample = self.visa.v2_get_sample()
-            sample.plot_all(channels)
+            sample.show_all(channels)
         except Exception as e:
             self.ui.logging("ERROR measure results oscilloscope: ", e.args[0])
             return
@@ -296,6 +302,7 @@ class Stand(object):
             self.ui.set_channels_data_zero()
             self.ui.set_generator_data_zero()
             self.ui.clear_chip_metadata()
+            self.ui.clean_plots_data()
             self.process_reset_scenario_butt()
         except Exception as e:
             self.ui.logging("ERROR set default gui status: ", e.args[0])
@@ -303,7 +310,7 @@ class Stand(object):
 
     def process_scenar_start_butt(self):
         try:
-            self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
+            file = self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start scenario testing: ", e.args[0])
@@ -331,10 +338,10 @@ class Stand(object):
     def process_start_butt(self):
         try:
             manual_scenar = self.create_manual_scenario()
-            self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
+            file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
         except Exception as e:
             self.set_writeable_gui()
-            self.ui.logging("ERROR start manual testing: ", e)
+            self.ui.logging("ERROR start manual testing: ", e.args[0])
             return
 
     def process_osc_config_butt(self):
@@ -357,17 +364,31 @@ class Stand(object):
         self.ui.change_rw_constants()
         self.ui.change_rw_channels()
         self.ui.change_rw_gen()
+        self.ui.change_rw_env()
+        self.ui.change_rw_gui_buttons()
+        self.ui.change_rw_logs()
+        self.ui.change_rw_uart()
+        self.ui.change_rw_testing()
+        self.ui.change_rw_triggs()
 
     def set_writeable_gui(self): 
         self.ui.set_constants_writeable()
         self.ui.set_channels_writeable()
         self.ui.set_gen_writeable()
+        self.ui.set_env_writeable()
+        self.ui.set_gui_buttons_writeable()
+        self.ui.set_logs_writeable()
+        self.ui.set_uart_writeable()
+        self.ui.set_testing_writeable()
+        self.ui.set_triggs_writeable()
 
     def start_test(self, scenario:Scenario, is_screening:bool, out_index:int, testing_type:int):
         start_time = str(datetime.datetime.now(tz=timezone('Europe/Moscow'))).replace(":", ".")[:-13].replace(" ", "_")
 
         self.check_instruments_connection()
         self.ui.clear_log()
+        self.ui.clean_plots_data()
+        self.results_folder = ""
 
         chip_name, chip_desc = self.ui.get_chip_metadata()
 
@@ -412,6 +433,14 @@ class Stand(object):
 
             if sended != get:
                 diff = differenence(sended, get)
+
+                if len(diff) > 1:
+                    print(f'in diff if: len:{len(diff)}')
+                    self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
+                    get = self.uart.read_rw_regs()
+                    diff = differenence(sended, get)
+                    print(f'diff after resend: len:{len(diff)}')
+                
                 for k,v in diff.items():
                     match testing_type:
                         case self.MANUAL_TEST:
@@ -516,9 +545,12 @@ class Stand(object):
 
         result.logs = logs_file
 
-        self.save_results(result, start_time, chip_name, scenario.name, testing_type)
+        result_file = self.save_results(result, start_time, chip_name, scenario.name, testing_type)
+        
+        self.results_folder = result_file
 
         self.set_writeable_gui()
+        return result_file
 
     def save_results(self, data:Result, start_time, chip_name, scenario_name, testing_type):
         file_name = f"result.json"
@@ -537,15 +569,15 @@ class Stand(object):
             file.write(data.toJSON())
             file.close()
 
-        return path+"\\"+file_name
+        return path
 
     def save_screenshot(self, start_time, chip_name, scenario_name, screenshot_data, testing_type, layer_index, sample_index):
         file_name = f"screenshot_sample_{sample_index}.png"
         match testing_type:
             case self.MANUAL_TEST:
-                path = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_SCREENSHOTS_FOLDER)
+                path = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_FOLDER, PICTURES_SCREENSHOTS_FOLDER)
             case self.SCENARIO_TEST:
-                path = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index}", PICTURES_SCREENSHOTS_FOLDER)
+                path = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", PICTURES_FOLDER, PICTURES_SCREENSHOTS_FOLDER)
         
         try:
             os.makedirs(path)
@@ -564,7 +596,7 @@ class Stand(object):
             case self.MANUAL_TEST:
                 path_points = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, RAW_DATA_FOLDER)
             case self.SCENARIO_TEST:
-                path_points = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index}", RAW_DATA_FOLDER)
+                path_points = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", RAW_DATA_FOLDER)
         
         try:
             os.makedirs(path_points)
@@ -578,16 +610,22 @@ class Stand(object):
         file_name_plots = f"plots_{sample_index}.pdf"
         match testing_type:
             case self.MANUAL_TEST:
-                path_plots = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_PLOTS_FOLDER)
+                path_plots = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
             case self.SCENARIO_TEST:
-                path_plots = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index}", PICTURES_PLOTS_FOLDER)
+                path_plots = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
         
         try:
             os.makedirs(path_plots)
         except:
             pass
 
+        link_file = "plots.png"
         data.plot_all(channels).savefig(path_plots+"\\"+file_name_plots, format='pdf')
+        plt.close('all')
+        data.plot_for_gui(channels).savefig(link_file, format='png', dpi=80)
+        plt.close('all')
+
+        self.ui.set_plots_data(link_file)
 
         return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
     
@@ -604,7 +642,7 @@ class Stand(object):
         except:
             pass
 
-        f = open(path+"\\"+file_name, "wb")
+        f = open(path+"\\"+file_name, "w")
         f.write(logs)
         f.close()
 

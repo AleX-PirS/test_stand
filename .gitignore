@@ -1,4 +1,7 @@
 __pycache__
 .vscode
 .idea
-*.json
+
+scenarios
+tests
+*.png
