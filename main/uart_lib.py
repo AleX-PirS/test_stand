@@ -85,6 +85,9 @@ class UART(object):
         # for byte in package+data:
         #     self.ser.write(byte)
 
+    def send_triggers(self, delay:int, l0:int, l1:int):
+        pass
+
     def read_reg(self, start_addr: bytes, count: bytes) -> list[bytes]:
         self.is_connection_open()
         corrupt_count = 0

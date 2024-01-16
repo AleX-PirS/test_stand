@@ -10,6 +10,7 @@ import os
 import datetime
 from pytz import timezone
 import matplotlib.pyplot as plt
+from threading import Thread
 
 TESTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), r'tests')
 MANUAL_TESTS_PATH = os.path.join(TESTS_PATH, r'manual')
@@ -30,6 +31,7 @@ class Stand(object):
         self.list_of_scenarios = list[Scenario]
         self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
         self.results_folder = ""
+        self.STOP_flag = 0
 
         self.ui = Ui()
         self.uart = UART()
@@ -37,6 +39,7 @@ class Stand(object):
         # Main window
         self.ui.ui.butt_set_default_gui.clicked.connect(self.process_default_gui_butt)
         self.ui.ui.butt_show_res.clicked.connect(self.process_show_res_butt)
+        self.ui.ui.butt_STOP_test.clicked.connect(self.process_STOP_butt)
         # Registers panel
         self.ui.ui.com_write_butt.clicked.connect(self.process_com_write_butt)
         self.ui.ui.com_read_all_butt.clicked.connect(self.process_com_read_all_butt)
@@ -64,6 +67,7 @@ class Stand(object):
         # Start scenario sampling
         self.ui.ui.comboBox_scenarios.currentIndexChanged.connect(self.process_scenario_box)
         self.ui.ui.scan_scen_butt.clicked.connect(self.process_scan_butt)
+        # self.ui.ui.start_butt_scenar.clicked.connect(self.thread_process_scenar_start_butt)
         self.ui.ui.start_butt_scenar.clicked.connect(self.process_scenar_start_butt)
         # Manual testing
         self.ui.ui.gen_config_butt.clicked.connect(self.process_config_gen_butt)
@@ -71,11 +75,21 @@ class Stand(object):
         self.ui.ui.gen_not_out_butt.clicked.connect(self.process_not_out_toggle_butt)
         self.ui.ui.osc_config_butt.clicked.connect(self.process_osc_config_butt)
         self.ui.ui.measure_butt.clicked.connect(self.process_measure_butt)
+        # self.ui.ui.start_butt.clicked.connect(self.thread_process_start_butt)
         self.ui.ui.start_butt.clicked.connect(self.process_start_butt)
         self.ui.ui.osc_run_butt.clicked.connect(self.process_osc_run_butt)
 
     def process_show_res_butt(self):
-        os.system(f'explorer.exe "{self.results_folder}"')
+        if self.results_folder == "":
+            self.ui.logging(f"No test results")
+            return
+        try:
+            os.system(f'explorer.exe "{self.results_folder}"')
+        except:
+            self.ui.logging("ERROR open result folder.")
+
+    def process_STOP_butt(self):
+        self.STOP_flag = 1
 
     def process_com_write_butt(self):
         try:
@@ -310,10 +324,29 @@ class Stand(object):
 
     def process_scenar_start_butt(self):
         try:
+            if self.scenario_to_start.name == '':
+                self.ui.logging("ERROR start scenario testing. No scenario to start.")
+                return
             file = self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start scenario testing: ", e.args[0])
+            return
+
+    def thread_process_scenar_start_butt(self):
+        try:
+            th = Thread(target=self.process_scenar_start_butt)
+            th.start()
+        except Exception as e:
+            self.ui.logging('ERROR scenario testing: ', e.args[0])
+            return
+
+    def thread_process_start_butt(self):
+        try:
+            th = Thread(target=self.process_start_butt)
+            th.start()
+        except Exception as e:
+            self.ui.logging('ERROR manual testing: ', e.args[0])
             return
 
     def create_manual_scenario(self):
@@ -424,6 +457,9 @@ class Stand(object):
         )
 
         for idx_layer, test in enumerate(scenario.layers):
+            if self.STOP_flag == 1:
+                self.STOP_flag = 0
+                break
             result_layer = ResultLayer(0, test.constants, [])
             self.ui.set_reg_values(RegData(is_zero_init=False, template_list=test.constants))
             self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
@@ -434,12 +470,15 @@ class Stand(object):
             if sended != get:
                 diff = differenence(sended, get)
 
-                if len(diff) > 1:
+                for i in range(3):
+                    if len(diff) <= 1:
+                        break
                     print(f'in diff if: len:{len(diff)}')
                     self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
                     get = self.uart.read_rw_regs()
                     diff = differenence(sended, get)
                     print(f'diff after resend: len:{len(diff)}')
+                    
                 
                 for k,v in diff.items():
                     match testing_type:
@@ -448,12 +487,14 @@ class Stand(object):
                         case self.SCENARIO_TEST:
                             self.ui.logging(f"WARNING! Layer#{idx_layer+1}. Constants mismatch. reg:{k}, mismatch:{v}")
 
-            for _, test_sample in enumerate(test.samples):
+            for sample_index, test_sample in enumerate(test.samples):
+                if self.STOP_flag == 1:
+                    break
                 match testing_type:
                     case self.MANUAL_TEST:
                         self.ui.logging(f"Start sample #{test_idx} of {scenario.total_test_count}")
                     case self.SCENARIO_TEST:
-                        self.ui.logging(f"Layer#{idx_layer+1}. Start sample#{test_idx} of {test.test_count}. Total tests:{scenario.total_test_count}")
+                        self.ui.logging(f"Layer#{idx_layer+1}. Start sample#{sample_index+1} of {test.test_count}. Total tests:{scenario.total_test_count}")
                 
                 self.ui.set_generator_sample(test_sample)
                 self.visa.v2_configurate_generator_sample(test_sample)
@@ -491,7 +532,7 @@ class Stand(object):
                     case self.MANUAL_TEST:
                         self.ui.logging(f"Get chip data:{chip_data} (Sample#{test_idx} of {scenario.total_test_count})")
                     case self.SCENARIO_TEST:
-                        self.ui.logging(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{test_idx} of {test.test_count}. Total tests:{scenario.total_test_count})")
+                        self.ui.logging(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{sample_index+1} of {test.test_count}. Total tests:{scenario.total_test_count})")
                 
                 screen_file = ""
                 if is_screening:
@@ -506,7 +547,7 @@ class Stand(object):
                     case self.MANUAL_TEST:
                         self.ui.logging(f"Finish sample #{test_idx} of {scenario.total_test_count}")
                     case self.SCENARIO_TEST:
-                        self.ui.logging(f"Layer#{idx_layer+1}. Finish sample#{test_idx} of {test.test_count}. Total tests:{scenario.total_test_count}")
+                        self.ui.logging(f"Layer#{idx_layer+1}. Finish sample#{sample_index+1} of {test.test_count}. Total tests:{scenario.total_test_count}")
                 
                 test_result = TestSample(
                     chip_data=chip_data_output,
@@ -622,7 +663,7 @@ class Stand(object):
         link_file = "plots.png"
         data.plot_all(channels).savefig(path_plots+"\\"+file_name_plots, format='pdf')
         plt.close('all')
-        data.plot_for_gui(channels).savefig(link_file, format='png', dpi=80)
+        data.plot_for_gui(channels, sample_index).savefig(link_file, format='png', dpi=80)
         plt.close('all')
 
         self.ui.set_plots_data(link_file)

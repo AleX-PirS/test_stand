@@ -409,6 +409,18 @@ class OscilloscopeData(object):
             self.data[i][0] = [origin+i*delta for i in range(len(data[i]))]
             self.data[i][1] = data[i]
 
+    def len(self) -> int:
+        n = 0
+        if len(self.data[1][1]) > 0:
+            n += 1
+        if len(self.data[2][1]) > 0:
+            n += 1
+        if len(self.data[3][1]) > 0:
+            n += 1
+        if len(self.data[4][1]) > 0:
+            n += 1
+        return n
+
     def __str__(self) -> str:
         res = ""
         for i in range(1, 5):
@@ -434,22 +446,109 @@ class OscilloscopeData(object):
     #     plt.show()
 
     def plot_all(self, channels:list[Channel]):
+        colors = {1:'y', 2:'g', 3:'b', 4:'r'}
+
         root = tk.Tk()
         screen_width = root.winfo_screenwidth()
         screen_height = root.winfo_screenheight()
         root.destroy()
 
-        fig, axs = plt.subplots(ncols=2, nrows=2, figsize=(screen_width / 150, screen_height / 150))
+        match self.len():
+            case 1:
+                fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(screen_width / 150, screen_height / 150))
+            case 2:
+                fig, axs = plt.subplots(ncols=2, nrows=1, figsize=(screen_width / 150, screen_height / 150))
+            case 3:
+                fig, axs = plt.subplots(ncols=3, nrows=1, figsize=(screen_width / 150, screen_height / 150))
+            case 4:
+                fig, axs = plt.subplots(ncols=2, nrows=2, figsize=(screen_width / 150, screen_height / 150))
+            case 0:
+                return
+
         plt.subplots_adjust(wspace=0.3, hspace=0.3)
         
-        fig = self.plot(channels, fig, axs)
+        count = 0
+        for _, ch in enumerate(channels):
+            if len(self.data[ch.index][1]) == 0:
+                continue
+
+            match count:
+                case 0:
+                    match self.len():
+                        case 1:
+                            axs.plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs.set_title(ch.name)
+                            axs.set_xlabel("Time, sec")
+                            axs.set_ylabel("Voltage, V")
+                            axs.grid(True, which='both')
+                        case 2:
+                            axs[0].plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs[0].set_title(ch.name)
+                            axs[0].set_xlabel("Time, sec")
+                            axs[0].set_ylabel("Voltage, V")
+                            axs[0].grid(True, which='both')
+                        case 3:
+                            axs[0].plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs[0].set_title(ch.name)
+                            axs[0].set_xlabel("Time, sec")
+                            axs[0].set_ylabel("Voltage, V")
+                            axs[0].grid(True, which='both')
+                        case 4:
+                            axs[0, 0].plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs[0, 0].set_title(ch.name)
+                            axs[0, 0].set_xlabel("Time, sec")
+                            axs[0, 0].set_ylabel("Voltage, V")
+                            axs[0, 0].grid(True, which='both')
+                case 1:
+                    match self.len():
+                        case 2:
+                            axs[1].plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs[1].set_title(ch.name)
+                            axs[1].set_xlabel("Time, sec")
+                            axs[1].set_ylabel("Voltage, V")
+                            axs[1].grid(True, which='both')
+                        case 3:
+                            axs[1].plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs[1].set_title(ch.name)
+                            axs[1].set_xlabel("Time, sec")
+                            axs[1].set_ylabel("Voltage, V")
+                            axs[1].grid(True, which='both')
+                        case 4:
+                            axs[0, 1].plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs[0, 1].set_title(ch.name)
+                            axs[0, 1].set_xlabel("Time, sec")
+                            axs[0, 1].set_ylabel("Voltage, V")
+                            axs[0, 1].grid(True, which='both')
+                case 2:
+                    match self.len():
+                        case 3:
+                            axs[2].plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs[2].set_title(ch.name)
+                            axs[2].set_xlabel("Time, sec")
+                            axs[2].set_ylabel("Voltage, V")
+                            axs[2].grid(True, which='both')
+                        case 4:
+                            axs[1, 0].plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs[1, 0].set_title(ch.name)
+                            axs[1, 0].set_xlabel("Time, sec")
+                            axs[1, 0].set_ylabel("Voltage, V")
+                            axs[1, 0].grid(True, which='both')
+                case 3:
+                    match self.len():
+                        case 4:
+                            axs[1, 1].plot(self.data[ch.index][0], self.data[ch.index][1], color=colors[ch.index])
+                            axs[1, 1].set_title(ch.name)
+                            axs[1, 1].set_xlabel("Time, sec")
+                            axs[1, 1].set_ylabel("Voltage, V")
+                            axs[1, 1].grid(True, which='both')
+            count += 1
                     
         return fig
     
     def show_all(self, channels:list[Channel]):
         self.plot_all(channels).show()
 
-    def plot_for_gui(self, channels:list[Channel]):
+    def plot_for_gui(self, channels:list[Channel], sample_index):
         fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
 
         for ch in channels:
@@ -463,39 +562,11 @@ class OscilloscopeData(object):
                 case 4:
                     axs.plot(self.data[4][0], self.data[4][1], color='r')
 
+        axs.set_title(f"Sample#{sample_index}")
         axs.set_xlabel("Time, sec")
         axs.set_ylabel("Voltage, V")
         axs.grid(True, which='both')
 
-        return fig
-
-    def plot(self, channels:list[Channel], fig:Figure, axs):
-        for ch in channels:
-            match ch.index:
-                case 1:
-                    axs[0, 0].plot(self.data[1][0], self.data[1][1], color='y')
-                    axs[0, 0].set_title(ch.name)
-                    axs[0, 0].set_xlabel("Time, sec")
-                    axs[0, 0].set_ylabel("Voltage, V")
-                    axs[0, 0].grid(True, which='both')
-                case 2:
-                    axs[0, 1].plot(self.data[2][0], self.data[2][1], color='g')
-                    axs[0, 1].set_title(ch.name)
-                    axs[0, 1].set_xlabel("Time, sec")
-                    axs[0, 1].set_ylabel("Voltage, V")
-                    axs[0, 1].grid(True, which='both')
-                case 3:
-                    axs[1, 0].plot(self.data[3][0], self.data[3][1], color='b')
-                    axs[1, 0].set_title(ch.name)
-                    axs[1, 0].set_xlabel("Time, sec")
-                    axs[1, 0].set_ylabel("Voltage, V")
-                    axs[1, 0].grid(True, which='both')
-                case 4:
-                    axs[1, 1].plot(self.data[4][0], self.data[4][1], color='r')
-                    axs[1, 1].set_title(ch.name)
-                    axs[1, 1].set_xlabel("Time, sec")
-                    axs[1, 1].set_ylabel("Voltage, V")
-                    axs[1, 1].grid(True, which='both')
         return fig
 
 class Layer(object):

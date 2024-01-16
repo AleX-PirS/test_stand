@@ -441,7 +441,7 @@ class Ui(object):
             width=self.process_value_power(self.ui.width.value(), self.ui.comboBox_width.currentText()),
         )
 
-    def create_sequence_samples(self, start, finish, count, rule) -> list[float]:
+    def create_sequence_samples(self, start, finish, count, rule) -> list[float] | list[int]:
         match count:
             case 1:
                 return [start]
@@ -470,6 +470,31 @@ class Ui(object):
                 return result
             case _:
                 raise Exception("Bad sequence rule.")
+
+    def get_triggers_data(self) -> list[tuple[int, int]]:
+        L0_sequence = self.create_sequence_samples(
+            start=self.ui.L0.value(),
+            finish=self.ui.L0_2.value(),
+            count=self.ui.spinBox_L0_times.value(),
+            rule=self.ui.comboBox_L0_delta.currentText(),
+        )
+        L1_sequence = self.create_sequence_samples(
+            start=self.ui.L1.value(),
+            finish=self.ui.L1_2.value(),
+            count=self.ui.spinBox_L1_times.value(),
+            rule=self.ui.comboBox_L1_delta.currentText(),
+        )
+
+        for idx, val in enumerate(L0_sequence):
+            L0_sequence[idx] = val//5
+
+        for idx, val in enumerate(L1_sequence):
+            L1_sequence[idx] = val//50
+
+        return list(product(
+            L0_sequence,
+            L1_sequence,
+        ))
 
     def get_generator_data_scenario(self)-> list[GeneratorSample]:
         sig_type = process_signal_type(self.ui.signal_type_box.currentText())
