@@ -13,11 +13,12 @@ class UART(object):
         self.STOPBITS = 1
         self.TIMEOUT = 0.1
 
-        self.WRITE_WORD =     int.to_bytes(0b0111_0111, 1, 'big')
-        self.READ_WORD =      int.to_bytes(0b0111_0010, 1, 'big')
-        self.START_WORD =     int.to_bytes(0b0111_0011, 1, 'big')
-        self.CHIP_DATA_WORD = int.to_bytes(0b0110_0100, 1, 'big')
-        self.ERR_CHIP_WORD =  int.to_bytes(0b0110_0101, 1, 'big')
+        self.WRITE_WORD =         int.to_bytes(0b0111_0111, 1, 'big')
+        self.READ_WORD =          int.to_bytes(0b0111_0010, 1, 'big')
+        self.START_WORD =         int.to_bytes(0b0111_0011, 1, 'big')
+        self.CHIP_DATA_WORD =     int.to_bytes(0b0110_0100, 1, 'big')
+        self.ERR_CHIP_WORD =      int.to_bytes(0b0110_0101, 1, 'big')
+        self.SEND_TRIGGERS_WORD = int.to_bytes(0b0111_0100, 1, 'big')
 
     def connect_com(self, com: str):
         try:
@@ -86,7 +87,15 @@ class UART(object):
         #     self.ser.write(byte)
 
     def send_triggers(self, delay:int, l0:int, l1:int):
-        pass
+        package = [
+            self.SEND_TRIGGERS_WORD,
+            int.to_bytes(int(delay), 1, 'big'),
+            int.to_bytes(int(l0), 1, 'big'),
+            int.to_bytes(int(l1), 2, 'big'),
+        ]
+
+        # for byte in package:
+        #     self.ser.write(byte)
 
     def read_reg(self, start_addr: bytes, count: bytes) -> list[bytes]:
         self.is_connection_open()

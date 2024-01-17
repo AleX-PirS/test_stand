@@ -13,11 +13,27 @@
     <height>1019</height>
    </rect>
   </property>
+  <property name="minimumSize">
+   <size>
+    <width>1183</width>
+    <height>1019</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>1183</width>
+    <height>16777215</height>
+   </size>
+  </property>
   <property name="contextMenuPolicy">
    <enum>Qt::DefaultContextMenu</enum>
   </property>
   <property name="windowTitle">
    <string>Test stand for BM@Nv1</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>files/logo.ico</normaloff>files/logo.ico</iconset>
   </property>
   <property name="windowOpacity">
    <double>1.000000000000000</double>

@@ -489,7 +489,7 @@ class Ui(object):
             L0_sequence[idx] = val//5
 
         for idx, val in enumerate(L1_sequence):
-            L1_sequence[idx] = val//50
+            L1_sequence[idx] = val//5
 
         return list(product(
             L0_sequence,
@@ -560,6 +560,29 @@ class Ui(object):
             if scenario_samples[0].width+scenario_samples[0].ampl+scenario_samples[0].lead+scenario_samples[0].trail== 0:
                 return []
         return scenario_samples
+
+    def set_triggers_data_zero(self):
+        self.ui.L0.setValue(500)
+        self.ui.L0.repaint()
+        self.ui.L0_2.setValue(0)
+        self.ui.L0_2.repaint()
+        self.ui.spinBox_L0_times.setValue(1)
+        self.ui.spinBox_L0_times.repaint()
+        self.ui.comboBox_L0_delta.setCurrentIndex(0)
+        self.ui.comboBox_L0_delta.repaint()
+        self.ui.L1.setValue(10000)
+        self.ui.L1.repaint()
+        self.ui.L1_2.setValue(0)
+        self.ui.L1_2.repaint()
+        self.ui.spinBox_L1_times.setValue(1)
+        self.ui.spinBox_L1_times.repaint()
+        self.ui.comboBox_L1_delta.setCurrentIndex(0)
+        self.ui.comboBox_L1_delta.repaint()
+
+    def set_triggers_data(self, l0, l1):
+        self.set_triggers_data_zero()
+        self.ui.L0.setValue(l0)
+        self.ui.L1.setValue(l1)
 
     def set_generator_data_zero(self) -> None:
         self.ui.signal_type_box.setCurrentIndex(0)

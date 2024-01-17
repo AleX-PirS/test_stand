@@ -10,7 +10,7 @@ import os
 import datetime
 from pytz import timezone
 import matplotlib.pyplot as plt
-from threading import Thread
+from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
 TESTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), r'tests')
 MANUAL_TESTS_PATH = os.path.join(TESTS_PATH, r'manual')
@@ -22,18 +22,19 @@ RAW_DATA_FOLDER = r'points'
 LOGS_FOLDER = r'logs'
 
 
-class Stand(object):
+class Stand(QObject):
     MANUAL_TEST = 0
     SCENARIO_TEST = 1
 
-    def __init__(self) -> None:
+    def __init__(self, ui:Ui) -> None:
+        super(Stand, self).__init__()
         self.main_scenario = Scenario([], "", "", [], 0, 0, 0)
         self.list_of_scenarios = list[Scenario]
         self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
         self.results_folder = ""
         self.STOP_flag = 0
 
-        self.ui = Ui()
+        self.ui = ui
         self.uart = UART()
         self.visa = Visa()
         # Main window
@@ -67,7 +68,6 @@ class Stand(object):
         # Start scenario sampling
         self.ui.ui.comboBox_scenarios.currentIndexChanged.connect(self.process_scenario_box)
         self.ui.ui.scan_scen_butt.clicked.connect(self.process_scan_butt)
-        # self.ui.ui.start_butt_scenar.clicked.connect(self.thread_process_scenar_start_butt)
         self.ui.ui.start_butt_scenar.clicked.connect(self.process_scenar_start_butt)
         # Manual testing
         self.ui.ui.gen_config_butt.clicked.connect(self.process_config_gen_butt)
@@ -75,7 +75,6 @@ class Stand(object):
         self.ui.ui.gen_not_out_butt.clicked.connect(self.process_not_out_toggle_butt)
         self.ui.ui.osc_config_butt.clicked.connect(self.process_osc_config_butt)
         self.ui.ui.measure_butt.clicked.connect(self.process_measure_butt)
-        # self.ui.ui.start_butt.clicked.connect(self.thread_process_start_butt)
         self.ui.ui.start_butt.clicked.connect(self.process_start_butt)
         self.ui.ui.osc_run_butt.clicked.connect(self.process_osc_run_butt)
 
@@ -315,6 +314,7 @@ class Stand(object):
             self.ui.set_default_reg_values(RegData(is_zero_init=False))
             self.ui.set_channels_data_zero()
             self.ui.set_generator_data_zero()
+            self.ui.set_triggers_data_zero()
             self.ui.clear_chip_metadata()
             self.ui.clean_plots_data()
             self.process_reset_scenario_butt()
@@ -331,22 +331,6 @@ class Stand(object):
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start scenario testing: ", e.args[0])
-            return
-
-    def thread_process_scenar_start_butt(self):
-        try:
-            th = Thread(target=self.process_scenar_start_butt)
-            th.start()
-        except Exception as e:
-            self.ui.logging('ERROR scenario testing: ', e.args[0])
-            return
-
-    def thread_process_start_butt(self):
-        try:
-            th = Thread(target=self.process_start_butt)
-            th.start()
-        except Exception as e:
-            self.ui.logging('ERROR manual testing: ', e.args[0])
             return
 
     def create_manual_scenario(self):
@@ -423,6 +407,8 @@ class Stand(object):
         self.ui.clean_plots_data()
         self.results_folder = ""
 
+        triggers = self.ui.get_triggers_data()
+
         chip_name, chip_desc = self.ui.get_chip_metadata()
 
         self.visa.v2_off_all_out1()
@@ -460,7 +446,8 @@ class Stand(object):
             if self.STOP_flag == 1:
                 self.STOP_flag = 0
                 break
-            result_layer = ResultLayer(0, test.constants, [])
+            result_layer = ResultLayer(0, [], test.consts_to_json())
+
             self.ui.set_reg_values(RegData(is_zero_init=False, template_list=test.constants))
             self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
             
@@ -488,87 +475,95 @@ class Stand(object):
                             self.ui.logging(f"WARNING! Layer#{idx_layer+1}. Constants mismatch. reg:{k}, mismatch:{v}")
 
             for sample_index, test_sample in enumerate(test.samples):
-                if self.STOP_flag == 1:
-                    break
-                match testing_type:
-                    case self.MANUAL_TEST:
-                        self.ui.logging(f"Start sample #{test_idx} of {scenario.total_test_count}")
-                    case self.SCENARIO_TEST:
-                        self.ui.logging(f"Layer#{idx_layer+1}. Start sample#{sample_index+1} of {test.test_count}. Total tests:{scenario.total_test_count}")
-                
-                self.ui.set_generator_sample(test_sample)
-                self.visa.v2_configurate_generator_sample(test_sample)
-                self.visa.v2_oscilloscope_run()
-                self.visa.v2_on_out1(out_index)
+                for l0, l1 in triggers:
+                    if self.STOP_flag == 1:
+                        break
 
-                self.uart.send_start_command()
+                    self.ui.set_triggers_data(l0*5, l1*5)
 
-                sample_data = self.visa.v2_get_sample()
+                    match testing_type:
+                        case self.MANUAL_TEST:
+                            self.ui.logging(f"Start sample#{test_idx} of {scenario.total_test_count*len(triggers)}")
+                        case self.SCENARIO_TEST:
+                            self.ui.logging(f"Layer#{idx_layer+1}. Start sample#{sample_index+1} of {test.test_count*len(triggers)}. Total tests:{scenario.total_test_count*len(triggers)}")
+                    
+                    self.uart.send_triggers((test_sample.delay*10**9)//5, l0, l1)
 
-                points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels)
+                    self.ui.set_generator_sample(test_sample)
+                    self.visa.v2_configurate_generator_sample(test_sample)
+                    self.visa.v2_oscilloscope_run()
+                    self.visa.v2_on_out1(out_index)
 
-                chip_data, RAW_data = self.uart.get_chip_data()
+                    self.uart.send_start_command()
 
-                chip_data_output = ChipData(
-                    V=chip_data['V'],
-                    R=chip_data['R'],
-                    ADR=chip_data['ADR'],
-                    N0=chip_data['N0'],
-                    A0=chip_data['A0'],
-                    N1=chip_data['N1'],
-                    A1=chip_data['A1'],
-                    N2=chip_data['N2'],
-                    A2=chip_data['A2'],
-                    N3=chip_data['N3'],
-                    A3=chip_data['A3'],
-                    N4=chip_data['N4'],
-                    A4=chip_data['A4'],
-                    O=chip_data['O'],
-                    TIME=chip_data['TIME'],
-                    RAW=RAW_data,
-                )
+                    sample_data = self.visa.v2_get_sample()
 
-                match testing_type:
-                    case self.MANUAL_TEST:
-                        self.ui.logging(f"Get chip data:{chip_data} (Sample#{test_idx} of {scenario.total_test_count})")
-                    case self.SCENARIO_TEST:
-                        self.ui.logging(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{sample_index+1} of {test.test_count}. Total tests:{scenario.total_test_count})")
-                
-                screen_file = ""
-                if is_screening:
-                    self.ui.logging(f"Taking screenshot.")
-                    screen_data = self.visa.v2_take_screen()
-                    screen_file = self.save_screenshot(start_time, chip_name, scenario.name, screen_data, testing_type, idx_layer, test_idx)
-                    time.sleep(5)
-                    self.ui.logging(f"Screenshot saved.")
+                    points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels, l0, l1)
 
-                self.visa.v2_off_all_out1()
-                match testing_type:
-                    case self.MANUAL_TEST:
-                        self.ui.logging(f"Finish sample #{test_idx} of {scenario.total_test_count}")
-                    case self.SCENARIO_TEST:
-                        self.ui.logging(f"Layer#{idx_layer+1}. Finish sample#{sample_index+1} of {test.test_count}. Total tests:{scenario.total_test_count}")
-                
-                test_result = TestSample(
-                    chip_data=chip_data_output,
-                    amplitude=test_sample.ampl,
-                    delay=test_sample.delay,
-                    frequency=test_sample.freq,
-                    is_triggered=test_sample.is_triggered,
-                    lead=test_sample.lead,
-                    offset=test_sample.offset,
-                    signal_type=test_sample.signal_type,
-                    trail=test_sample.trail,
-                    trigger_lvl=test_sample.trig_lvl,
-                    width=test_sample.width,
-                    screenshot=screen_file,
-                    points_data=points_file,
-                    plots=plots_file,
-                )
+                    chip_data, RAW_data = self.uart.get_chip_data()
 
-                test_idx += 1
-                result_layer.test_count += 1
-                result_layer.samples.append(test_result)
+                    chip_data_output = ChipData(
+                        V=chip_data['V'],
+                        R=chip_data['R'],
+                        ADR=chip_data['ADR'],
+                        N0=chip_data['N0'],
+                        A0=chip_data['A0'],
+                        N1=chip_data['N1'],
+                        A1=chip_data['A1'],
+                        N2=chip_data['N2'],
+                        A2=chip_data['A2'],
+                        N3=chip_data['N3'],
+                        A3=chip_data['A3'],
+                        N4=chip_data['N4'],
+                        A4=chip_data['A4'],
+                        O=chip_data['O'],
+                        TIME=chip_data['TIME'],
+                        RAW=RAW_data,
+                    )
+
+                    match testing_type:
+                        case self.MANUAL_TEST:
+                            self.ui.logging(f"Get chip data:{chip_data} (Sample#{test_idx} of {scenario.total_test_count*len(triggers)})")
+                        case self.SCENARIO_TEST:
+                            self.ui.logging(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{sample_index+1} of {test.test_count*len(triggers)}. Total tests:{scenario.total_test_count*len(triggers)})")
+                    
+                    screen_file = ""
+                    if is_screening:
+                        self.ui.logging(f"Taking screenshot.")
+                        screen_data = self.visa.v2_take_screen()
+                        screen_file = self.save_screenshot(start_time, chip_name, scenario.name, screen_data, testing_type, idx_layer, test_idx)
+                        time.sleep(5)
+                        self.ui.logging(f"Screenshot saved.")
+
+                    self.visa.v2_off_all_out1()
+                    match testing_type:
+                        case self.MANUAL_TEST:
+                            self.ui.logging(f"Finish sample#{test_idx} of {scenario.total_test_count*len(triggers)}")
+                        case self.SCENARIO_TEST:
+                            self.ui.logging(f"Layer#{idx_layer+1}. Finish sample#{sample_index+1} of {test.test_count*len(triggers)}. Total tests:{scenario.total_test_count*len(triggers)}")
+                    
+                    test_result = TestSample(
+                        chip_data=chip_data_output,
+                        amplitude=test_sample.ampl,
+                        delay=test_sample.delay,
+                        frequency=test_sample.freq,
+                        is_triggered=test_sample.is_triggered,
+                        lead=test_sample.lead,
+                        offset=test_sample.offset,
+                        signal_type=test_sample.signal_type,
+                        trail=test_sample.trail,
+                        trigger_lvl=test_sample.trig_lvl,
+                        width=test_sample.width,
+                        screenshot=screen_file,
+                        points_data=points_file,
+                        plots=plots_file,
+                        L0=l0*5,
+                        L1=l1*5,
+                    )
+
+                    test_idx += 1
+                    result_layer.test_count += 1
+                    result_layer.samples.append(test_result)
 
             result.layers.append(result_layer)
             result.layers_count += 1
@@ -631,7 +626,7 @@ class Stand(object):
 
         return path+"\\"+file_name
     
-    def save_points(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:OscilloscopeData, channels):
+    def save_points(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:OscilloscopeData, channels, l0, l1):
         file_name_points = f"channels_data_{sample_index}.json"
         match testing_type:
             case self.MANUAL_TEST:
@@ -663,7 +658,7 @@ class Stand(object):
         link_file = "plots.png"
         data.plot_all(channels).savefig(path_plots+"\\"+file_name_plots, format='pdf')
         plt.close('all')
-        data.plot_for_gui(channels, sample_index).savefig(link_file, format='png', dpi=80)
+        data.plot_for_gui(channels, sample_index, l0, l1).savefig(link_file, format='png', dpi=80)
         plt.close('all')
 
         self.ui.set_plots_data(link_file)
@@ -690,6 +685,18 @@ class Stand(object):
         return path+"\\"+file_name
 
 if __name__ == "__main__":
-    stand = Stand()
-    stand.ui.MainWindow.show()
-    sys.exit(stand.ui.app.exec_())
+    ui = Ui()
+    
+    stand = Stand(ui)
+    thread = QThread()
+
+    stand.moveToThread(thread)
+    
+    thread.started.connect(stand.process_start_butt)
+    thread.started.connect(stand.process_scenar_start_butt)
+    thread.finished.connect(thread.deleteLater)
+
+    thread.start()
+
+    ui.MainWindow.show()
+    sys.exit(ui.app.exec_())

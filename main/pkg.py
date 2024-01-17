@@ -362,6 +362,17 @@ class RegData(object):
 
         return res[:-1]
     
+    def str_to_json(self) -> str:
+        res = {}
+        for i in range(len(self.reg_data)):
+            if i not in registers_metadata_addr_to_name:
+                continue
+            if self.reg_data[i] == -1:
+                continue
+            res[registers_metadata_addr_to_name[i]] = f'{int.from_bytes(self.reg_data[i], "big"):08b}'
+
+        return json.dumps(res, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+    
     def toJSON(self):
         reg_data_int = [int.from_bytes(i, 'big') for i in self.reg_data]
         return json.dumps(reg_data_int, default=lambda o: o.__dict__, sort_keys=True, indent=4)      
@@ -548,7 +559,7 @@ class OscilloscopeData(object):
     def show_all(self, channels:list[Channel]):
         self.plot_all(channels).show()
 
-    def plot_for_gui(self, channels:list[Channel], sample_index):
+    def plot_for_gui(self, channels:list[Channel], sample_index, l0, l1):
         fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
 
         for ch in channels:
@@ -562,7 +573,7 @@ class OscilloscopeData(object):
                 case 4:
                     axs.plot(self.data[4][0], self.data[4][1], color='r')
 
-        axs.set_title(f"Sample#{sample_index}")
+        axs.set_title(f"#{sample_index} L0:{l0*5}ns L1:{l1*5}ns")
         axs.set_xlabel("Time, sec")
         axs.set_ylabel("Voltage, V")
         axs.grid(True, which='both')
@@ -574,6 +585,17 @@ class Layer(object):
         self.test_count = len(samples)
         self.constants = [int.from_bytes(i, 'big') for i in constants.reg_data]
         self.samples = samples
+
+    def consts_to_json(self):
+        res = {}
+        for i in range(len(self.constants)):
+            if i not in registers_metadata_addr_to_name:
+                continue
+            if self.constants[i] == -1:
+                continue
+            res[registers_metadata_addr_to_name[i]] = f'{self.constants[i]:08b}'
+
+        return res
 
     def toJSON(self):
         return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
@@ -725,6 +747,8 @@ class TestSample(object):
             plots:str,
             chip_data:ChipData,
             screenshot:str,
+            L0:int,
+            L1:int,
         ) -> None:
         self.signal_type = signal_type
         self.offset = offset
@@ -739,14 +763,16 @@ class TestSample(object):
         self.points_data = points_data 
         self.plots = plots 
         self.chip_data = chip_data 
-        self.screenshot = screenshot 
+        self.screenshot = screenshot
+        self.L0_ns = L0
+        self.L1_ns = L1
 
 
 class ResultLayer(object):
-    def __init__(self, test_count:int, constants:list[int], samples:list[TestSample]) -> None:
+    def __init__(self, test_count:int, samples:list[TestSample], constants:dict) -> None:
         self.test_count = test_count
-        self.constants = constants
         self.samples = samples
+        self.constants = constants
 
 
 class Result(object):
