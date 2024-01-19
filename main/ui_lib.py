@@ -2,6 +2,7 @@ from re import M
 from PyQt5 import QtWidgets
 from PyQt5.QtWidgets import QGraphicsScene, QGraphicsPixmapItem
 from PyQt5.QtGui import QImage, QPixmap
+from PyQt5.QtCore import QObject
 import sys
 import datetime
 import regex
@@ -15,7 +16,7 @@ from pkg import registers_metadata_name_to_addr
 from pkg import process_signal_type
 
 
-class Ui(object):
+class Ui(QObject):
     is_regs_readonly = False
     is_env_readonly = False
     is_uart_readonly = False
@@ -27,6 +28,7 @@ class Ui(object):
     is_gen_readonly = False
 
     def __init__(self) -> None:
+        super(Ui, self).__init__()
         self.app = QtWidgets.QApplication(sys.argv)
         self.MainWindow = QtWidgets.QMainWindow()
         self.ui = Ui_MainWindow()

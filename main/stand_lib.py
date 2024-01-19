@@ -686,17 +686,15 @@ class Stand(QObject):
 
 if __name__ == "__main__":
     ui = Ui()
-    
     stand = Stand(ui)
-    thread = QThread()
 
+    thread = QThread()
     stand.moveToThread(thread)
     
-    thread.started.connect(stand.process_start_butt)
-    thread.started.connect(stand.process_scenar_start_butt)
+    # thread.started.connect(stand.process_start_butt)
+    # thread.started.connect(stand.process_scenar_start_butt)
     thread.finished.connect(thread.deleteLater)
-
     thread.start()
 
     ui.MainWindow.show()
-    sys.exit(ui.app.exec_())
+    sys.exit(stand.ui.app.exec_())
