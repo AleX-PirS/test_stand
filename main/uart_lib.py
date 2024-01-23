@@ -89,13 +89,13 @@ class UART(object):
     def send_triggers(self, delay:int, l0:int, l1:int):
         package = [
             self.SEND_TRIGGERS_WORD,
-            int.to_bytes(int(delay), 1, 'big'),
+            int.to_bytes(int(delay)+80, 1, 'big'),
             int.to_bytes(int(l0), 1, 'big'),
             int.to_bytes(int(l1), 2, 'big'),
         ]
 
-        # for byte in package:
-        #     self.ser.write(byte)
+        for byte in package:
+            self.ser.write(byte)
 
     def read_reg(self, start_addr: bytes, count: bytes) -> list[bytes]:
         self.is_connection_open()
@@ -109,7 +109,7 @@ class UART(object):
             get_flag = 0
             read_data = []
             while True:
-                if corrupt_count == 5:
+                if corrupt_count == 100:
                     raise Exception("Check FPGA, detected read loop")
                 if get_flag == 0:
                     data = self.ser.read(1)

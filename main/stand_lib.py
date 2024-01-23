@@ -21,12 +21,20 @@ PICTURES_SCREENSHOTS_FOLDER = r'screenshots'
 RAW_DATA_FOLDER = r'points'
 LOGS_FOLDER = r'logs'
 
+# class StatusWidget(QObject):
+#     finished = pyqtSignal()
+
+#     def run(self):
+#         for i in range(5):
+#             sleep(1)
+#             self.progress.emit(i + 1)
+#         self.finished.emit()
 
 class Stand(QObject):
     MANUAL_TEST = 0
     SCENARIO_TEST = 1
 
-    def __init__(self, ui:Ui) -> None:
+    def __init__(self) -> None:
         super(Stand, self).__init__()
         self.main_scenario = Scenario([], "", "", [], 0, 0, 0)
         self.list_of_scenarios = list[Scenario]
@@ -34,7 +42,7 @@ class Stand(QObject):
         self.results_folder = ""
         self.STOP_flag = 0
 
-        self.ui = ui
+        self.ui = Ui()
         self.uart = UART()
         self.visa = Visa()
         # Main window
@@ -77,6 +85,9 @@ class Stand(QObject):
         self.ui.ui.measure_butt.clicked.connect(self.process_measure_butt)
         self.ui.ui.start_butt.clicked.connect(self.process_start_butt)
         self.ui.ui.osc_run_butt.clicked.connect(self.process_osc_run_butt)
+
+        self.ui.MainWindow.show()
+        sys.exit(self.ui.app.exec_())
 
     def process_show_res_butt(self):
         if self.results_folder == "":
@@ -457,7 +468,7 @@ class Stand(QObject):
             if sended != get:
                 diff = differenence(sended, get)
 
-                for i in range(3):
+                for i in range(4):
                     if len(diff) <= 1:
                         break
                     print(f'in diff if: len:{len(diff)}')
@@ -685,16 +696,4 @@ class Stand(QObject):
         return path+"\\"+file_name
 
 if __name__ == "__main__":
-    ui = Ui()
-    stand = Stand(ui)
-
-    thread = QThread()
-    stand.moveToThread(thread)
-    
-    # thread.started.connect(stand.process_start_butt)
-    # thread.started.connect(stand.process_scenar_start_butt)
-    thread.finished.connect(thread.deleteLater)
-    thread.start()
-
-    ui.MainWindow.show()
-    sys.exit(stand.ui.app.exec_())
+    stand = Stand()

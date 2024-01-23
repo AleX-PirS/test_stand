@@ -381,7 +381,7 @@ class Ui(QObject):
                 return value
             case "mV" | "ms":
                 return value*10**(-3)
-            case "μs":
+            case "us":
                 return value*10**(-6)
             case "ns":
                 return value*10**(-9)
