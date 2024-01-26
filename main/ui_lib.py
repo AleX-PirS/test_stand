@@ -473,6 +473,9 @@ class Ui(QObject):
             case _:
                 raise Exception("Bad sequence rule.")
 
+    def get_regs_comm_data(self):
+        return self.ui.comboBox_read_write.currentIndex(), self.ui.spinBox_reg_addr.value(), self.ui.spinBox_reg_value.value()
+
     def get_triggers_data(self) -> list[tuple[int, int]]:
         L0_sequence = self.create_sequence_samples(
             start=self.ui.L0.value(),

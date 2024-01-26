@@ -1,7 +1,7 @@
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result
+from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel
 from pkg import find_scenarios, differenence
 
 import sys
@@ -20,15 +20,6 @@ PICTURES_FOLDER = r'pictures'
 PICTURES_SCREENSHOTS_FOLDER = r'screenshots'
 RAW_DATA_FOLDER = r'points'
 LOGS_FOLDER = r'logs'
-
-# class StatusWidget(QObject):
-#     finished = pyqtSignal()
-
-#     def run(self):
-#         for i in range(5):
-#             sleep(1)
-#             self.progress.emit(i + 1)
-#         self.finished.emit()
 
 class Stand(QObject):
     MANUAL_TEST = 0
@@ -85,9 +76,36 @@ class Stand(QObject):
         self.ui.ui.measure_butt.clicked.connect(self.process_measure_butt)
         self.ui.ui.start_butt.clicked.connect(self.process_start_butt)
         self.ui.ui.osc_run_butt.clicked.connect(self.process_osc_run_butt)
+        self.ui.ui.command_send_butt_2.clicked.connect(self.process_send_regs_butt)
+
+        # Threading with testing
+        # self.thread = QThread()
+        # self.worker = StatusWidget(uart=self.uart, visa=self.visa)
+        # self.worker.moveToThread(self.thread)
+
+        # self.thread.started.connect(self.worker.start_test)
+        # self.worker.finished.connect(self.thread.quit)
+        # self.worker.finished.connect(self.worker.deleteLater)
+        # self.thread.finished.connect(self.thread.deleteLater)
+
+        # self.thread.start()
 
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
+
+    def process_send_regs_butt(self):
+        try:
+            idx, addr, val = self.ui.get_regs_comm_data()
+            match idx:
+                case 0:
+                    self.uart.write_reg(int.to_bytes(addr, 1, 'big'), [int.to_bytes(val, 1, 'big'), int.to_bytes(val, 1, 'big')])
+                case 1:
+                    data = self.uart.read_reg(int.to_bytes(addr, 1, 'big'), int.to_bytes(1, 1, 'big'))
+                    reg_data = RegData(is_zero_init=True)
+                    reg_data.reg_data[addr] = data[0]
+                    self.ui.log_registers(reg_data.__str__())
+        except Exception as e:
+            self.ui.logging("ERROR send constant cause: ", e.args[0])
 
     def process_show_res_butt(self):
         if self.results_folder == "":
