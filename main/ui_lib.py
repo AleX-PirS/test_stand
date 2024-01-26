@@ -429,6 +429,12 @@ class Ui(QObject):
                 elif 1<=value:
                     return value, 1
 
+    def get_emulation_data(self):
+        return self.ui.is_EM_ADC_EN.isChecked(),self.ui.is_EM_L0_L1.isChecked()
+
+    def change_emulation_state(self, state):
+        self.ui.CH_EM_status.setValue(int(state))
+
     def get_generator_data_manual(self)-> GeneratorSample:
         return GeneratorSample(
             signal_type=process_signal_type(self.ui.signal_type_box.currentText()),

@@ -19,6 +19,8 @@ class UART(object):
         self.CHIP_DATA_WORD =     int.to_bytes(0b0110_0100, 1, 'big')
         self.ERR_CHIP_WORD =      int.to_bytes(0b0110_0101, 1, 'big')
         self.SEND_TRIGGERS_WORD = int.to_bytes(0b0111_0100, 1, 'big')
+        self.SEND_SETTINGS_WORD = int.to_bytes(0b0110_0111, 1, 'big')
+        self.EMULATION_WORD =     int.to_bytes(0b0110_0101, 1, 'big')
 
     def connect_com(self, com: str):
         try:
@@ -34,6 +36,25 @@ class UART(object):
             stopbits=self.STOPBITS,
             timeout=self.TIMEOUT,
         )
+
+    def send_stand_settings(self, em_adc, em_trigs):
+        settings = 0
+
+        settings += em_adc
+        settings += em_trigs*2
+
+        message = [self.SEND_SETTINGS_WORD, int.to_bytes(settings, 1, 'big')]
+        for m in message:
+            self.ser.write(m)
+
+    def send_emulation_state(self, state):
+        settings = 0
+
+        settings += state
+
+        message = [self.EMULATION_WORD, int.to_bytes(settings, 1, 'big')]
+        for m in message:
+            self.ser.write(m)
 
     def read_i_regs(self, settings: tuple) -> RegData:
         reg_data = RegData(is_zero_init=True)

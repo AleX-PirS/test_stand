@@ -2,7 +2,6 @@ from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
 from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel
-from stand_lib import Stand
 from pkg import find_scenarios, differenence
 
 import sys
@@ -13,7 +12,19 @@ from pytz import timezone
 import matplotlib.pyplot as plt
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-class StatusWidget(Stand):
+TESTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), r'tests')
+MANUAL_TESTS_PATH = os.path.join(TESTS_PATH, r'manual')
+SCENARIO_TESTS_PATH = os.path.join(TESTS_PATH, r'scenario')
+PICTURES_PLOTS_FOLDER = r'plots'
+PICTURES_FOLDER = r'pictures'
+PICTURES_SCREENSHOTS_FOLDER = r'screenshots'
+RAW_DATA_FOLDER = r'points'
+LOGS_FOLDER = r'logs'
+
+class StatusWidget(QObject):
+    MANUAL_TEST = 0
+    SCENARIO_TEST = 1
+
     logging = pyqtSignal(str)
     clear_log = pyqtSignal()
     clean_plots_data = pyqtSignal()
@@ -23,6 +34,7 @@ class StatusWidget(Stand):
     set_triggers_data = pyqtSignal(int, int)
     set_generator_sample = pyqtSignal(TestSample)
     set_w_gui = pyqtSignal()
+    set_plots_data = pyqtSignal(str)
     finished = pyqtSignal(Result)
 
     scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
@@ -51,7 +63,6 @@ class StatusWidget(Stand):
         chip_name = self.chip_name
         chip_desc = self.chip_desc
 
-        self.check_instruments_connection()
         self.clear_log.emit()
         self.clean_plots_data.emit()
         self.results_folder = ""
@@ -221,14 +232,63 @@ class StatusWidget(Stand):
             case self.SCENARIO_TEST:
                 self.logging.emit(f"Finish scenario:{scenario.name} test for chip:{chip_name}")
             
-        # logs = self.ui.get_logs()
-        # logs_file = self.save_logs(start_time, chip_name, scenario.name, testing_type, logs)
-
-        # result.logs = logs_file
-
-        # result_file = self.save_results(result, start_time, chip_name, scenario.name, testing_type)
-        
-        # self.results_folder = result_file
-
         self.set_w_gui.emit()
         self.finished.emit(result)
+
+    def save_screenshot(self, start_time, chip_name, scenario_name, screenshot_data, testing_type, layer_index, sample_index):
+        file_name = f"screenshot_sample_{sample_index}.png"
+        match testing_type:
+            case self.MANUAL_TEST:
+                path = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_FOLDER, PICTURES_SCREENSHOTS_FOLDER)
+            case self.SCENARIO_TEST:
+                path = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", PICTURES_FOLDER, PICTURES_SCREENSHOTS_FOLDER)
+        
+        try:
+            os.makedirs(path)
+        except:
+            pass
+
+        f = open(path+"\\"+file_name, "wb")
+        f.write(screenshot_data)
+        f.close()
+
+        return path+"\\"+file_name
+    
+    def save_points(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:OscilloscopeData, channels, l0, l1):
+        file_name_points = f"channels_data_{sample_index}.json"
+        match testing_type:
+            case self.MANUAL_TEST:
+                path_points = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, RAW_DATA_FOLDER)
+            case self.SCENARIO_TEST:
+                path_points = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", RAW_DATA_FOLDER)
+        
+        try:
+            os.makedirs(path_points)
+        except:
+            pass
+
+        with open(path_points+"\\"+file_name_points, 'w') as file:
+            file.write(data.toJSON())
+            file.close()
+
+        file_name_plots = f"plots_{sample_index}.pdf"
+        match testing_type:
+            case self.MANUAL_TEST:
+                path_plots = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
+            case self.SCENARIO_TEST:
+                path_plots = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
+        
+        try:
+            os.makedirs(path_plots)
+        except:
+            pass
+
+        link_file = "plots.png"
+        data.plot_all(channels).savefig(path_plots+"\\"+file_name_plots, format='pdf')
+        plt.close('all')
+        data.plot_for_gui(channels, sample_index, l0, l1).savefig(link_file, format='png', dpi=80)
+        plt.close('all')
+
+        self.set_plots_data.emit(link_file)
+
+        return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots

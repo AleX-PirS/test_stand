@@ -3,7 +3,7 @@ from uart_lib import UART
 from visa_lib import Visa
 from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel
 from pkg import find_scenarios, differenence
-from thread import StatusWidget
+# from thread_gui import StatusWidget
 
 import sys
 import time
@@ -32,6 +32,7 @@ class Stand(QObject):
         self.list_of_scenarios = list[Scenario]
         self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
         self.results_folder = ""
+        self.emulation_state = False
         self.STOP_flag = 0
 
         self.ui = Ui()
@@ -78,84 +79,108 @@ class Stand(QObject):
         self.ui.ui.start_butt.clicked.connect(self.process_start_butt)
         self.ui.ui.osc_run_butt.clicked.connect(self.process_osc_run_butt)
         self.ui.ui.command_send_butt_2.clicked.connect(self.process_send_regs_butt)
+        self.ui.ui.is_EM_ADC_EN.stateChanged.connect(self.process_emulatoin_checks)
+        self.ui.ui.is_EM_L0_L1.stateChanged.connect(self.process_emulatoin_checks)
+        self.ui.ui.toggle_CH_EM_butt.clicked.connect(self.process_emulation_state)
 
-        # Threading with testing
-        self.thread = QThread()
-        self.worker = StatusWidget(uart=self.uart, visa=self.visa)
-        self.worker.moveToThread(self.thread)
+        # # Threading with testing
+        # self.thread = QThread()
+        # self.worker = StatusWidget(uart=self.uart, visa=self.visa)
+        # self.worker.moveToThread(self.thread)
 
-        self.worker.logging.connect(self.logging_sig)
-        self.worker.clear_log.connect(self.clear_log_sig)
-        self.worker.clean_plots_data.connect(self.clean_plots_data_sig)
-        self.worker.set_channels_data.connect(self.set_channels_data_sig)
-        self.worker.chng_rw_gui.connect(self.chng_rw_gui_sig)
-        self.worker.set_reg_values.connect(self.set_reg_values_sig)
-        self.worker.set_triggers_data.connect(self.set_triggers_data_sig)
-        self.worker.set_generator_sample.connect(self.set_generator_sample_sig)
-        self.worker.set_w_gui.connect(self.set_w_gui_sig)
-        self.worker.finished.connect(self.finished_sig)
+        # self.worker.logging.connect(self.logging_sig)
+        # self.worker.clear_log.connect(self.clear_log_sig)
+        # self.worker.clean_plots_data.connect(self.clean_plots_data_sig)
+        # self.worker.set_channels_data.connect(self.set_channels_data_sig)
+        # self.worker.chng_rw_gui.connect(self.chng_rw_gui_sig)
+        # self.worker.set_reg_values.connect(self.set_reg_values_sig)
+        # self.worker.set_triggers_data.connect(self.set_triggers_data_sig)
+        # self.worker.set_generator_sample.connect(self.set_generator_sample_sig)
+        # self.worker.set_w_gui.connect(self.set_w_gui_sig)
+        # self.worker.set_plots_data.connect(self.set_plots_data_sig)
+        # self.worker.finished.connect(self.finished_sig)
 
-        self.thread.started.connect(self.worker.start_test)
-        self.worker.finished.connect(self.thread.quit)
-        self.worker.finished.connect(self.worker.deleteLater)
-        self.thread.finished.connect(self.thread.deleteLater)        
+        # self.thread.started.connect(self.worker.start_test)
+        # self.worker.finished.connect(self.thread.quit)
+        # self.worker.finished.connect(self.worker.deleteLater)
+        # self.thread.finished.connect(self.thread.deleteLater)        
 
-        # self.thread.start()
+        # # self.thread.start()
 
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
 
-    def finished_sig(self, res:Result):
-        logs_file = self.save_logs(
-            self.worker.current_start_time,
-            self.worker.chip_name,
-            self.worker.scenario_to_start.name,
-            self.worker.current_test_type,
-            self.ui.get_logs(),
-        )
+    # def set_plots_data_sig(self, link:str):
+    #     self.ui.set_plots_data(link)
 
-        res.logs = logs_file
+    # def finished_sig(self, res:Result):
+    #     logs_file = self.save_logs(
+    #         self.worker.current_start_time,
+    #         self.worker.chip_name,
+    #         self.worker.scenario_to_start.name,
+    #         self.worker.current_test_type,
+    #         self.ui.get_logs(),
+    #     )
 
-        result_file = self.save_results(
-            res,
-            self.worker.current_start_time,
-            self.worker.chip_name,
-            self.worker.scenario_to_start.name,
-            self.worker.current_test_type,
-        )
+    #     res.logs = logs_file
 
-        self.results_folder = result_file
+    #     result_file = self.save_results(
+    #         res,
+    #         self.worker.current_start_time,
+    #         self.worker.chip_name,
+    #         self.worker.scenario_to_start.name,
+    #         self.worker.current_test_type,
+    #     )
 
-    def set_w_gui_sig(self):
-        self.set_writeable_gui()
+    #     self.results_folder = result_file
 
-    def set_generator_sample_sig(self, sample:TestSample):
-        self.ui.set_generator_sample(sample)
+    # def set_w_gui_sig(self):
+    #     self.set_writeable_gui()
 
-    def set_triggers_data_sig(self, l0:int, l1:int):
-        self.ui.set_triggers_data(l0, l1)
+    # def set_generator_sample_sig(self, sample:TestSample):
+    #     self.ui.set_generator_sample(sample)
 
-    def set_reg_values_sig(self, reg:RegData):
-        self.ui.set_reg_values(reg)    
+    # def set_triggers_data_sig(self, l0:int, l1:int):
+    #     self.ui.set_triggers_data(l0, l1)
 
-    def logging_sig(self, a:str):
-        self.ui.logging(a)
+    # def set_reg_values_sig(self, reg:RegData):
+    #     self.ui.set_reg_values(reg)    
 
-    def clear_log_sig(self):
-        self.ui.clear_log()
+    # def logging_sig(self, a:str):
+    #     self.ui.logging(a)
 
-    def clean_plots_data_sig(self):
-        self.ui.clean_plots_data()
+    # def clear_log_sig(self):
+    #     self.ui.clear_log()
 
-    def set_channels_data_sig(self, ch:list[Channel], trig_src:int, trig_lvl:int, tim_scale:int):
-        self.ui.set_channels_data(ch, trig_src, trig_lvl, tim_scale)
+    # def clean_plots_data_sig(self):
+    #     self.ui.clean_plots_data()
 
-    def chng_rw_gui_sig(self):
-        self.change_rw_gui()
+    # def set_channels_data_sig(self, ch:list[Channel], trig_src:int, trig_lvl:int, tim_scale:int):
+    #     self.ui.set_channels_data(ch, trig_src, trig_lvl, tim_scale)
+
+    # def chng_rw_gui_sig(self):
+    #     self.change_rw_gui()
+
+    def process_emulatoin_checks(self):
+        try:
+            em_adc, em_trigs = self.ui.get_emulation_data()
+            self.uart.send_stand_settings(em_adc, em_trigs)
+        except Exception as e:
+            self.ui.logging("ERROR send emulation settings: ", e.args[0])
+
+    def process_emulation_state(self):
+        try:
+            state = not self.emulation_state
+            self.uart.send_emulation_state(state)
+            self.ui.change_emulation_state(state)
+            self.emulation_state = state
+        except Exception as e:
+            self.ui.logging("ERROR toggle channels emulation: ", e.args[0])
 
     def process_send_regs_butt(self):
         try:
             idx, addr, val = self.ui.get_regs_comm_data()
+            print(idx)
             match idx:
                 case 0:
                     self.uart.write_reg(int.to_bytes(addr, 1, 'big'), [int.to_bytes(val, 1, 'big'), int.to_bytes(val, 1, 'big')])
@@ -213,7 +238,7 @@ class Stand(QObject):
             address = self.ui.get_com_port_address()
             self.uart.connect_com(address)
             self.ui.logging(f"Successfull connect to {address}")
-            self.worker.uart = self.uart 
+            # self.worker.uart = self.uart 
             return
         except Exception as e:
             self.ui.logging("ERROR connect using uart: ", e.args[0])
@@ -223,7 +248,7 @@ class Stand(QObject):
         try:
             self.visa.connect_osc(self.ui.ui.oscilloscope_addr.text())
             self.ui.logging("Successfull connect oscilloscope")
-            self.worker.visa.oscilloscope = self.visa.oscilloscope
+            # self.worker.visa.oscilloscope = self.visa.oscilloscope
         except Exception as e:
             self.ui.logging("ERROR connect oscilloscope: ", e.args[0])
             return
@@ -232,7 +257,7 @@ class Stand(QObject):
         try:
             self.visa.connect_gen(self.ui.ui.generator_addr.text())
             self.ui.logging("Successfull connect generator")
-            self.worker.visa.generator = self.visa.generator
+            # self.worker.visa.generator = self.visa.generator
         except Exception as e:
             self.ui.logging("ERROR connect generator: ", e.args[0])
             return
@@ -416,6 +441,7 @@ class Stand(QObject):
 
     def process_scenar_start_butt(self):
         try:
+            self.check_instruments_connection()
             if self.scenario_to_start.name == '':
                 self.ui.logging("ERROR start scenario testing. No scenario to start.")
                 return
@@ -459,6 +485,8 @@ class Stand(QObject):
 
     def process_start_butt(self):
         try:
+            self.check_instruments_connection()
+
             chip_name, chip_desc = self.ui.get_chip_metadata()
 
             manual_scenar = self.create_manual_scenario()
@@ -470,7 +498,7 @@ class Stand(QObject):
             self.worker.chip_desc = chip_desc
             self.worker.current_test_type = self.MANUAL_TEST
 
-            self.thread().start()
+            self.thread.start()
             # file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
         except Exception as e:
             self.set_writeable_gui()
