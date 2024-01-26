@@ -802,3 +802,4 @@ class Stand(QObject):
 
 if __name__ == "__main__":
     stand = Stand()
+    # добавить копку запуска калибровки/стопа калибровки
