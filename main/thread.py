@@ -25,16 +25,31 @@ class StatusWidget(Stand):
     set_w_gui = pyqtSignal()
     finished = pyqtSignal(Result)
 
+    scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
+    is_screaning = bool
+    out_index = int
+    triggers = list[tuple[int, int]]
+    chip_name = str
+    chip_desc = str
+    current_test_type = int
+    current_start_time = str
+
     def __init__(self, visa:Visa, uart:UART) -> None:
         super().__init__()
         self.visa = visa
         self.uart = uart
         self.ui = ""
 
-    
-
-    def start_test(self, scenario:Scenario, is_screening:bool, out_index:int, testing_type:int, triggers:list[tuple[int, int]], chip_name:str, chip_desc:str):
+    def start_test(self):
         start_time = str(datetime.datetime.now(tz=timezone('Europe/Moscow'))).replace(":", ".")[:-13].replace(" ", "_")
+        self.current_start_time = start_time
+        testing_type = self.current_test_type
+        scenario = self.scenario_to_start
+        is_screening = self.is_screaning
+        out_index = self.out_index
+        triggers = self.triggers
+        chip_name = self.chip_name
+        chip_desc = self.chip_desc
 
         self.check_instruments_connection()
         self.clear_log.emit()
@@ -216,5 +231,4 @@ class StatusWidget(Stand):
         # self.results_folder = result_file
 
         self.set_w_gui.emit()
-        # return result_file
         self.finished.emit(result)

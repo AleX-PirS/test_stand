@@ -3,6 +3,7 @@ from uart_lib import UART
 from visa_lib import Visa
 from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel
 from pkg import find_scenarios, differenence
+from thread import StatusWidget
 
 import sys
 import time
@@ -79,19 +80,78 @@ class Stand(QObject):
         self.ui.ui.command_send_butt_2.clicked.connect(self.process_send_regs_butt)
 
         # Threading with testing
-        # self.thread = QThread()
-        # self.worker = StatusWidget(uart=self.uart, visa=self.visa)
-        # self.worker.moveToThread(self.thread)
+        self.thread = QThread()
+        self.worker = StatusWidget(uart=self.uart, visa=self.visa)
+        self.worker.moveToThread(self.thread)
 
-        # self.thread.started.connect(self.worker.start_test)
-        # self.worker.finished.connect(self.thread.quit)
-        # self.worker.finished.connect(self.worker.deleteLater)
-        # self.thread.finished.connect(self.thread.deleteLater)
+        self.worker.logging.connect(self.logging_sig)
+        self.worker.clear_log.connect(self.clear_log_sig)
+        self.worker.clean_plots_data.connect(self.clean_plots_data_sig)
+        self.worker.set_channels_data.connect(self.set_channels_data_sig)
+        self.worker.chng_rw_gui.connect(self.chng_rw_gui_sig)
+        self.worker.set_reg_values.connect(self.set_reg_values_sig)
+        self.worker.set_triggers_data.connect(self.set_triggers_data_sig)
+        self.worker.set_generator_sample.connect(self.set_generator_sample_sig)
+        self.worker.set_w_gui.connect(self.set_w_gui_sig)
+        self.worker.finished.connect(self.finished_sig)
+
+        self.thread.started.connect(self.worker.start_test)
+        self.worker.finished.connect(self.thread.quit)
+        self.worker.finished.connect(self.worker.deleteLater)
+        self.thread.finished.connect(self.thread.deleteLater)        
 
         # self.thread.start()
 
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
+
+    def finished_sig(self, res:Result):
+        logs_file = self.save_logs(
+            self.worker.current_start_time,
+            self.worker.chip_name,
+            self.worker.scenario_to_start.name,
+            self.worker.current_test_type,
+            self.ui.get_logs(),
+        )
+
+        res.logs = logs_file
+
+        result_file = self.save_results(
+            res,
+            self.worker.current_start_time,
+            self.worker.chip_name,
+            self.worker.scenario_to_start.name,
+            self.worker.current_test_type,
+        )
+
+        self.results_folder = result_file
+
+    def set_w_gui_sig(self):
+        self.set_writeable_gui()
+
+    def set_generator_sample_sig(self, sample:TestSample):
+        self.ui.set_generator_sample(sample)
+
+    def set_triggers_data_sig(self, l0:int, l1:int):
+        self.ui.set_triggers_data(l0, l1)
+
+    def set_reg_values_sig(self, reg:RegData):
+        self.ui.set_reg_values(reg)    
+
+    def logging_sig(self, a:str):
+        self.ui.logging(a)
+
+    def clear_log_sig(self):
+        self.ui.clear_log()
+
+    def clean_plots_data_sig(self):
+        self.ui.clean_plots_data()
+
+    def set_channels_data_sig(self, ch:list[Channel], trig_src:int, trig_lvl:int, tim_scale:int):
+        self.ui.set_channels_data(ch, trig_src, trig_lvl, tim_scale)
+
+    def chng_rw_gui_sig(self):
+        self.change_rw_gui()
 
     def process_send_regs_butt(self):
         try:
@@ -153,6 +213,7 @@ class Stand(QObject):
             address = self.ui.get_com_port_address()
             self.uart.connect_com(address)
             self.ui.logging(f"Successfull connect to {address}")
+            self.worker.uart = self.uart 
             return
         except Exception as e:
             self.ui.logging("ERROR connect using uart: ", e.args[0])
@@ -162,6 +223,7 @@ class Stand(QObject):
         try:
             self.visa.connect_osc(self.ui.ui.oscilloscope_addr.text())
             self.ui.logging("Successfull connect oscilloscope")
+            self.worker.visa.oscilloscope = self.visa.oscilloscope
         except Exception as e:
             self.ui.logging("ERROR connect oscilloscope: ", e.args[0])
             return
@@ -170,6 +232,7 @@ class Stand(QObject):
         try:
             self.visa.connect_gen(self.ui.ui.generator_addr.text())
             self.ui.logging("Successfull connect generator")
+            self.worker.visa.generator = self.visa.generator
         except Exception as e:
             self.ui.logging("ERROR connect generator: ", e.args[0])
             return
@@ -356,7 +419,20 @@ class Stand(QObject):
             if self.scenario_to_start.name == '':
                 self.ui.logging("ERROR start scenario testing. No scenario to start.")
                 return
-            file = self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
+            
+            chip_name, chip_desc = self.ui.get_chip_metadata()
+
+            manual_scenar = self.create_manual_scenario()
+            self.worker.scenario_to_start = manual_scenar
+            self.worker.is_screaning = self.ui.is_manual_screenable()
+            self.worker.out_index = self.ui.manual_comp_out_use_index()
+            self.worker.triggers = self.ui.get_triggers_data()
+            self.worker.chip_name = chip_name
+            self.worker.chip_desc = chip_desc
+            self.worker.current_test_type = self.SCENARIO_TEST
+
+            self.thread().start()
+            # file = self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start scenario testing: ", e.args[0])
@@ -383,8 +459,19 @@ class Stand(QObject):
 
     def process_start_butt(self):
         try:
+            chip_name, chip_desc = self.ui.get_chip_metadata()
+
             manual_scenar = self.create_manual_scenario()
-            file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
+            self.worker.scenario_to_start = manual_scenar
+            self.worker.is_screaning = self.ui.is_manual_screenable()
+            self.worker.out_index = self.ui.manual_comp_out_use_index()
+            self.worker.triggers = self.ui.get_triggers_data()
+            self.worker.chip_name = chip_name
+            self.worker.chip_desc = chip_desc
+            self.worker.current_test_type = self.MANUAL_TEST
+
+            self.thread().start()
+            # file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start manual testing: ", e.args[0])
