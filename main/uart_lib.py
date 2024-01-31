@@ -5,6 +5,8 @@ from pkg import RegData, rw_regs_start_addr_count, r_regs_start_addr_count
 
 
 class UART(object):
+    TIME_TO_SLEEP = 0.5
+
     def __init__(self) -> None:
         self.ser = serial.Serial()
         self.BAUDRATE = 115200
@@ -66,7 +68,7 @@ class UART(object):
 
             for byte_idx in range(len(data)):
                 reg_data.reg_data[byte_idx+tupl[0]] = data[byte_idx]
-            time.sleep(0.02)
+            time.sleep(self.TIME_TO_SLEEP)
             
         return reg_data
 
@@ -87,7 +89,7 @@ class UART(object):
                 int.to_bytes(start_addr, 1, "big"),
                 data.reg_data[start_addr:start_addr+count],
             )
-            time.sleep(0.002)
+            time.sleep(self.TIME_TO_SLEEP )
 
     def send_start_command(self):
         self.is_connection_open()
@@ -97,15 +99,12 @@ class UART(object):
         self.is_connection_open()
         package = [self.WRITE_WORD, start_addr,
                    int.to_bytes(len(data), 1, "big")]
-        # Actual version
+        
         for byte in package:
             self.ser.write(byte)
 
         for byte in data:
             self.ser.write(byte)
-        # Test version
-        # for byte in package+data:
-        #     self.ser.write(byte)
 
     def send_triggers(self, delay:int, l0:int, l1:int):
         package = [
@@ -141,7 +140,6 @@ class UART(object):
                     get_flag = 1
 
                 data = self.ser.read(1)
-                # print(f'Get payload from uart:"{int.from_bytes(data, "big"):08b}"')
 
                 if data == b'':
                     break
@@ -150,7 +148,6 @@ class UART(object):
                 if len(read_data) == int.from_bytes(count, "big"):
                     break
             
-            # print(f'Asked len={int.from_bytes(count, "big")}, get len={len(read_data)}')
             if int.from_bytes(count, "big") != len(read_data):
                 print(f"Packet corrupted. Try again with: start_addr:{int.from_bytes(start_addr, 'big')}, count:{int.from_bytes(count, 'big')}")
                 corrupt_count+=1
@@ -209,21 +206,6 @@ class UART(object):
             str_res += f"{int.from_bytes(i, 'big'):08b}"
 
         data_in = dict()
-        # data_in['V'] = (int.from_bytes((data_list[0]), "big")&0b1000_0000)>>7
-        # data_in['R'] = (int.from_bytes(data_list[0], "big")&0b0111_1100)>>2
-        # data_in['ADR'] = (((int.from_bytes(data_list[0], "big"))&0b0000_0011)<<1)+(int.from_bytes(data_list[1], "big")&0b1000_0000)>>7
-        # data_in['N0'] = (int.from_bytes(data_list[1], "big")&0b0111_1000)>>3
-        # data_in['A0'] = ((int.from_bytes(data_list[1], "big")&0b0000_0111)<<7)+(int.from_bytes(data_list[2], "big")&0b1111_1110)>>1
-        # data_in['N1'] = ((int.from_bytes(data_list[2], "big")&0b0000_0001)<<3)+(int.from_bytes(data_list[3], "big")&0b1110_0000)>>5
-        # data_in['A1'] = ((int.from_bytes(data_list[3], "big")&0b0001_1111)<<5)+(int.from_bytes(data_list[4], "big")&0b1111_1000)>>3
-        # data_in['N2'] = ((int.from_bytes(data_list[4], "big")&0b0000_0111)<<1)+(int.from_bytes(data_list[5], "big")&0b1000_0000)>>7
-        # data_in['A2'] = ((int.from_bytes(data_list[5], "big")&0b0111_1111)<<5)+(int.from_bytes(data_list[6], "big")&0b1110_0000)>>5
-        # data_in['N3'] = (int.from_bytes(data_list[6], "big")&0b0001_1110)>>1
-        # data_in['A3'] = ((int.from_bytes(data_list[6], "big")&0b0000_0001)<<9)+(int.from_bytes(data_list[7], "big")<<1)+((int.from_bytes(data_list[8], "big")&0b1000_0000)>>7)
-        # data_in['N4'] = (int.from_bytes(data_list[8], "big")&0b0111_1000)>>3
-        # data_in['A4'] = ((int.from_bytes(data_list[8], "big")&0b0000_0111)<<5)+(int.from_bytes(data_list[9], "big")&0b1111_1110)>>1
-        # data_in['O'] = (int.from_bytes(data_list[9], "big")&0b0000_0001)
-        # data_in['TIME'] = (int.from_bytes(data_list[10], "big")<<8)+int.from_bytes(data_list[11], "big")
 
         data_in['V'] = int(f'0b'+str_res[0], base=0)
         data_in['R'] = int(f'0b'+str_res[1:6], base=0)
