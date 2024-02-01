@@ -435,6 +435,9 @@ class Ui(QObject):
     def change_emulation_state(self, state):
         self.ui.CH_EM_status.setValue(int(state))
 
+    def change_CS_state(self, state):
+        self.ui.CS_status.setValue(int(state))
+
     def get_generator_data_manual(self)-> GeneratorSample:
         return GeneratorSample(
             signal_type=process_signal_type(self.ui.signal_type_box.currentText()),

@@ -23,6 +23,8 @@ class UART(object):
         self.SEND_TRIGGERS_WORD = int.to_bytes(0b0111_0100, 1, 'big')
         self.SEND_SETTINGS_WORD = int.to_bytes(0b0110_0111, 1, 'big')
         self.EMULATION_WORD =     int.to_bytes(0b0110_0101, 1, 'big')
+        self.CS_UP_WORD =         int.to_bytes(0b1110_0011, 1, 'big')
+        self.CS_DOWN_WORD =       int.to_bytes(0b0110_0011, 1, 'big')
 
     def connect_com(self, com: str):
         try:
@@ -57,6 +59,13 @@ class UART(object):
         message = [self.EMULATION_WORD, int.to_bytes(settings, 1, 'big')]
         for m in message:
             self.ser.write(m)
+
+    def send_CS_state(self, state):
+        match state:
+            case False:
+                self.ser.write(self.CS_DOWN_WORD)
+            case True:
+                self.ser.write(self.CS_UP_WORD)
 
     def read_i_regs(self, settings: tuple) -> RegData:
         reg_data = RegData(is_zero_init=True)

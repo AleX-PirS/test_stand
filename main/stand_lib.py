@@ -3,7 +3,7 @@ from uart_lib import UART
 from visa_lib import Visa
 from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel
 from pkg import find_scenarios, differenence
-# from thread_gui import StatusWidget
+from dotenv import load_dotenv
 
 import sys
 import time
@@ -13,8 +13,14 @@ from pytz import timezone
 import matplotlib.pyplot as plt
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
-os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
-os.environ["QT_SCALE_FACTOR"] = "0.72"
+load_dotenv()
+
+USE_AUTO_WINDOW_FLAG = os.getenv("USE_AUTO_WINDOW")
+
+if int(USE_AUTO_WINDOW_FLAG):
+    os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+    os.environ["QT_SCALE_FACTOR"] = "0.72"
+
 
 TESTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), r'tests')
 MANUAL_TESTS_PATH = os.path.join(TESTS_PATH, r'manual')
@@ -36,6 +42,7 @@ class Stand(QObject):
         self.scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
         self.results_folder = ""
         self.emulation_state = False
+        self.CS_state = False
         self.STOP_flag = 0
 
         self.ui = Ui()
@@ -115,6 +122,15 @@ class Stand(QObject):
 
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
+
+    def process_toggle_cs(self):
+        try:
+            state = not self.CS_state
+            self.uart.send_CS_state(state)
+            self.ui.change_CS_state(state)
+            self.emulation_state = state
+        except Exception as e:
+            self.ui.logging("ERROR toggle channels emulation: ", e.args[0])
 
     def process_raw_fpga(self):
         try:
