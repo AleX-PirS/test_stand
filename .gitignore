@@ -6,3 +6,5 @@ scenarios
 tests
 
 *.png
+*.cfg
+*.bit

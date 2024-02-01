@@ -505,7 +505,7 @@ class Ui(QObject):
         return list(product(
             L0_sequence,
             L1_sequence,
-        ))
+        )), self.ui.delay_trig.value()
 
     def get_generator_data_scenario(self)-> list[GeneratorSample]:
         sig_type = process_signal_type(self.ui.signal_type_box.currentText())

@@ -5,7 +5,7 @@ from pkg import RegData, rw_regs_start_addr_count, r_regs_start_addr_count
 
 
 class UART(object):
-    TIME_TO_SLEEP = 0.5
+    TIME_TO_SLEEP = 1.5
 
     def __init__(self) -> None:
         self.ser = serial.Serial()

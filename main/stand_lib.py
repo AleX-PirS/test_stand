@@ -13,6 +13,9 @@ from pytz import timezone
 import matplotlib.pyplot as plt
 from PyQt5.QtCore import QObject, QThread, pyqtSignal
 
+os.environ["QT_AUTO_SCREEN_SCALE_FACTOR"] = "1"
+os.environ["QT_SCALE_FACTOR"] = "0.72"
+
 TESTS_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), r'tests')
 MANUAL_TESTS_PATH = os.path.join(TESTS_PATH, r'manual')
 SCENARIO_TESTS_PATH = os.path.join(TESTS_PATH, r'scenario')
@@ -82,6 +85,9 @@ class Stand(QObject):
         self.ui.ui.is_EM_ADC_EN.stateChanged.connect(self.process_emulatoin_checks)
         self.ui.ui.is_EM_L0_L1.stateChanged.connect(self.process_emulatoin_checks)
         self.ui.ui.toggle_CH_EM_butt.clicked.connect(self.process_emulation_state)
+        self.ui.ui.send_start_comm.clicked.connect(self.process_send_start_comm)
+
+        # self.ui.ui.butt_send_raw_data.clicked.connect(self.process_raw_fpga)
 
         # # Threading with testing
         # self.thread = QThread()
@@ -109,6 +115,25 @@ class Stand(QObject):
 
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
+
+    def process_raw_fpga(self):
+        try:
+            row = self.ui.ui.lineEdit_raw_data_FPGA.text().lower()
+            sendData = [int(a, base=16) for a in row.split(" ")]
+            print(sendData)
+
+            self.uart.ser.reset_input_buffer()
+            for i in sendData:
+                self.uart.ser.write(int.to_bytes(i, 1, 'big'))
+            
+            # read
+            while True:
+                data = self.uart.ser.read()
+                if data == b"":
+                    break
+                print(data)
+        except Exception as e:
+            print(f"ОШИБКА!: {e.args[0]}")
 
     # def set_plots_data_sig(self, link:str):
     #     self.ui.set_plots_data(link)
@@ -161,6 +186,14 @@ class Stand(QObject):
     # def chng_rw_gui_sig(self):
     #     self.change_rw_gui()
 
+    def process_send_start_comm(self):
+        try:
+            triggers, triggers_delay = self.ui.get_triggers_data()
+            self.uart.send_triggers(triggers_delay//5, triggers[0][0], triggers[0][1])
+            self.uart.send_start_command()
+        except Exception as e:
+            self.ui.logging("ERROR send start command: ", e.args[0])
+
     def process_emulatoin_checks(self):
         try:
             em_adc, em_trigs = self.ui.get_emulation_data()
@@ -180,15 +213,14 @@ class Stand(QObject):
     def process_send_regs_butt(self):
         try:
             idx, addr, val = self.ui.get_regs_comm_data()
-            print(idx)
             match idx:
                 case 0:
-                    self.uart.write_reg(int.to_bytes(addr, 1, 'big'), [int.to_bytes(val, 1, 'big'), int.to_bytes(val, 1, 'big')])
+                    self.uart.write_reg(int.to_bytes(addr, 1, 'big'), [int.to_bytes(val, 1, 'big')])
                 case 1:
                     data = self.uart.read_reg(int.to_bytes(addr, 1, 'big'), int.to_bytes(1, 1, 'big'))
                     reg_data = RegData(is_zero_init=True)
                     reg_data.reg_data[addr] = data[0]
-                    self.ui.log_registers(reg_data.__str__())
+                    self.ui.log_registers(reg_data.to_str())
         except Exception as e:
             self.ui.logging("ERROR send constant cause: ", e.args[0])
 
@@ -449,16 +481,16 @@ class Stand(QObject):
             chip_name, chip_desc = self.ui.get_chip_metadata()
 
             manual_scenar = self.create_manual_scenario()
-            self.worker.scenario_to_start = manual_scenar
-            self.worker.is_screaning = self.ui.is_manual_screenable()
-            self.worker.out_index = self.ui.manual_comp_out_use_index()
-            self.worker.triggers = self.ui.get_triggers_data()
-            self.worker.chip_name = chip_name
-            self.worker.chip_desc = chip_desc
-            self.worker.current_test_type = self.SCENARIO_TEST
+            # self.worker.scenario_to_start = manual_scenar
+            # self.worker.is_screaning = self.ui.is_manual_screenable()
+            # self.worker.out_index = self.ui.manual_comp_out_use_index()
+            # self.worker.triggers = self.ui.get_triggers_data()
+            # self.worker.chip_name = chip_name
+            # self.worker.chip_desc = chip_desc
+            # self.worker.current_test_type = self.SCENARIO_TEST
 
-            self.thread().start()
-            # file = self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
+            # self.thread().start()
+            file = self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start scenario testing: ", e.args[0])
@@ -490,16 +522,16 @@ class Stand(QObject):
             chip_name, chip_desc = self.ui.get_chip_metadata()
 
             manual_scenar = self.create_manual_scenario()
-            self.worker.scenario_to_start = manual_scenar
-            self.worker.is_screaning = self.ui.is_manual_screenable()
-            self.worker.out_index = self.ui.manual_comp_out_use_index()
-            self.worker.triggers = self.ui.get_triggers_data()
-            self.worker.chip_name = chip_name
-            self.worker.chip_desc = chip_desc
-            self.worker.current_test_type = self.MANUAL_TEST
+            # self.worker.scenario_to_start = manual_scenar
+            # self.worker.is_screaning = self.ui.is_manual_screenable()
+            # self.worker.out_index = self.ui.manual_comp_out_use_index()
+            # self.worker.triggers = self.ui.get_triggers_data()
+            # self.worker.chip_name = chip_name
+            # self.worker.chip_desc = chip_desc
+            # self.worker.current_test_type = self.MANUAL_TEST
 
-            self.thread.start()
-            # file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
+            # self.thread.start()
+            file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start manual testing: ", e.args[0])
@@ -551,7 +583,7 @@ class Stand(QObject):
         self.ui.clean_plots_data()
         self.results_folder = ""
 
-        triggers = self.ui.get_triggers_data()
+        triggers, triggers_delay = self.ui.get_triggers_data()
 
         chip_name, chip_desc = self.ui.get_chip_metadata()
 
@@ -631,7 +663,7 @@ class Stand(QObject):
                         case self.SCENARIO_TEST:
                             self.ui.logging(f"Layer#{idx_layer+1}. Start sample#{sample_index+1} of {test.test_count*len(triggers)}. Total tests:{scenario.total_test_count*len(triggers)}")
                     
-                    self.uart.send_triggers((test_sample.delay*10**9)//5, l0, l1)
+                    self.uart.send_triggers((test_sample.delay*10**9+triggers_delay)//5, l0, l1)
 
                     self.ui.set_generator_sample(test_sample)
                     self.visa.v2_configurate_generator_sample(test_sample)
@@ -830,4 +862,3 @@ class Stand(QObject):
 
 if __name__ == "__main__":
     stand = Stand()
-    # добавить копку запуска калибровки/стопа калибровки

@@ -215,7 +215,7 @@ registers_metadata_addr_to_name = {
 
 
 class RegData(object):
-    reg_data = [int.to_bytes(0, 1, 'big') for _ in range(125)]
+    reg_data = [int.to_bytes(0, 1, 'big') for _ in range(128)]
 
     DEFAULT_CCAL=0b01
     DEFAULT_CCSA=0b01
@@ -289,7 +289,7 @@ class RegData(object):
                  ) -> None:
 
         if is_zero_init:
-            self.reg_data = [-1 for _ in range(125)]
+            self.reg_data = [-1 for _ in range(128)]
             return
         
         if len(template_list) != 0:
@@ -359,6 +359,18 @@ class RegData(object):
             if self.reg_data[i] == -1:
                 continue
             res += f'Addr:{i}, "{registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
+
+        return res[:-1]
+    
+    def to_str(self) -> str:
+        res = ""
+        for i in range(len(self.reg_data)):
+            if self.reg_data[i] == -1:
+                continue
+            if i not in registers_metadata_addr_to_name:
+                res += f'Addr:{i}, "unnamed":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
+            else:
+                res += f'Addr:{i}, "{registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
 
         return res[:-1]
     
