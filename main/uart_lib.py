@@ -28,25 +28,24 @@ class UART(object):
         self.AUTO_CS_WORD =       int.to_bytes(0b0111_1010, 1, 'big')
         self.NOT_AUTO_CS_WORD =   int.to_bytes(0b1111_1010, 1, 'big')
 
-    def send_auto_cs_raw_data(self, data):
+    def send_sc_raw_data(self, data, type_mess):
         byte_data = [int.to_bytes(i, 1, 'big') for i in data]
-        message = [self.AUTO_CS_WORD, int.to_bytes(len(data), 1, 'big')]
+        message = [type_mess, int.to_bytes(len(data)-1, 1, 'big')]
+
+        print (message)
+        print (byte_data)
 
         for mes in message:
             self.ser.write(mes)
 
         for mes in byte_data:
             self.ser.write(mes)
+
+    def send_auto_cs_raw_data(self, data):
+        self.send_sc_raw_data(data, self.AUTO_CS_WORD)
 
     def send_not_auto_cs_raw_data(self, data):
-        byte_data = [int.to_bytes(i, 1, 'big') for i in data]
-        message = [self.NOT_AUTO_CS_WORD, int.to_bytes(len(data), 1, 'big')]
-
-        for mes in message:
-            self.ser.write(mes)
-
-        for mes in byte_data:
-            self.ser.write(mes)
+        self.send_sc_raw_data(data, self.NOT_AUTO_CS_WORD)
 
     def connect_com(self, com: str):
         try:

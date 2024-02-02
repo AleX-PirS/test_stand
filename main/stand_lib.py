@@ -157,12 +157,14 @@ class Stand(QObject):
                 case True:
                     self.uart.send_auto_cs_raw_data(sendData)
             
-            # read
+            raw_data = ""
             while True:
                 data = self.uart.ser.read()
                 if data == b"":
+                    print("End recieving uart data")
                     break
-                self.ui.logging(f"raw data: {data}")
+                raw_data += f"Raw data: {data}\n"
+            self.ui.log_registers(raw_data)
         except Exception as e:
             self.ui.logging(f"ОШИБКА!: {e.args[0]}")
 
