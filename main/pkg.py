@@ -358,7 +358,7 @@ class RegData(object):
                 continue
             if self.reg_data[i] == -1:
                 continue
-            res += f'Addr:{i}, "{registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
+            res += f'Addr:{hex(i)}, "{registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
 
         return res[:-1]
     
@@ -368,9 +368,9 @@ class RegData(object):
             if self.reg_data[i] == -1:
                 continue
             if i not in registers_metadata_addr_to_name:
-                res += f'Addr:{i}, "unnamed":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
+                res += f'Addr:{hex(i)}, "unnamed":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
             else:
-                res += f'Addr:{i}, "{registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
+                res += f'Addr:{hex(i)}, "{registers_metadata_addr_to_name[i]}":"{int.from_bytes(self.reg_data[i], "big"):08b}"\n'
 
         return res[:-1]
     

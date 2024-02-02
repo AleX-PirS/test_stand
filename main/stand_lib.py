@@ -43,6 +43,7 @@ class Stand(QObject):
         self.results_folder = ""
         self.emulation_state = False
         self.CS_state = False
+        self.Is_auto_CS = False
         self.STOP_flag = 0
 
         self.ui = Ui()
@@ -93,6 +94,9 @@ class Stand(QObject):
         self.ui.ui.is_EM_L0_L1.stateChanged.connect(self.process_emulatoin_checks)
         self.ui.ui.toggle_CH_EM_butt.clicked.connect(self.process_emulation_state)
         self.ui.ui.send_start_comm.clicked.connect(self.process_send_start_comm)
+        self.ui.ui.is_auto_CS.clicked.connect(self.process_auto_cs)
+        self.ui.ui.toggle_CS_butt.clicked.connect(self.process_toggle_cs)
+        self.ui.ui.command_send_raw_butt.clicked.connect(self.process_send_raw_fpga)
 
         # self.ui.ui.butt_send_raw_data.clicked.connect(self.process_raw_fpga)
 
@@ -128,28 +132,39 @@ class Stand(QObject):
             state = not self.CS_state
             self.uart.send_CS_state(state)
             self.ui.change_CS_state(state)
-            self.emulation_state = state
+            self.CS_state = state
         except Exception as e:
-            self.ui.logging("ERROR toggle channels emulation: ", e.args[0])
+            self.ui.logging("ERROR toggle CS: ", e.args[0])
 
-    def process_raw_fpga(self):
+    def process_auto_cs(self):
         try:
-            row = self.ui.ui.lineEdit_raw_data_FPGA.text().lower()
+            state = self.ui.get_auto_cs_status()
+            self.ui.change_rw_CS(state)
+            self.Is_auto_CS = state
+        except Exception as e:
+            self.ui.logging("ERROR toggle auto CS flag: ", e.args[0])
+
+    def process_send_raw_fpga(self):
+        try:
+            row = self.ui.get_raw_data()
             sendData = [int(a, base=16) for a in row.split(" ")]
-            print(sendData)
 
             self.uart.ser.reset_input_buffer()
-            for i in sendData:
-                self.uart.ser.write(int.to_bytes(i, 1, 'big'))
+
+            match self.Is_auto_CS:
+                case False:
+                    self.uart.send_not_auto_cs_raw_data(sendData)
+                case True:
+                    self.uart.send_auto_cs_raw_data(sendData)
             
             # read
             while True:
                 data = self.uart.ser.read()
                 if data == b"":
                     break
-                print(data)
+                self.ui.logging(f"raw data: {data}")
         except Exception as e:
-            print(f"ОШИБКА!: {e.args[0]}")
+            self.ui.logging(f"ОШИБКА!: {e.args[0]}")
 
     # def set_plots_data_sig(self, link:str):
     #     self.ui.set_plots_data(link)

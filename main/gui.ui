@@ -1161,7 +1161,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>65 [7:6]</string>
+       <string>41 [7:6]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_CCAL">
@@ -1236,7 +1236,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>65 [5:4]</string>
+       <string>41 [5:4]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_CCSA">
@@ -1308,7 +1308,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>65 [3]</string>
+       <string>41 [3]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_GAIN">
@@ -1370,7 +1370,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>65 [2]</string>
+       <string>41 [2]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_ICSA">
@@ -1432,7 +1432,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>65 [1:0]</string>
+       <string>41 [1:0]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_SHA">
@@ -1499,7 +1499,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>66 [7:6]</string>
+       <string>42 [7:6]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_SHTR">
@@ -1566,7 +1566,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>66 [5]</string>
+       <string>42 [5]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_POL">
@@ -1628,7 +1628,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>66 [4:3]</string>
+       <string>42 [4:3]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_BIAS_CORE_CUR">
@@ -1700,7 +1700,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>67 [7:0]</string>
+       <string>43 [7:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_DAC_CAL">
@@ -1761,7 +1761,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>68-69</string>
+       <string>44-45</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CAL_EN_CH">
@@ -1819,7 +1819,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>70 [7:0]</string>
+       <string>46 [7:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_REZ">
@@ -1877,7 +1877,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>111-112</string>
+       <string>6F-70</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_AN_CH_DISABLE">
@@ -2000,7 +2000,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>80 [4:0]</string>
+       <string>50 [4:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CFG_p1_in_time">
@@ -2061,7 +2061,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>81 [4:0]</string>
+       <string>51 [4:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CFG_p1_L0_over">
@@ -2122,7 +2122,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>82 [4:0]</string>
+       <string>52 [4:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CFG_p2_puls_SOC">
@@ -2183,7 +2183,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>83 [4:0]</string>
+       <string>53 [4:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CFG_p2_puls_SWM">
@@ -2244,7 +2244,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>84 [4:0]</string>
+       <string>54 [4:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CFG_p2_puls_EOC">
@@ -2305,7 +2305,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>85 [4:0]</string>
+       <string>55 [4:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CFG_rst_puls_EOC">
@@ -2366,7 +2366,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>86-87</string>
+       <string>56-57</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CFG_p3_L1_over">
@@ -2427,7 +2427,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>88 [6:0]</string>
+       <string>58 [6:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CFG_OUT_INT">
@@ -2488,7 +2488,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>90-91</string>
+       <string>5A-5B</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_ADC_EMU_CFG">
@@ -2546,7 +2546,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>92 [7:0]</string>
+       <string>5C [7:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_CFG_SW_force_num">
@@ -2604,7 +2604,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>93 [0]</string>
+       <string>5D [0]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_CFG_SW_force_EN">
@@ -2666,7 +2666,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>123 [0]</string>
+       <string>7B [0]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_EMUL_EN_L0">
@@ -2728,7 +2728,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>123 [1]</string>
+       <string>7B [1]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_EMUL_EN_L1">
@@ -2793,7 +2793,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>123[3:2]</string>
+       <string>7B [3:2]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_EMUL_tau_v">
@@ -2865,7 +2865,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>123[5:4]</string>
+       <string>7B [5:4]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_EMUL_L0_v">
@@ -2937,7 +2937,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>124[4:0]</string>
+       <string>7C [4:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_EMUL_DATA_i">
@@ -2998,7 +2998,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>124 [7:5]</string>
+       <string>7C [7:5]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_EMUL_ADDR_i">
@@ -3090,7 +3090,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>122[7:0]</string>
+       <string>7A [7:0]</string>
       </property>
      </widget>
      <widget class="QSpinBox" name="spinBox_EMUL_L1_v">
@@ -3187,7 +3187,7 @@
        </rect>
       </property>
       <property name="text">
-       <string>72 [3:0]</string>
+       <string>48 [3:0]</string>
       </property>
      </widget>
      <widget class="QComboBox" name="comboBox_CMP_TH">
@@ -5180,10 +5180,10 @@
         <number>127</number>
        </property>
        <property name="value">
-        <number>65</number>
+        <number>0</number>
        </property>
        <property name="displayIntegerBase">
-        <number>10</number>
+        <number>16</number>
        </property>
       </widget>
       <widget class="QPushButton" name="command_send_butt_2">
@@ -5356,7 +5356,7 @@
         </rect>
        </property>
        <property name="text">
-        <string>16x input</string>
+        <string>hex input</string>
        </property>
       </widget>
       <widget class="QPushButton" name="command_send_raw_butt">

@@ -432,11 +432,21 @@ class Ui(QObject):
     def get_emulation_data(self):
         return self.ui.is_EM_ADC_EN.isChecked(),self.ui.is_EM_L0_L1.isChecked()
 
+    def get_raw_data(self):
+        return self.ui.lineEdit_raw_SPI.text().rstrip().lower()
+
     def change_emulation_state(self, state):
         self.ui.CH_EM_status.setValue(int(state))
 
     def change_CS_state(self, state):
         self.ui.CS_status.setValue(int(state))
+
+    def change_rw_CS(self, state):
+        self.ui.CS_status.setEnabled(not state)
+        self.ui.toggle_CS_butt.setEnabled(not state)
+
+    def get_auto_cs_status(self):
+        return self.ui.is_auto_CS.isChecked()
 
     def get_generator_data_manual(self)-> GeneratorSample:
         return GeneratorSample(

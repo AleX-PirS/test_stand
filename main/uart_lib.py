@@ -25,6 +25,28 @@ class UART(object):
         self.EMULATION_WORD =     int.to_bytes(0b0110_0101, 1, 'big')
         self.CS_UP_WORD =         int.to_bytes(0b1110_0011, 1, 'big')
         self.CS_DOWN_WORD =       int.to_bytes(0b0110_0011, 1, 'big')
+        self.AUTO_CS_WORD =       int.to_bytes(0b0111_1010, 1, 'big')
+        self.NOT_AUTO_CS_WORD =   int.to_bytes(0b1111_1010, 1, 'big')
+
+    def send_auto_cs_raw_data(self, data):
+        byte_data = [int.to_bytes(i, 1, 'big') for i in data]
+        message = [self.AUTO_CS_WORD, int.to_bytes(len(data), 1, 'big')]
+
+        for mes in message:
+            self.ser.write(mes)
+
+        for mes in byte_data:
+            self.ser.write(mes)
+
+    def send_not_auto_cs_raw_data(self, data):
+        byte_data = [int.to_bytes(i, 1, 'big') for i in data]
+        message = [self.NOT_AUTO_CS_WORD, int.to_bytes(len(data), 1, 'big')]
+
+        for mes in message:
+            self.ser.write(mes)
+
+        for mes in byte_data:
+            self.ser.write(mes)
 
     def connect_com(self, com: str):
         try:
