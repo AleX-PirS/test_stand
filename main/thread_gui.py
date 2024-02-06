@@ -105,7 +105,7 @@ class StatusWidget(QObject):
             result_layer = ResultLayer(0, [], test.consts_to_json())
 
             self.set_reg_values.emit(RegData(is_zero_init=False, template_list=test.constants))
-            self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
+            self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
             
             sended = test.constants
             get = self.uart.read_rw_regs()
@@ -117,7 +117,7 @@ class StatusWidget(QObject):
                     if len(diff) <= 1:
                         break
                     print(f'in diff if: len:{len(diff)}')
-                    self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
+                    self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
                     get = self.uart.read_rw_regs()
                     diff = differenence(sended, get)
                     print(f'diff after resend: len:{len(diff)}')

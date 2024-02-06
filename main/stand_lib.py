@@ -97,6 +97,8 @@ class Stand(QObject):
         self.ui.ui.is_auto_CS.clicked.connect(self.process_auto_cs)
         self.ui.ui.toggle_CS_butt.clicked.connect(self.process_toggle_cs)
         self.ui.ui.command_send_raw_butt.clicked.connect(self.process_send_raw_fpga)
+        self.ui.ui.save_trigs_comm.clicked.connect(self.process_save_trigs_comm)
+        self.ui.ui.send_start_em_comm.clicked.connect(self.send_start_em_comm)
 
         # self.ui.ui.butt_send_raw_data.clicked.connect(self.process_raw_fpga)
 
@@ -127,6 +129,25 @@ class Stand(QObject):
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
 
+    def send_start_em_comm(self):
+        try:
+            if self.emulation_state:
+                raise Exception("Need to turn off emulation!")
+            
+            state = not self.emulation_state
+            self.uart.send_emulation_state(state, 1)
+            self.ui.change_emulation_state(state)
+            self.emulation_state = state
+        except Exception as e:
+            self.ui.logging("ERROR send start with emulation enabled: ", e.args[0])
+
+    def process_save_trigs_comm(self):
+        try:
+            triggers, triggers_delay = self.ui.get_triggers_data()
+            self.uart.send_triggers(triggers_delay//5, triggers[0][0], triggers[0][1])
+        except Exception as e:
+            self.ui.logging("ERROR send triggers data: ", e.args[0])
+
     def process_toggle_cs(self):
         try:
             state = not self.CS_state
@@ -150,7 +171,7 @@ class Stand(QObject):
             sendData = [int(a, base=16) for a in row.split(" ")]
 
             self.uart.ser.reset_input_buffer()
-
+            
             match self.Is_auto_CS:
                 case False:
                     self.uart.send_not_auto_cs_raw_data(sendData)
@@ -160,10 +181,11 @@ class Stand(QObject):
             raw_data = ""
             while True:
                 data = self.uart.ser.read()
+                print(f"get from fpga: {data.hex(sep=' ', bytes_per_sep=1)}")
                 if data == b"":
                     print("End recieving uart data")
                     break
-                raw_data += f"Raw data: {data}\n"
+                raw_data += f"Raw data: {data.hex(sep=' ', bytes_per_sep=1)}\n"
             self.ui.log_registers(raw_data)
         except Exception as e:
             self.ui.logging(f"ОШИБКА!: {e.args[0]}")
@@ -237,7 +259,7 @@ class Stand(QObject):
     def process_emulation_state(self):
         try:
             state = not self.emulation_state
-            self.uart.send_emulation_state(state)
+            self.uart.send_emulation_state(state, 0)
             self.ui.change_emulation_state(state)
             self.emulation_state = state
         except Exception as e:
@@ -271,7 +293,7 @@ class Stand(QObject):
 
     def process_com_write_butt(self):
         try:
-            self.uart.write_w_regs(self.ui.get_w_registers_data())
+            self.uart.write_w_regs(self.ui.get_w_registers_data(), self.ui.get_auto_cs_status(), self.ui.get_consts_status())
             self.ui.logging("Constants sended succesfully")
         except Exception as e:
             self.ui.logging("ERROR send constants: ", e.args[0])
@@ -658,7 +680,7 @@ class Stand(QObject):
             result_layer = ResultLayer(0, [], test.consts_to_json())
 
             self.ui.set_reg_values(RegData(is_zero_init=False, template_list=test.constants))
-            self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
+            self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
             
             sended = test.constants
             get = self.uart.read_rw_regs()
@@ -670,7 +692,7 @@ class Stand(QObject):
                     if len(diff) <= 1:
                         break
                     print(f'in diff if: len:{len(diff)}')
-                    self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants))
+                    self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
                     get = self.uart.read_rw_regs()
                     diff = differenence(sended, get)
                     print(f'diff after resend: len:{len(diff)}')

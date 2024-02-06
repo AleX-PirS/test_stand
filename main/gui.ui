@@ -1357,7 +1357,7 @@
        </font>
       </property>
       <property name="text">
-       <string>IСSA</string>
+       <string>ICSA</string>
       </property>
      </widget>
      <widget class="QLabel" name="addr_ICSA">
@@ -3302,6 +3302,45 @@
      </property>
      <property name="orientation">
       <enum>Qt::Vertical</enum>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="is_analog_use">
+     <property name="geometry">
+      <rect>
+       <x>139</x>
+       <y>2</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="is_analog_digit_use">
+     <property name="geometry">
+      <rect>
+       <x>182</x>
+       <y>152</y>
+       <width>31</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
+     </property>
+    </widget>
+    <widget class="QCheckBox" name="is_digit_use">
+     <property name="geometry">
+      <rect>
+       <x>133</x>
+       <y>222</y>
+       <width>30</width>
+       <height>20</height>
+      </rect>
+     </property>
+     <property name="text">
+      <string/>
      </property>
     </widget>
    </widget>
@@ -5621,7 +5660,7 @@
        <property name="geometry">
         <rect>
          <x>10</x>
-         <y>10</y>
+         <y>0</y>
          <width>141</width>
          <height>21</height>
         </rect>
@@ -5634,7 +5673,7 @@
         </font>
        </property>
        <property name="text">
-        <string>Send start command</string>
+        <string>Comands</string>
        </property>
        <property name="textFormat">
         <enum>Qt::AutoText</enum>
@@ -5672,9 +5711,9 @@
       <widget class="QPushButton" name="send_start_comm">
        <property name="geometry">
         <rect>
-         <x>150</x>
+         <x>170</x>
          <y>10</y>
-         <width>91</width>
+         <width>71</width>
          <height>21</height>
         </rect>
        </property>
@@ -5712,6 +5751,44 @@
        </property>
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="save_trigs_comm">
+       <property name="geometry">
+        <rect>
+         <x>6</x>
+         <y>16</y>
+         <width>71</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Save trigs</string>
+       </property>
+      </widget>
+      <widget class="QPushButton" name="send_start_em_comm">
+       <property name="geometry">
+        <rect>
+         <x>80</x>
+         <y>10</y>
+         <width>81</width>
+         <height>21</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>50</weight>
+         <bold>false</bold>
+        </font>
+       </property>
+       <property name="text">
+        <string>Send Start_em</string>
        </property>
       </widget>
      </widget>

@@ -106,17 +106,35 @@ registers_metadata_name_to_addr = {
 r_regs_start_addr_count = (
     (0, 7),
     (8, 5),
-    (16, 12),
-    (32, 17),
+    (16, 6),
+    (22, 6),
+    (32, 6),
+    (38, 6),
+    (44, 5),
 )
 
 rw_regs_start_addr_count = (
     (65, 6),
-    (72, 2), # Поменял на длину 2, но вдруг что то задену
-    # (72, 1), было так, но почему то юарт на обрабатывает длину 1
+    (72, 1),
     (80, 9),
     (90, 4),
     (111, 2),
+    (122, 3),
+)
+
+rw_regs_start_addr_count_analog = (
+    (65, 6),
+    (111, 2),
+)
+
+rw_regs_start_addr_count_analog_digit = (
+    (72, 1),
+)
+
+rw_regs_start_addr_count_digit = (
+    (80, 4),
+    (84, 5),
+    (90, 4),
     (122, 3),
 )
 

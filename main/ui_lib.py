@@ -362,6 +362,9 @@ class Ui(QObject):
 
         return
 
+    def get_consts_status(self):
+        return self.ui.is_analog_use.isChecked(), self.ui.is_analog_digit_use.isChecked(), self.ui.is_digit_use.isChecked()
+
     def get_code_from_box(self, data: str) -> int:
         try:
             code = int(regex.findall(".*\(([0-9]*)\)", data)[0], base=2)

@@ -1,11 +1,12 @@
 import serial
 import time
+import builtins
 
-from pkg import RegData, rw_regs_start_addr_count, r_regs_start_addr_count
+from pkg import RegData, rw_regs_start_addr_count, r_regs_start_addr_count, rw_regs_start_addr_count_analog, rw_regs_start_addr_count_analog_digit, rw_regs_start_addr_count_digit
 
 
 class UART(object):
-    TIME_TO_SLEEP = 1.5
+    TIME_TO_SLEEP = 0.4
 
     def __init__(self) -> None:
         self.ser = serial.Serial()
@@ -32,8 +33,7 @@ class UART(object):
         byte_data = [int.to_bytes(i, 1, 'big') for i in data]
         message = [type_mess, int.to_bytes(len(data)-1, 1, 'big')]
 
-        print (message)
-        print (byte_data)
+        self.ser.reset_input_buffer()
 
         for mes in message:
             self.ser.write(mes)
@@ -72,10 +72,11 @@ class UART(object):
         for m in message:
             self.ser.write(m)
 
-    def send_emulation_state(self, state):
+    def send_emulation_state(self, state, start_status):
         settings = 0
 
         settings += state
+        settings += start_status*2
 
         message = [self.EMULATION_WORD, int.to_bytes(settings, 1, 'big')]
         for m in message:
@@ -90,11 +91,11 @@ class UART(object):
 
     def read_i_regs(self, settings: tuple) -> RegData:
         reg_data = RegData(is_zero_init=True)
-        for tupl in settings:
-            data = self.read_reg(
-                int.to_bytes(tupl[0], 1, "big"),
-                int.to_bytes(tupl[1], 1, "big"),
-            )
+
+        packages = self.spi_read_data_former(settings)
+
+        for pk in packages:
+            data = self.read_reg(pk)
 
             for byte_idx in range(len(data)):
                 reg_data.reg_data[byte_idx+tupl[0]] = data[byte_idx]
@@ -103,23 +104,87 @@ class UART(object):
         return reg_data
 
     def read_all_regs(self) -> RegData:
-        return self.read_i_regs((r_regs_start_addr_count + rw_regs_start_addr_count))
+        # return self.read_i_regs((r_regs_start_addr_count + rw_regs_start_addr_count))
+        return self.read_i_regs((r_regs_start_addr_count + rw_regs_start_addr_count_analog + rw_regs_start_addr_count_analog_digit + rw_regs_start_addr_count_digit))
 
     def read_r_regs(self) -> RegData:
         return self.read_i_regs(r_regs_start_addr_count)
 
     def read_rw_regs(self) -> RegData:
-        return self.read_i_regs(rw_regs_start_addr_count)
+        # return self.read_i_regs(rw_regs_start_addr_count)
+        return self.read_i_regs(rw_regs_start_addr_count_analog + rw_regs_start_addr_count_analog_digit + rw_regs_start_addr_count_digit)
 
-    def write_w_regs(self, data: RegData):
-        for tupl in rw_regs_start_addr_count:
-            start_addr = tupl[0]
-            count = tupl[1]
-            self.write_reg(
-                int.to_bytes(start_addr, 1, "big"),
-                data.reg_data[start_addr:start_addr+count],
-            )
-            time.sleep(self.TIME_TO_SLEEP )
+    def write_w_regs(self, data: RegData, is_auto, settings):
+        regs = []
+
+        if settings[0]:
+            regs += rw_regs_start_addr_count_analog
+        if settings[1]:
+            regs += rw_regs_start_addr_count_analog_digit
+        if settings[2]:
+            regs += rw_regs_start_addr_count_digit
+        
+        packages = self.spi_write_data_former(regs, data)
+        
+        for pk in packages:
+            match is_auto:
+                case True:
+                    self.send_sc_raw_data(pk, self.AUTO_CS_WORD)
+                case False:
+                    self.send_sc_raw_data(pk, self.NOT_AUTO_CS_WORD)
+
+            time.sleep(self.TIME_TO_SLEEP)
+
+        # for tupl in rw_regs_start_addr_count:
+
+        #     start_addr = tupl[0]
+        #     count = tupl[1]
+        #     self.write_reg(
+        #         int.to_bytes(start_addr, 1, "big"),
+        #         data.reg_data[start_addr:start_addr+count],
+        #     )
+        #     time.sleep(self.TIME_TO_SLEEP)
+
+    def spi_read_data_former(self, data_settings):
+        to_spi_package = []
+
+        for setting in data_settings:
+            start_addr = setting[0]
+            count = setting[1]
+
+            read_package = []
+
+            for reg_idx in range(start_addr, start_addr+count):
+                read_package.append(reg_idx)
+            read_package.append(0b0000_0000)
+
+            to_spi_package.append(read_package)           
+
+        print(f"to SPI data: {to_spi_package}")
+        return to_spi_package
+
+    def spi_write_data_former(self, data_settings, data: RegData):
+        to_spi_package = []
+
+        for setting in data_settings:
+            start_addr = setting[0]
+            count = setting[1]
+
+            write_package = []
+
+            for reg_idx in range(start_addr, start_addr+count):
+                write_package.append(0b1000_0000+reg_idx)
+                match type(data.reg_data[reg_idx]):
+                    case builtins.int:
+                        write_package.append(data.reg_data[reg_idx])
+                    case builtins.bytes:
+                        write_package.append(int.from_bytes(data.reg_data[reg_idx], 'big'))
+
+            to_spi_package.append(write_package)           
+
+        print(f"to SPI data: {to_spi_package}")
+        return to_spi_package
+
 
     def send_start_command(self):
         self.is_connection_open()
@@ -147,7 +212,7 @@ class UART(object):
         for byte in package:
             self.ser.write(byte)
 
-    def read_reg(self, start_addr: bytes, count: bytes) -> list[bytes]:
+    def read_reg(self, package:list[int]) -> list[bytes]:
         self.is_connection_open()
         corrupt_count = 0
         while True:
