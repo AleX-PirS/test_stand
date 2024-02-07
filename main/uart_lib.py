@@ -6,7 +6,7 @@ from pkg import RegData, rw_regs_start_addr_count, r_regs_start_addr_count, rw_r
 
 
 class UART(object):
-    TIME_TO_SLEEP = 0.4
+    TIME_TO_SLEEP = 0.6
 
     def __init__(self) -> None:
         self.ser = serial.Serial()
@@ -89,30 +89,41 @@ class UART(object):
             case True:
                 self.ser.write(self.CS_UP_WORD)
 
-    def read_i_regs(self, settings: tuple) -> RegData:
+    def read_i_regs(self, settings: tuple, is_auto) -> RegData:
         reg_data = RegData(is_zero_init=True)
 
         packages = self.spi_read_data_former(settings)
 
         for pk in packages:
-            data = self.read_reg(pk)
+            data = self.read_reg(pk, is_auto)
 
             for byte_idx in range(len(data)):
-                reg_data.reg_data[byte_idx+tupl[0]] = data[byte_idx]
+                reg_data.reg_data[byte_idx+pk[0]] = data[byte_idx]
             time.sleep(self.TIME_TO_SLEEP)
             
         return reg_data
 
-    def read_all_regs(self) -> RegData:
+    def read_all_regs(self, is_auto) -> RegData:
         # return self.read_i_regs((r_regs_start_addr_count + rw_regs_start_addr_count))
-        return self.read_i_regs((r_regs_start_addr_count + rw_regs_start_addr_count_analog + rw_regs_start_addr_count_analog_digit + rw_regs_start_addr_count_digit))
+        return self.read_i_regs((r_regs_start_addr_count + rw_regs_start_addr_count_analog + rw_regs_start_addr_count_analog_digit + rw_regs_start_addr_count_digit), is_auto)
 
-    def read_r_regs(self) -> RegData:
-        return self.read_i_regs(r_regs_start_addr_count)
+    def read_r_regs(self, is_auto) -> RegData:
+        return self.read_i_regs(r_regs_start_addr_count, is_auto)
 
-    def read_rw_regs(self) -> RegData:
+    def read_rw_regs(self, is_auto) -> RegData:
         # return self.read_i_regs(rw_regs_start_addr_count)
-        return self.read_i_regs(rw_regs_start_addr_count_analog + rw_regs_start_addr_count_analog_digit + rw_regs_start_addr_count_digit)
+        return self.read_i_regs((rw_regs_start_addr_count_analog + rw_regs_start_addr_count_analog_digit + rw_regs_start_addr_count_digit), is_auto)
+
+    def write_one_reg(self, data, addr, is_auto):
+        payload = [0b1000_0000+addr, data]
+        print(f"to SPI data: {payload}")
+        match is_auto:
+            case True:
+                self.send_sc_raw_data(payload, self.AUTO_CS_WORD)
+            case False:
+                self.send_sc_raw_data(payload, self.NOT_AUTO_CS_WORD)
+
+        time.sleep(self.TIME_TO_SLEEP)
 
     def write_w_regs(self, data: RegData, is_auto, settings):
         regs = []
@@ -212,44 +223,86 @@ class UART(object):
         for byte in package:
             self.ser.write(byte)
 
-    def read_reg(self, package:list[int]) -> list[bytes]:
+    def read_reg(self, package:list[int], is_auto) -> list[bytes]:
         self.is_connection_open()
         corrupt_count = 0
+        read_data = []
+
         while True:
-            package = [self.READ_WORD, start_addr, count]
+            if corrupt_count == 10:
+                raise Exception("Restart. Detected corrupted data!")      
+            match is_auto:
+                case True:
+                    self.send_sc_raw_data(package, self.AUTO_CS_WORD)
+                case False:
+                    self.send_sc_raw_data(package, self.NOT_AUTO_CS_WORD)
 
-            for byte in package:
-                self.ser.write(byte)
-
-            get_flag = 0
             read_data = []
             while True:
-                if corrupt_count == 100:
-                    raise Exception("Check FPGA, detected read loop")
-                if get_flag == 0:
-                    data = self.ser.read(1)
-                    if data != self.READ_WORD:
-                        if data == b'':
-                            break
-                        continue
-                    get_flag = 1
-
                 data = self.ser.read(1)
 
                 if data == b'':
                     break
 
                 read_data.append(data)
-                if len(read_data) == int.from_bytes(count, "big"):
+
+                if len(read_data) == len(package):
                     break
             
-            if int.from_bytes(count, "big") != len(read_data):
-                print(f"Packet corrupted. Try again with: start_addr:{int.from_bytes(start_addr, 'big')}, count:{int.from_bytes(count, 'big')}")
+            if len(package) != len(read_data):
+                print(f"Packet corrupted. Try again!")
                 corrupt_count+=1
-                continue
+                if corrupt_count == 1:
+                    raise Exception("Restart. Detected corrupted data!")
+                break
             break
 
-        return read_data
+        return read_data[1:]
+
+    # def read_reg(self, package:list[int], is_auto) -> list[bytes]:
+    #     self.is_connection_open()
+    #     corrupt_count = 0
+    #     while True:
+    #         # package = [self.READ_WORD, start_addr, count]
+
+    #         # for byte in package:
+    #         #     self.ser.write(byte)
+
+    #         match is_auto:
+    #             case True:
+    #                 self.send_sc_raw_data(package, self.AUTO_CS_WORD)
+    #             case False:
+    #                 self.send_sc_raw_data(package, self.NOT_AUTO_CS_WORD)
+
+    #         get_flag = 0
+    #         read_data = []
+    #         while True:
+    #             if corrupt_count == 100:
+    #                 raise Exception("Check FPGA, detected read loop")
+    #             if get_flag == 0:
+    #                 data = self.ser.read(1)
+    #                 if data != self.READ_WORD:
+    #                     if data == b'':
+    #                         break
+    #                     continue
+    #                 get_flag = 1
+
+    #             data = self.ser.read(1)
+
+    #             if data == b'':
+    #                 break
+
+    #             read_data.append(data)
+    #             if len(read_data) == int.from_bytes(count, "big"):
+    #                 break
+            
+    #         if int.from_bytes(count, "big") != len(read_data):
+    #             print(f"Packet corrupted. Try again with: start_addr:{int.from_bytes(start_addr, 'big')}, count:{int.from_bytes(count, 'big')}")
+    #             corrupt_count+=1
+    #             continue
+    #         break
+
+    #     return read_data
 
     def is_connection_open(self):
         if not self.ser.is_open:

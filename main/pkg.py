@@ -7,6 +7,7 @@ import numpy as np
 import datetime
 from pytz import timezone
 import tkinter as tk
+import builtins
 
 scenarios_path = os.path.dirname(os.path.abspath(__file__)) + r'\scenarios\\'
 
@@ -123,7 +124,8 @@ rw_regs_start_addr_count = (
 )
 
 rw_regs_start_addr_count_analog = (
-    (65, 6),
+    (65, 3),
+    (68, 3),
     (111, 2),
 )
 
@@ -132,9 +134,12 @@ rw_regs_start_addr_count_analog_digit = (
 )
 
 rw_regs_start_addr_count_digit = (
-    (80, 4),
-    (84, 5),
-    (90, 4),
+    (80, 2),
+    (82, 2),
+    (84, 3),
+    (87, 2),
+    (90, 2),
+    (92, 2),
     (122, 3),
 )
 
@@ -405,7 +410,22 @@ class RegData(object):
     
     def toJSON(self):
         reg_data_int = [int.from_bytes(i, 'big') for i in self.reg_data]
-        return json.dumps(reg_data_int, default=lambda o: o.__dict__, sort_keys=True, indent=4)      
+        return json.dumps(reg_data_int, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+    def consts_to_json_regs(self):
+        res = {}
+        for i in range(len(self.reg_data)):
+            if i not in registers_metadata_addr_to_name:
+                continue
+            if self.reg_data[i] == -1:
+                continue
+            match type(self.reg_data[i]):
+                case builtins.int:
+                    res[registers_metadata_addr_to_name[i]] = f'{self.reg_data[i]:08b}'
+                case builtins.bytes:
+                    res[registers_metadata_addr_to_name[i]] = f'{int.from_bytes(self.reg_data[i], "big"):08b}'            
+
+        return res    
 
 def differenence(sended_int, got_reg:RegData):
         diff = {}
@@ -803,6 +823,7 @@ class ResultLayer(object):
         self.test_count = test_count
         self.samples = samples
         self.constants = constants
+        self.r_constants = {}
 
 
 class Result(object):

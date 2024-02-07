@@ -108,7 +108,7 @@ class StatusWidget(QObject):
             self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
             
             sended = test.constants
-            get = self.uart.read_rw_regs()
+            get = self.uart.read_rw_regs(True)
 
             if sended != get:
                 diff = differenence(sended, get)
@@ -118,7 +118,7 @@ class StatusWidget(QObject):
                         break
                     print(f'in diff if: len:{len(diff)}')
                     self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
-                    get = self.uart.read_rw_regs()
+                    get = self.uart.read_rw_regs(True)
                     diff = differenence(sended, get)
                     print(f'diff after resend: len:{len(diff)}')
                     

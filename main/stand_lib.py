@@ -4,6 +4,7 @@ from visa_lib import Visa
 from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel
 from pkg import find_scenarios, differenence
 from dotenv import load_dotenv
+import builtins
 
 import sys
 import time
@@ -169,8 +170,6 @@ class Stand(QObject):
         try:
             row = self.ui.get_raw_data()
             sendData = [int(a, base=16) for a in row.split(" ")]
-
-            self.uart.ser.reset_input_buffer()
             
             match self.Is_auto_CS:
                 case False:
@@ -270,9 +269,9 @@ class Stand(QObject):
             idx, addr, val = self.ui.get_regs_comm_data()
             match idx:
                 case 0:
-                    self.uart.write_reg(int.to_bytes(addr, 1, 'big'), [int.to_bytes(val, 1, 'big')])
+                    self.uart.write_one_reg(val, addr, self.ui.get_auto_cs_status())
                 case 1:
-                    data = self.uart.read_reg(int.to_bytes(addr, 1, 'big'), int.to_bytes(1, 1, 'big'))
+                    data = self.uart.read_reg(self.uart.spi_read_data_former([[addr, 1]])[0], self.ui.get_auto_cs_status())
                     reg_data = RegData(is_zero_init=True)
                     reg_data.reg_data[addr] = data[0]
                     self.ui.log_registers(reg_data.to_str())
@@ -301,21 +300,21 @@ class Stand(QObject):
 
     def process_com_read_all_butt(self):
         try:
-            self.ui.log_registers(self.uart.read_all_regs().__str__())
+            self.ui.log_registers(self.uart.read_all_regs(self.ui.get_auto_cs_status()).__str__())
         except Exception as e:
             self.ui.logging("ERROR read constants: ", e.args[0])
             return
         
     def process_com_read_r_butt(self):
         try:
-            self.ui.log_registers(self.uart.read_r_regs().__str__())
+            self.ui.log_registers(self.uart.read_r_regs(self.ui.get_auto_cs_status()).__str__())
         except Exception as e:
             self.ui.logging("ERROR read constants: ", e.args[0])
             return
         
     def process_com_read_rw_butt(self):
         try:
-            self.ui.log_registers(self.uart.read_rw_regs().__str__())
+            self.ui.log_registers(self.uart.read_rw_regs(self.ui.get_auto_cs_status()).__str__())
         except Exception as e:
             self.ui.logging("ERROR read constants: ", e.args[0])
             return
@@ -528,10 +527,12 @@ class Stand(QObject):
 
     def process_scenar_start_butt(self):
         try:
-            self.check_instruments_connection()
             if self.scenario_to_start.name == '':
                 self.ui.logging("ERROR start scenario testing. No scenario to start.")
                 return
+            
+            if self.scenario_to_start.total_test_count != 0:
+                self.check_instruments_connection()
             
             chip_name, chip_desc = self.ui.get_chip_metadata()
 
@@ -572,11 +573,13 @@ class Stand(QObject):
 
     def process_start_butt(self):
         try:
-            self.check_instruments_connection()
-
             chip_name, chip_desc = self.ui.get_chip_metadata()
 
             manual_scenar = self.create_manual_scenario()
+
+            if manual_scenar.total_test_count != 0:
+                self.check_instruments_connection()
+
             # self.worker.scenario_to_start = manual_scenar
             # self.worker.is_screaning = self.ui.is_manual_screenable()
             # self.worker.out_index = self.ui.manual_comp_out_use_index()
@@ -633,7 +636,6 @@ class Stand(QObject):
     def start_test(self, scenario:Scenario, is_screening:bool, out_index:int, testing_type:int):
         start_time = str(datetime.datetime.now(tz=timezone('Europe/Moscow'))).replace(":", ".")[:-13].replace(" ", "_")
 
-        self.check_instruments_connection()
         self.ui.clear_log()
         self.ui.clean_plots_data()
         self.results_folder = ""
@@ -642,7 +644,8 @@ class Stand(QObject):
 
         chip_name, chip_desc = self.ui.get_chip_metadata()
 
-        self.visa.v2_off_all_out1()
+        if scenario.total_test_count != 0:
+            self.visa.v2_off_all_out1()
             
         match testing_type:
             case self.MANUAL_TEST:
@@ -650,7 +653,7 @@ class Stand(QObject):
             case self.SCENARIO_TEST:
                 self.ui.logging(f"Start scenario:{scenario.name} test for chip:{chip_name}")
 
-        if len(scenario.channels) != 0:
+        if scenario.total_test_count != 0:
             self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
             self.ui.set_channels_data(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
 
@@ -683,17 +686,17 @@ class Stand(QObject):
             self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
             
             sended = test.constants
-            get = self.uart.read_rw_regs()
+            get = self.uart.read_rw_regs(True)
 
             if sended != get:
                 diff = differenence(sended, get)
-
-                for i in range(4):
+                # Changed. Param was 4
+                for i in range(0):
                     if len(diff) <= 1:
                         break
                     print(f'in diff if: len:{len(diff)}')
                     self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
-                    get = self.uart.read_rw_regs()
+                    get = self.uart.read_rw_regs(True)
                     diff = differenence(sended, get)
                     print(f'diff after resend: len:{len(diff)}')
                     
@@ -720,16 +723,19 @@ class Stand(QObject):
                     
                     self.uart.send_triggers((test_sample.delay*10**9+triggers_delay)//5, l0, l1)
 
-                    self.ui.set_generator_sample(test_sample)
-                    self.visa.v2_configurate_generator_sample(test_sample)
-                    self.visa.v2_oscilloscope_run()
-                    self.visa.v2_on_out1(out_index)
+                    if scenario.total_test_count != 0:
+                        self.ui.set_generator_sample(test_sample)
+                        self.visa.v2_configurate_generator_sample(test_sample)
+                        self.visa.v2_oscilloscope_run()
+                        self.visa.v2_on_out1(out_index)
 
                     self.uart.send_start_command()
 
-                    sample_data = self.visa.v2_get_sample()
+                    points_file, plots_file = "", ""
+                    if scenario.total_test_count != 0:
+                        sample_data = self.visa.v2_get_sample()
+                        points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels, l0, l1)
 
-                    points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels, l0, l1)
 
                     chip_data, RAW_data = self.uart.get_chip_data()
 
@@ -766,7 +772,9 @@ class Stand(QObject):
                         time.sleep(5)
                         self.ui.logging(f"Screenshot saved.")
 
-                    self.visa.v2_off_all_out1()
+                    if scenario.total_test_count != 0:
+                        self.visa.v2_off_all_out1()
+
                     match testing_type:
                         case self.MANUAL_TEST:
                             self.ui.logging(f"Finish sample#{test_idx} of {scenario.total_test_count*len(triggers)}")
@@ -792,6 +800,7 @@ class Stand(QObject):
                         L1=l1*5,
                     )
 
+                    result_layer.r_constants = self.uart.read_r_regs(True).consts_to_json_regs()
                     test_idx += 1
                     result_layer.test_count += 1
                     result_layer.samples.append(test_result)
