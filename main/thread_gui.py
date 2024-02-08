@@ -1,7 +1,7 @@
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel
+from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel, GeneratorSample
 from pkg import find_scenarios, differenence
 
 import sys
@@ -21,36 +21,49 @@ PICTURES_SCREENSHOTS_FOLDER = r'screenshots'
 RAW_DATA_FOLDER = r'points'
 LOGS_FOLDER = r'logs'
 
+class UARTListener(QObject):
+    data_logging = pyqtSignal(str)
+
+    def __init__(self, uart:UART) -> None:
+        super().__init__()
+        self.uart = uart
+
+    def start_listen(self):
+        pass
+
 class StatusWidget(QObject):
+    THREAD_SLEEP_TIME = 0.001
+
     MANUAL_TEST = 0
     SCENARIO_TEST = 1
 
     logging = pyqtSignal(str)
     clear_log = pyqtSignal()
     clean_plots_data = pyqtSignal()
-    set_channels_data = pyqtSignal(list[Channel], int, int, int)
+    set_channels_data = pyqtSignal(dict, int, float, float)
     chng_rw_gui = pyqtSignal()
     set_reg_values = pyqtSignal(RegData)
     set_triggers_data = pyqtSignal(int, int)
-    set_generator_sample = pyqtSignal(TestSample)
+    set_generator_sample = pyqtSignal(GeneratorSample)
     set_w_gui = pyqtSignal()
     set_plots_data = pyqtSignal(str)
     finished = pyqtSignal(Result)
 
     scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
-    is_screaning = bool
-    out_index = int
-    triggers = list[tuple[int, int]]
-    chip_name = str
-    chip_desc = str
-    current_test_type = int
-    current_start_time = str
+    is_screaning = False
+    out_index:int
+    triggers:list[tuple[int, int]]
+    chip_name:str
+    chip_desc:str
+    current_test_type:int
+    current_start_time:str
+    is_dont_send_consts:bool
+    STOP_flag = 0
 
     def __init__(self, visa:Visa, uart:UART) -> None:
         super().__init__()
         self.visa = visa
         self.uart = uart
-        self.ui = ""
 
     def start_test(self):
         start_time = str(datetime.datetime.now(tz=timezone('Europe/Moscow'))).replace(":", ".")[:-13].replace(" ", "_")
@@ -67,7 +80,8 @@ class StatusWidget(QObject):
         self.clean_plots_data.emit()
         self.results_folder = ""
 
-        self.visa.v2_off_all_out1()
+        if scenario.total_test_count != 0:
+            self.visa.v2_off_all_out1()
             
         match testing_type:
             case self.MANUAL_TEST:
@@ -75,9 +89,12 @@ class StatusWidget(QObject):
             case self.SCENARIO_TEST:
                 self.logging.emit(f"Start scenario:{scenario.name} test for chip:{chip_name}")
 
-        if len(scenario.channels) != 0:
+        if scenario.total_test_count != 0:
             self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
-            self.set_channels_data.emit(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
+            dict_data = {}
+            for idx, val in enumerate(scenario.channels):
+                dict_data[idx] = val
+            self.set_channels_data.emit(dict_data, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
 
         self.chng_rw_gui.emit()
 
@@ -104,23 +121,24 @@ class StatusWidget(QObject):
                 break
             result_layer = ResultLayer(0, [], test.consts_to_json())
 
-            self.set_reg_values.emit(RegData(is_zero_init=False, template_list=test.constants))
-            self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
-            
-            sended = test.constants
-            get = self.uart.read_rw_regs(True)
+            if not self.is_dont_send_consts:
+                self.set_reg_values.emit(RegData(is_zero_init=False, template_list=test.constants))
+                self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
+                
+                sended = test.constants
+                get = self.uart.read_rw_regs(True)
 
-            if sended != get:
-                diff = differenence(sended, get)
-
-                for i in range(4):
-                    if len(diff) <= 1:
-                        break
-                    print(f'in diff if: len:{len(diff)}')
-                    self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
-                    get = self.uart.read_rw_regs(True)
+                if sended != get:
                     diff = differenence(sended, get)
-                    print(f'diff after resend: len:{len(diff)}')
+                    # Param was 4
+                    for i in range(0):
+                        if len(diff) <= 1:
+                            break
+                        print(f'in diff if: len:{len(diff)}')
+                        self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
+                        get = self.uart.read_rw_regs(True)
+                        diff = differenence(sended, get)
+                        print(f'diff after resend: len:{len(diff)}')
                     
                 
                 for k,v in diff.items():
@@ -131,7 +149,7 @@ class StatusWidget(QObject):
                             self.logging.emit(f"WARNING! Layer#{idx_layer+1}. Constants mismatch. reg:{k}, mismatch:{v}")
 
             for sample_index, test_sample in enumerate(test.samples):
-                for l0, l1 in triggers:
+                for l0, l1 in triggers[0]:
                     if self.STOP_flag == 1:
                         break
 
@@ -139,49 +157,53 @@ class StatusWidget(QObject):
 
                     match testing_type:
                         case self.MANUAL_TEST:
-                            self.logging.emit(f"Start sample#{test_idx} of {scenario.total_test_count*len(triggers)}")
+                            self.logging.emit(f"Start sample#{test_idx} of {scenario.total_test_count*len(triggers[0])}")
                         case self.SCENARIO_TEST:
-                            self.logging.emit(f"Layer#{idx_layer+1}. Start sample#{sample_index+1} of {test.test_count*len(triggers)}. Total tests:{scenario.total_test_count*len(triggers)}")
+                            self.logging.emit(f"Layer#{idx_layer+1}. Start sample#{sample_index+1} of {test.test_count*len(triggers[0])}. Total tests:{scenario.total_test_count*len(triggers[0])}")
                     
-                    self.uart.send_triggers((test_sample.delay*10**9)//5, l0, l1)
+                    self.uart.send_triggers((test_sample.delay*10**9+triggers[1])//5, l0, l1)
 
-                    self.set_generator_sample.emit(test_sample)
-                    self.visa.v2_configurate_generator_sample(test_sample)
-                    self.visa.v2_oscilloscope_run()
-                    self.visa.v2_on_out1(out_index)
+                    if scenario.total_test_count != 0:
+                        self.set_generator_sample.emit(test_sample)
+                        self.visa.v2_configurate_generator_sample(test_sample)
+                        self.visa.v2_oscilloscope_run()
+                        self.visa.v2_on_out1(out_index)
 
                     self.uart.send_start_command()
 
-                    sample_data = self.visa.v2_get_sample()
+                    points_file, plots_file = "", ""
+                    if scenario.total_test_count != 0:
+                        sample_data = self.visa.v2_get_sample()
+                        points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels, l0, l1)
 
-                    points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels, l0, l1)
+                    # chip_data, RAW_data = self.uart.get_chip_data()
+                    chip_data, RAW_data = {}, "" # delete this if next up will be uncommented 
 
-                    chip_data, RAW_data = self.uart.get_chip_data()
-
-                    chip_data_output = ChipData(
-                        V=chip_data['V'],
-                        R=chip_data['R'],
-                        ADR=chip_data['ADR'],
-                        N0=chip_data['N0'],
-                        A0=chip_data['A0'],
-                        N1=chip_data['N1'],
-                        A1=chip_data['A1'],
-                        N2=chip_data['N2'],
-                        A2=chip_data['A2'],
-                        N3=chip_data['N3'],
-                        A3=chip_data['A3'],
-                        N4=chip_data['N4'],
-                        A4=chip_data['A4'],
-                        O=chip_data['O'],
-                        TIME=chip_data['TIME'],
-                        RAW=RAW_data,
-                    )
+                    chip_data_output = ChipData(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16) # delete this if next down will be uncommented 
+                    # chip_data_output = ChipData(
+                    #     V=chip_data['V'],
+                    #     R=chip_data['R'],
+                    #     ADR=chip_data['ADR'],
+                    #     N0=chip_data['N0'],
+                    #     A0=chip_data['A0'],
+                    #     N1=chip_data['N1'],
+                    #     A1=chip_data['A1'],
+                    #     N2=chip_data['N2'],
+                    #     A2=chip_data['A2'],
+                    #     N3=chip_data['N3'],
+                    #     A3=chip_data['A3'],
+                    #     N4=chip_data['N4'],
+                    #     A4=chip_data['A4'],
+                    #     O=chip_data['O'],
+                    #     TIME=chip_data['TIME'],
+                    #     RAW=RAW_data,
+                    # )
 
                     match testing_type:
                         case self.MANUAL_TEST:
-                            self.logging.emit(f"Get chip data:{chip_data} (Sample#{test_idx} of {scenario.total_test_count*len(triggers)})")
+                            self.logging.emit(f"Get chip data:{chip_data} (Sample#{test_idx} of {scenario.total_test_count*len(triggers[0])})")
                         case self.SCENARIO_TEST:
-                            self.logging.emit(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{sample_index+1} of {test.test_count*len(triggers)}. Total tests:{scenario.total_test_count*len(triggers)})")
+                            self.logging.emit(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{sample_index+1} of {test.test_count*len(triggers[0])}. Total tests:{scenario.total_test_count*len(triggers[0])})")
                     
                     screen_file = ""
                     if is_screening:
@@ -191,12 +213,14 @@ class StatusWidget(QObject):
                         time.sleep(5)
                         self.logging.emit(f"Screenshot saved.")
 
-                    self.visa.v2_off_all_out1()
+                    if scenario.total_test_count != 0:
+                        self.visa.v2_off_all_out1()
+                    
                     match testing_type:
                         case self.MANUAL_TEST:
-                            self.logging.emit(f"Finish sample#{test_idx} of {scenario.total_test_count*len(triggers)}")
+                            self.logging.emit(f"Finish sample#{test_idx} of {scenario.total_test_count*len(triggers[0])}")
                         case self.SCENARIO_TEST:
-                            self.logging.emit(f"Layer#{idx_layer+1}. Finish sample#{sample_index+1} of {test.test_count*len(triggers)}. Total tests:{scenario.total_test_count*len(triggers)}")
+                            self.logging.emit(f"Layer#{idx_layer+1}. Finish sample#{sample_index+1} of {test.test_count*len(triggers[0])}. Total tests:{scenario.total_test_count*len(triggers[0])}")
                     
                     test_result = TestSample(
                         chip_data=chip_data_output,
@@ -217,9 +241,11 @@ class StatusWidget(QObject):
                         L1=l1*5,
                     )
 
+                    # result_layer.r_constants = self.uart.read_r_regs(True).consts_to_json_regs()
                     test_idx += 1
                     result_layer.test_count += 1
                     result_layer.samples.append(test_result)
+                    time.sleep(self.THREAD_SLEEP_TIME)
 
             result.layers.append(result_layer)
             result.layers_count += 1

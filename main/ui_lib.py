@@ -373,7 +373,10 @@ class Ui(QObject):
             return
 
         return code
-            
+    
+    def get_dont_send_constants_status(self):
+        return self.ui.Is_send_consts.isChecked()
+
     def process_value_power(self, value:float|int, power:str) -> int|float:
         match power:
             case "MHz":
@@ -1182,6 +1185,14 @@ class Ui(QObject):
         self.is_channels_readonly = False
 
     def change_rw_constants(self):
+        self.ui.is_analog_use.setEnabled(self.is_regs_readonly)
+        self.ui.is_analog_use.repaint()
+        self.ui.is_analog_digit_use.setEnabled(self.is_regs_readonly)
+        self.ui.is_analog_digit_use.repaint()
+        self.ui.is_digit_use.setEnabled(self.is_regs_readonly)
+        self.ui.is_digit_use.repaint()
+        self.ui.Is_send_consts.setEnabled(self.is_regs_readonly)
+        self.ui.Is_send_consts.repaint()
         self.ui.comboBox_CCAL.setEnabled(self.is_regs_readonly)
         self.ui.comboBox_CCAL.repaint()
         self.ui.comboBox_CCSA.setEnabled(self.is_regs_readonly)
@@ -1249,6 +1260,14 @@ class Ui(QObject):
         self.is_regs_readonly = not self.is_regs_readonly
 
     def set_constants_writeable(self):
+        self.ui.is_analog_use.setEnabled(True)
+        self.ui.is_analog_use.repaint()
+        self.ui.is_analog_digit_use.setEnabled(True)
+        self.ui.is_analog_digit_use.repaint()
+        self.ui.is_digit_use.setEnabled(True)
+        self.ui.is_digit_use.repaint()
+        self.ui.Is_send_consts.setEnabled(True)
+        self.ui.Is_send_consts.repaint()
         self.ui.comboBox_CCAL.setEnabled(True)
         self.ui.comboBox_CCAL.repaint()
         self.ui.comboBox_CCSA.setEnabled(True)
@@ -1392,6 +1411,26 @@ class Ui(QObject):
         pass
 
     def set_testing_writeable(self):
+        self.ui.is_EM_ADC_EN.setEnabled(True)
+        self.ui.is_EM_ADC_EN.repaint()
+        self.ui.is_EM_L0_L1.setEnabled(True)
+        self.ui.is_EM_L0_L1.repaint()
+        self.ui.toggle_CH_EM_butt.setEnabled(True)
+        self.ui.toggle_CH_EM_butt.repaint()
+        self.ui.save_trigs_comm.setEnabled(True)
+        self.ui.save_trigs_comm.repaint()
+        self.ui.send_start_em_comm.setEnabled(True)
+        self.ui.send_start_em_comm.repaint()
+        self.ui.send_start_comm.setEnabled(True)
+        self.ui.send_start_comm.repaint()
+        self.ui.command_send_butt_2.setEnabled(True)
+        self.ui.command_send_butt_2.repaint()
+        self.ui.is_auto_CS.setEnabled(True)
+        self.ui.is_auto_CS.repaint()
+        self.ui.toggle_CS_butt.setEnabled(True)
+        self.ui.toggle_CS_butt.repaint()
+        self.ui.command_send_raw_butt.setEnabled(True)
+        self.ui.command_send_raw_butt.repaint()
         self.ui.isScreenshotable.setEnabled(True)
         self.ui.isScreenshotable.repaint()
         self.ui.isScreenshotable_scenario.setEnabled(True)
@@ -1436,6 +1475,26 @@ class Ui(QObject):
         pass
 
     def change_rw_testing(self):
+        self.ui.is_EM_ADC_EN.setEnabled(self.is_testing_readonly)
+        self.ui.is_EM_ADC_EN.repaint()
+        self.ui.is_EM_L0_L1.setEnabled(self.is_testing_readonly)
+        self.ui.is_EM_L0_L1.repaint()
+        self.ui.toggle_CH_EM_butt.setEnabled(self.is_testing_readonly)
+        self.ui.toggle_CH_EM_butt.repaint()
+        self.ui.save_trigs_comm.setEnabled(self.is_testing_readonly)
+        self.ui.save_trigs_comm.repaint()
+        self.ui.send_start_em_comm.setEnabled(self.is_testing_readonly)
+        self.ui.send_start_em_comm.repaint()
+        self.ui.send_start_comm.setEnabled(self.is_testing_readonly)
+        self.ui.send_start_comm.repaint()
+        self.ui.command_send_butt_2.setEnabled(self.is_testing_readonly)
+        self.ui.command_send_butt_2.repaint()
+        self.ui.is_auto_CS.setEnabled(self.is_testing_readonly)
+        self.ui.is_auto_CS.repaint()
+        self.ui.toggle_CS_butt.setEnabled(self.is_testing_readonly)
+        self.ui.toggle_CS_butt.repaint()
+        self.ui.command_send_raw_butt.setEnabled(self.is_testing_readonly)
+        self.ui.command_send_raw_butt.repaint()
         self.ui.isScreenshotable.setEnabled(self.is_testing_readonly)
         self.ui.isScreenshotable.repaint()
         self.ui.isScreenshotable_scenario.setEnabled(self.is_testing_readonly)
@@ -1508,6 +1567,10 @@ class Ui(QObject):
         pass
 
     def change_rw_triggs(self):
+        self.ui.delay_trig.setEnabled(self.is_triggs_readonly)
+        self.ui.delay_trig.repaint()
+        self.ui.comboBox_delay_trig.setEnabled(self.is_triggs_readonly)
+        self.ui.comboBox_delay_trig.repaint()
         self.ui.L0.setEnabled(self.is_triggs_readonly)
         self.ui.L0.repaint()
         self.ui.spinBox_L0_times.setEnabled(self.is_triggs_readonly)
@@ -1536,6 +1599,10 @@ class Ui(QObject):
         pass
 
     def set_triggs_writeable(self):
+        self.ui.delay_trig.setEnabled(True)
+        self.ui.delay_trig.repaint()
+        self.ui.comboBox_delay_trig.setEnabled(True)
+        self.ui.comboBox_delay_trig.repaint()
         self.ui.L0.setEnabled(True)
         self.ui.L0.repaint()
         self.ui.spinBox_L0_times.setEnabled(True)

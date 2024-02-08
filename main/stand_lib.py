@@ -4,8 +4,9 @@ from visa_lib import Visa
 from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel
 from pkg import find_scenarios, differenence
 from dotenv import load_dotenv
-import builtins
+from thread_gui import StatusWidget
 
+import builtins
 import sys
 import time
 import os
@@ -101,31 +102,23 @@ class Stand(QObject):
         self.ui.ui.save_trigs_comm.clicked.connect(self.process_save_trigs_comm)
         self.ui.ui.send_start_em_comm.clicked.connect(self.send_start_em_comm)
 
-        # self.ui.ui.butt_send_raw_data.clicked.connect(self.process_raw_fpga)
+        # Threading with testing
+        self.worker = StatusWidget(uart=self.uart, visa=self.visa)
 
-        # # Threading with testing
-        # self.thread = QThread()
-        # self.worker = StatusWidget(uart=self.uart, visa=self.visa)
-        # self.worker.moveToThread(self.thread)
+        self.worker.logging.connect(self.logging_sig)
+        self.worker.clear_log.connect(self.clear_log_sig)
+        self.worker.clean_plots_data.connect(self.clean_plots_data_sig)
+        self.worker.set_channels_data.connect(self.set_channels_data_sig)
+        self.worker.chng_rw_gui.connect(self.chng_rw_gui_sig)
+        self.worker.set_reg_values.connect(self.set_reg_values_sig)
+        self.worker.set_triggers_data.connect(self.set_triggers_data_sig)
+        self.worker.set_generator_sample.connect(self.set_generator_sample_sig)
+        self.worker.set_w_gui.connect(self.set_w_gui_sig)
+        self.worker.set_plots_data.connect(self.set_plots_data_sig)
+        self.worker.finished.connect(self.finished_sig)
 
-        # self.worker.logging.connect(self.logging_sig)
-        # self.worker.clear_log.connect(self.clear_log_sig)
-        # self.worker.clean_plots_data.connect(self.clean_plots_data_sig)
-        # self.worker.set_channels_data.connect(self.set_channels_data_sig)
-        # self.worker.chng_rw_gui.connect(self.chng_rw_gui_sig)
-        # self.worker.set_reg_values.connect(self.set_reg_values_sig)
-        # self.worker.set_triggers_data.connect(self.set_triggers_data_sig)
-        # self.worker.set_generator_sample.connect(self.set_generator_sample_sig)
-        # self.worker.set_w_gui.connect(self.set_w_gui_sig)
-        # self.worker.set_plots_data.connect(self.set_plots_data_sig)
-        # self.worker.finished.connect(self.finished_sig)
 
-        # self.thread.started.connect(self.worker.start_test)
-        # self.worker.finished.connect(self.thread.quit)
-        # self.worker.finished.connect(self.worker.deleteLater)
-        # self.thread.finished.connect(self.thread.deleteLater)        
-
-        # # self.thread.start()
+        # self.main_thread.start()
 
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
@@ -189,56 +182,59 @@ class Stand(QObject):
         except Exception as e:
             self.ui.logging(f"ОШИБКА!: {e.args[0]}")
 
-    # def set_plots_data_sig(self, link:str):
-    #     self.ui.set_plots_data(link)
+    def set_plots_data_sig(self, link:str):
+        self.ui.set_plots_data(link)
 
-    # def finished_sig(self, res:Result):
-    #     logs_file = self.save_logs(
-    #         self.worker.current_start_time,
-    #         self.worker.chip_name,
-    #         self.worker.scenario_to_start.name,
-    #         self.worker.current_test_type,
-    #         self.ui.get_logs(),
-    #     )
+    def finished_sig(self, res:Result):
+        logs_file = self.save_logs(
+            self.worker.current_start_time,
+            self.worker.chip_name,
+            self.worker.scenario_to_start.name,
+            self.worker.current_test_type,
+            self.ui.get_logs(),
+        )
 
-    #     res.logs = logs_file
+        res.logs = logs_file
 
-    #     result_file = self.save_results(
-    #         res,
-    #         self.worker.current_start_time,
-    #         self.worker.chip_name,
-    #         self.worker.scenario_to_start.name,
-    #         self.worker.current_test_type,
-    #     )
+        result_file = self.save_results(
+            res,
+            self.worker.current_start_time,
+            self.worker.chip_name,
+            self.worker.scenario_to_start.name,
+            self.worker.current_test_type,
+        )
 
-    #     self.results_folder = result_file
+        self.results_folder = result_file
 
-    # def set_w_gui_sig(self):
-    #     self.set_writeable_gui()
+    def set_w_gui_sig(self):
+        self.set_writeable_gui()
 
-    # def set_generator_sample_sig(self, sample:TestSample):
-    #     self.ui.set_generator_sample(sample)
+    def set_generator_sample_sig(self, sample:TestSample):
+        self.ui.set_generator_sample(sample)
 
-    # def set_triggers_data_sig(self, l0:int, l1:int):
-    #     self.ui.set_triggers_data(l0, l1)
+    def set_triggers_data_sig(self, l0:int, l1:int):
+        self.ui.set_triggers_data(l0, l1)
 
-    # def set_reg_values_sig(self, reg:RegData):
-    #     self.ui.set_reg_values(reg)    
+    def set_reg_values_sig(self, reg:RegData):
+        self.ui.set_reg_values(reg)    
 
-    # def logging_sig(self, a:str):
-    #     self.ui.logging(a)
+    def logging_sig(self, a:str):
+        self.ui.logging(a)
 
-    # def clear_log_sig(self):
-    #     self.ui.clear_log()
+    def clear_log_sig(self):
+        self.ui.clear_log()
 
-    # def clean_plots_data_sig(self):
-    #     self.ui.clean_plots_data()
+    def clean_plots_data_sig(self):
+        self.ui.clean_plots_data()
 
-    # def set_channels_data_sig(self, ch:list[Channel], trig_src:int, trig_lvl:int, tim_scale:int):
-    #     self.ui.set_channels_data(ch, trig_src, trig_lvl, tim_scale)
+    def set_channels_data_sig(self, ch_dict:dict, trig_src:int, trig_lvl:int, tim_scale:int):
+        list_channels = []
+        for k, v in list(ch_dict.items()):
+            list_channels.append(v)
+        self.ui.set_channels_data(list_channels, trig_src, trig_lvl, tim_scale)
 
-    # def chng_rw_gui_sig(self):
-    #     self.change_rw_gui()
+    def chng_rw_gui_sig(self):
+        self.change_rw_gui()
 
     def process_send_start_comm(self):
         try:
@@ -324,7 +320,7 @@ class Stand(QObject):
             address = self.ui.get_com_port_address()
             self.uart.connect_com(address)
             self.ui.logging(f"Successfull connect to {address}")
-            # self.worker.uart = self.uart 
+            self.worker.uart = self.uart 
             return
         except Exception as e:
             self.ui.logging("ERROR connect using uart: ", e.args[0])
@@ -334,7 +330,7 @@ class Stand(QObject):
         try:
             self.visa.connect_osc(self.ui.ui.oscilloscope_addr.text())
             self.ui.logging("Successfull connect oscilloscope")
-            # self.worker.visa.oscilloscope = self.visa.oscilloscope
+            self.worker.visa.oscilloscope = self.visa.oscilloscope
         except Exception as e:
             self.ui.logging("ERROR connect oscilloscope: ", e.args[0])
             return
@@ -343,7 +339,7 @@ class Stand(QObject):
         try:
             self.visa.connect_gen(self.ui.ui.generator_addr.text())
             self.ui.logging("Successfull connect generator")
-            # self.worker.visa.generator = self.visa.generator
+            self.worker.visa.generator = self.visa.generator
         except Exception as e:
             self.ui.logging("ERROR connect generator: ", e.args[0])
             return
@@ -544,9 +540,10 @@ class Stand(QObject):
             # self.worker.chip_name = chip_name
             # self.worker.chip_desc = chip_desc
             # self.worker.current_test_type = self.SCENARIO_TEST
+            # self.worker.is_dont_send_consts = self.ui.get_dont_send_constants_status()
 
-            # self.thread().start()
-            file = self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST)
+            # self.main_thread.start()
+            file = self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST, self.ui.get_dont_send_constants_status())
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start scenario testing: ", e.args[0])
@@ -573,23 +570,32 @@ class Stand(QObject):
 
     def process_start_butt(self):
         try:
-            chip_name, chip_desc = self.ui.get_chip_metadata()
+            # Start threading
+            self.main_thread = QThread()
+            self.worker.moveToThread(self.main_thread)
+            self.main_thread.started.connect(self.worker.start_test)
+            self.worker.finished.connect(self.main_thread.quit)
+            self.worker.finished.connect(self.worker.deleteLater)
+            self.main_thread.finished.connect(self.main_thread.deleteLater)        
+            # End threading
 
+            chip_name, chip_desc = self.ui.get_chip_metadata()
             manual_scenar = self.create_manual_scenario()
 
             if manual_scenar.total_test_count != 0:
                 self.check_instruments_connection()
 
-            # self.worker.scenario_to_start = manual_scenar
-            # self.worker.is_screaning = self.ui.is_manual_screenable()
-            # self.worker.out_index = self.ui.manual_comp_out_use_index()
-            # self.worker.triggers = self.ui.get_triggers_data()
-            # self.worker.chip_name = chip_name
-            # self.worker.chip_desc = chip_desc
-            # self.worker.current_test_type = self.MANUAL_TEST
+            self.worker.scenario_to_start = manual_scenar
+            self.worker.is_screaning = self.ui.is_manual_screenable()
+            self.worker.out_index = self.ui.manual_comp_out_use_index()
+            self.worker.triggers = self.ui.get_triggers_data()
+            self.worker.chip_name = chip_name
+            self.worker.chip_desc = chip_desc
+            self.worker.current_test_type = self.MANUAL_TEST
+            self.worker.is_dont_send_consts = self.ui.get_dont_send_constants_status()
 
-            # self.thread.start()
-            file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST)
+            self.main_thread.start()
+            # file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST, self.ui.get_dont_send_constants_status())
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start manual testing: ", e.args[0])
@@ -633,7 +639,7 @@ class Stand(QObject):
         self.ui.set_testing_writeable()
         self.ui.set_triggs_writeable()
 
-    def start_test(self, scenario:Scenario, is_screening:bool, out_index:int, testing_type:int):
+    def start_test(self, scenario:Scenario, is_screening:bool, out_index:int, testing_type:int, is_dont_send_consts:bool):
         start_time = str(datetime.datetime.now(tz=timezone('Europe/Moscow'))).replace(":", ".")[:-13].replace(" ", "_")
 
         self.ui.clear_log()
@@ -682,23 +688,24 @@ class Stand(QObject):
                 break
             result_layer = ResultLayer(0, [], test.consts_to_json())
 
-            self.ui.set_reg_values(RegData(is_zero_init=False, template_list=test.constants))
-            self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
-            
-            sended = test.constants
-            get = self.uart.read_rw_regs(True)
+            if not is_dont_send_consts:
+                self.ui.set_reg_values(RegData(is_zero_init=False, template_list=test.constants))
+                self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
+                
+                sended = test.constants
+                get = self.uart.read_rw_regs(True)
 
-            if sended != get:
-                diff = differenence(sended, get)
-                # Changed. Param was 4
-                for i in range(0):
-                    if len(diff) <= 1:
-                        break
-                    print(f'in diff if: len:{len(diff)}')
-                    self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
-                    get = self.uart.read_rw_regs(True)
+                if sended != get:
                     diff = differenence(sended, get)
-                    print(f'diff after resend: len:{len(diff)}')
+                    # Changed. Param was 4
+                    for i in range(0):
+                        if len(diff) <= 1:
+                            break
+                        print(f'in diff if: len:{len(diff)}')
+                        self.uart.write_w_regs(RegData(is_zero_init=False, template_list=test.constants), True, (True, True, True))
+                        get = self.uart.read_rw_regs(True)
+                        diff = differenence(sended, get)
+                        print(f'diff after resend: len:{len(diff)}')
                     
                 
                 for k,v in diff.items():

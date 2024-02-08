@@ -333,7 +333,7 @@ class UART(object):
         while True:
             data = self.ser.read(1)
             if data == self.ERR_CHIP_WORD:
-                return {}
+                return {}, ""
             if state == 0 and data == b'':
                 empty_count += 1
                 if empty_count == 3:
