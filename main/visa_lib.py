@@ -230,7 +230,7 @@ class Visa(object):
         self.send_command(self.generator, f":OUTP1:COMP OFF")
         self.detect_errors(self.generator)
 
-    def v2_configurate_oscilloscope_scenario(self, channels:list[Channel], trig_src, trig_lvl, tim_scale):
+    def v2_configurate_oscilloscope_scenario(self, channels:list[Channel], trig_src, trig_lvl, tim_scale, polarity=1):
         self.v2_oscilloscope_ping()
 
         for i in range(1, 5):
@@ -242,7 +242,12 @@ class Visa(object):
         self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
         self.send_command(self.oscilloscope, f":TRIG:EDGE:SOUR CHAN{trig_src}")
         self.send_command(self.oscilloscope, f":TRIG:LEV CHAN{trig_src}, {trig_lvl}")
-        self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
+        match polarity:
+            case 1:
+                self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
+            case -1:
+                self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP NEG")
+                
         # setting type sweep
         self.send_command(self.oscilloscope, ":TRIG:SWE SING")
 

@@ -58,7 +58,12 @@ class StatusWidget(QObject):
     current_test_type:int
     current_start_time:str
     is_dont_send_consts:bool
+    get_char_status:bool
+    is_dont_read_r:bool
+    is_dont_send_interface:bool
     STOP_flag = 0
+    averaging = 1
+    polarity = 1
 
     def __init__(self, visa:Visa, uart:UART) -> None:
         super().__init__()
@@ -75,6 +80,14 @@ class StatusWidget(QObject):
         triggers = self.triggers
         chip_name = self.chip_name
         chip_desc = self.chip_desc
+        get_char_status = self.get_char_status
+        averaging = self.averaging
+        polarity = self.polarity
+        is_dont_read_r = self.is_dont_read_r
+        is_dont_send_interface = self.is_dont_send_interface
+
+        if not get_char_status:
+            averaging = 1
 
         self.clear_log.emit()
         self.clean_plots_data.emit()
@@ -90,7 +103,7 @@ class StatusWidget(QObject):
                 self.logging.emit(f"Start scenario:{scenario.name} test for chip:{chip_name}")
 
         if scenario.total_test_count != 0:
-            self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
+            self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale, polarity)
             dict_data = {}
             for idx, val in enumerate(scenario.channels):
                 dict_data[idx] = val
@@ -157,95 +170,123 @@ class StatusWidget(QObject):
 
                     match testing_type:
                         case self.MANUAL_TEST:
-                            self.logging.emit(f"Start sample#{test_idx} of {scenario.total_test_count*len(triggers[0])}")
+                            self.logging.emit(f"Start sample#{test_idx} of {scenario.total_test_count*len(triggers[0])*averaging}")
                         case self.SCENARIO_TEST:
-                            self.logging.emit(f"Layer#{idx_layer+1}. Start sample#{sample_index+1} of {test.test_count*len(triggers[0])}. Total tests:{scenario.total_test_count*len(triggers[0])}")
+                            self.logging.emit(f"Layer#{idx_layer+1}. Start sample#{sample_index+1} of {test.test_count*len(triggers[0])*averaging}. Total tests:{scenario.total_test_count*len(triggers[0])*averaging}")
                     
                     self.uart.send_triggers((test_sample.delay*10**9+triggers[1])//5, l0, l1)
+                        
+                    averaging_results = {"CSA": [], "SHA": []}
+                    for av in averaging:                        
+                        if scenario.total_test_count != 0:
+                            self.set_generator_sample.emit(test_sample)
+                            self.visa.v2_configurate_generator_sample(test_sample)
+                            self.visa.v2_oscilloscope_run()
+                            self.visa.v2_on_out1(out_index)
 
-                    if scenario.total_test_count != 0:
-                        self.set_generator_sample.emit(test_sample)
-                        self.visa.v2_configurate_generator_sample(test_sample)
-                        self.visa.v2_oscilloscope_run()
-                        self.visa.v2_on_out1(out_index)
+                        self.uart.send_start_command()
 
-                    self.uart.send_start_command()
+                        points_file, plots_file = "", ""
+                        if scenario.total_test_count != 0:
+                            sample_data = self.visa.v2_get_sample()
+                            points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels, l0, l1)
 
-                    points_file, plots_file = "", ""
-                    if scenario.total_test_count != 0:
-                        sample_data = self.visa.v2_get_sample()
-                        points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels, l0, l1)
+                        chip_data, RAW_data = {}, ""
+                        chip_data_output = ChipData(
+                                V=-1,
+                                R=-1,
+                                ADR=-1,
+                                N0=-1,
+                                A0=-1,
+                                N1=-1,
+                                A1=-1,
+                                N2=-1,
+                                A2=-1,
+                                N3=-1,
+                                A3=-1,
+                                N4=-1,
+                                A4=-1,
+                                O=-1,
+                                TIME=-1,
+                                RAW=-1,
+                            )
+                        
+                        if not is_dont_send_interface:
+                            chip_data, RAW_data = self.uart.get_chip_data()
+                            chip_data_output = ChipData(
+                                V=chip_data['V'],
+                                R=chip_data['R'],
+                                ADR=chip_data['ADR'],
+                                N0=chip_data['N0'],
+                                A0=chip_data['A0'],
+                                N1=chip_data['N1'],
+                                A1=chip_data['A1'],
+                                N2=chip_data['N2'],
+                                A2=chip_data['A2'],
+                                N3=chip_data['N3'],
+                                A3=chip_data['A3'],
+                                N4=chip_data['N4'],
+                                A4=chip_data['A4'],
+                                O=chip_data['O'],
+                                TIME=chip_data['TIME'],
+                                RAW=RAW_data,
+                            )
 
-                    # chip_data, RAW_data = self.uart.get_chip_data()
-                    chip_data, RAW_data = {}, "" # delete this if next up will be uncommented 
+                            match testing_type:
+                                case self.MANUAL_TEST:
+                                    self.logging.emit(f"Get chip data:{chip_data} (Sample#{test_idx} of {scenario.total_test_count*len(triggers[0])*averaging})")
+                                case self.SCENARIO_TEST:
+                                    self.logging.emit(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{sample_index+1} of {test.test_count*len(triggers[0])*averaging}. Total tests:{scenario.total_test_count*len(triggers[0])*averaging})")
+                        
+                        screen_file = ""
+                        if is_screening:
+                            self.logging.emit(f"Taking screenshot.")
+                            screen_data = self.visa.v2_take_screen()
+                            screen_file = self.save_screenshot(start_time, chip_name, scenario.name, screen_data, testing_type, idx_layer, test_idx)
+                            time.sleep(5)
+                            self.logging.emit(f"Screenshot saved.")
 
-                    chip_data_output = ChipData(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16) # delete this if next down will be uncommented 
-                    # chip_data_output = ChipData(
-                    #     V=chip_data['V'],
-                    #     R=chip_data['R'],
-                    #     ADR=chip_data['ADR'],
-                    #     N0=chip_data['N0'],
-                    #     A0=chip_data['A0'],
-                    #     N1=chip_data['N1'],
-                    #     A1=chip_data['A1'],
-                    #     N2=chip_data['N2'],
-                    #     A2=chip_data['A2'],
-                    #     N3=chip_data['N3'],
-                    #     A3=chip_data['A3'],
-                    #     N4=chip_data['N4'],
-                    #     A4=chip_data['A4'],
-                    #     O=chip_data['O'],
-                    #     TIME=chip_data['TIME'],
-                    #     RAW=RAW_data,
-                    # )
+                        if scenario.total_test_count != 0:
+                            self.visa.v2_off_all_out1()
+                        
+                        amplitude_data = self.visa.v2_get_sha_sca_amplitude(polarity)
+                        averaging_results['CSA'].append(amplitude_data[0])
+                        averaging_results['SHA'].append(amplitude_data[1])
 
-                    match testing_type:
-                        case self.MANUAL_TEST:
-                            self.logging.emit(f"Get chip data:{chip_data} (Sample#{test_idx} of {scenario.total_test_count*len(triggers[0])})")
-                        case self.SCENARIO_TEST:
-                            self.logging.emit(f"Get chip data:{chip_data} (Layer#{idx_layer+1}. Sample#{sample_index+1} of {test.test_count*len(triggers[0])}. Total tests:{scenario.total_test_count*len(triggers[0])})")
+                        match testing_type:
+                            case self.MANUAL_TEST:
+                                self.logging.emit(f"Finish sample#{test_idx} of {scenario.total_test_count*len(triggers[0])*averaging}")
+                            case self.SCENARIO_TEST:
+                                self.logging.emit(f"Layer#{idx_layer+1}. Finish sample#{sample_index+1} of {test.test_count*len(triggers[0])*averaging}. Total tests:{scenario.total_test_count*len(triggers[0])*averaging}")
+                        
+                        test_result = TestSample(
+                            chip_data=chip_data_output,
+                            amplitude=test_sample.ampl,
+                            delay=test_sample.delay,
+                            frequency=test_sample.freq,
+                            is_triggered=test_sample.is_triggered,
+                            lead=test_sample.lead,
+                            offset=test_sample.offset,
+                            signal_type=test_sample.signal_type,
+                            trail=test_sample.trail,
+                            trigger_lvl=test_sample.trig_lvl,
+                            width=test_sample.width,
+                            screenshot=screen_file,
+                            points_data=points_file,
+                            plots=plots_file,
+                            L0=l0*5,
+                            L1=l1*5,
+                        )
+                        if not is_dont_read_r:
+                            result_layer.r_constants = self.uart.read_r_regs(True).consts_to_json_regs()
+                        test_idx += 1
+                        result_layer.test_count += 1
+                        result_layer.samples.append(test_result)
+                        time.sleep(self.THREAD_SLEEP_TIME)
                     
-                    screen_file = ""
-                    if is_screening:
-                        self.logging.emit(f"Taking screenshot.")
-                        screen_data = self.visa.v2_take_screen()
-                        screen_file = self.save_screenshot(start_time, chip_name, scenario.name, screen_data, testing_type, idx_layer, test_idx)
-                        time.sleep(5)
-                        self.logging.emit(f"Screenshot saved.")
-
-                    if scenario.total_test_count != 0:
-                        self.visa.v2_off_all_out1()
-                    
-                    match testing_type:
-                        case self.MANUAL_TEST:
-                            self.logging.emit(f"Finish sample#{test_idx} of {scenario.total_test_count*len(triggers[0])}")
-                        case self.SCENARIO_TEST:
-                            self.logging.emit(f"Layer#{idx_layer+1}. Finish sample#{sample_index+1} of {test.test_count*len(triggers[0])}. Total tests:{scenario.total_test_count*len(triggers[0])}")
-                    
-                    test_result = TestSample(
-                        chip_data=chip_data_output,
-                        amplitude=test_sample.ampl,
-                        delay=test_sample.delay,
-                        frequency=test_sample.freq,
-                        is_triggered=test_sample.is_triggered,
-                        lead=test_sample.lead,
-                        offset=test_sample.offset,
-                        signal_type=test_sample.signal_type,
-                        trail=test_sample.trail,
-                        trigger_lvl=test_sample.trig_lvl,
-                        width=test_sample.width,
-                        screenshot=screen_file,
-                        points_data=points_file,
-                        plots=plots_file,
-                        L0=l0*5,
-                        L1=l1*5,
-                    )
-
-                    # result_layer.r_constants = self.uart.read_r_regs(True).consts_to_json_regs()
-                    test_idx += 1
-                    result_layer.test_count += 1
-                    result_layer.samples.append(test_result)
-                    time.sleep(self.THREAD_SLEEP_TIME)
+                    if not get_char_status:
+                        self.add_point_chars(averaging_results, test_sample.ampl)
+                    # averaging
 
             result.layers.append(result_layer)
             result.layers_count += 1
@@ -318,3 +359,15 @@ class StatusWidget(QObject):
         self.set_plots_data.emit(link_file)
 
         return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
+    
+
+class UARTListener(QObject):
+    logging = pyqtSignal(str)
+
+    def __init__(self, uart:UART) -> None:
+        super().__init__()
+        self.uart = uart
+
+    
+    def listen(self):
+        pass

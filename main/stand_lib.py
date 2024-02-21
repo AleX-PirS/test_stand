@@ -37,6 +37,9 @@ class Stand(QObject):
     MANUAL_TEST = 0
     SCENARIO_TEST = 1
 
+    stop_listen_uart = pyqtSignal()
+    start_listen_uart = pyqtSignal()
+
     def __init__(self) -> None:
         super(Stand, self).__init__()
         self.main_scenario = Scenario([], "", "", [], 0, 0, 0)
@@ -116,9 +119,6 @@ class Stand(QObject):
         self.worker.set_w_gui.connect(self.set_w_gui_sig)
         self.worker.set_plots_data.connect(self.set_plots_data_sig)
         self.worker.finished.connect(self.finished_sig)
-
-
-        # self.main_thread.start()
 
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
@@ -541,6 +541,9 @@ class Stand(QObject):
             # self.worker.chip_desc = chip_desc
             # self.worker.current_test_type = self.SCENARIO_TEST
             # self.worker.is_dont_send_consts = self.ui.get_dont_send_constants_status()
+            # self.worker.get_char_status = self.ui.is_char_test()
+            # self.worker.averaging = self.ui.get_averaging_value()
+            # self.worker.polarity = self.ui.get_polarity_status()
 
             # self.main_thread.start()
             file = self.start_test(self.scenario_to_start, self.ui.is_scenario_screenable(), self.ui.scenario_comp_out_use_index(), self.SCENARIO_TEST, self.ui.get_dont_send_constants_status())
@@ -592,7 +595,10 @@ class Stand(QObject):
             self.worker.chip_name = chip_name
             self.worker.chip_desc = chip_desc
             self.worker.current_test_type = self.MANUAL_TEST
-            self.worker.is_dont_send_consts = self.ui.get_dont_send_constants_status()
+            self.worker.is_dont_send_consts, self.worker.is_dont_read_r, self.worker.is_dont_send_interface = self.ui.get_testing_settings_checks()
+            self.worker.get_char_status = self.ui.is_char_test()
+            self.worker.averaging = self.ui.get_averaging_value()
+            self.worker.polarity = self.ui.get_polarity_status()
 
             self.main_thread.start()
             # file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST, self.ui.get_dont_send_constants_status())

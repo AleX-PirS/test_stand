@@ -215,7 +215,7 @@ class UART(object):
     def send_triggers(self, delay:int, l0:int, l1:int):
         package = [
             self.SEND_TRIGGERS_WORD,
-            int.to_bytes(int(delay)+80, 1, 'big'),
+            int.to_bytes(int(delay), 1, 'big'),
             int.to_bytes(int(l0), 1, 'big'),
             int.to_bytes(int(l1), 2, 'big'),
         ]

@@ -362,6 +362,12 @@ class Ui(QObject):
 
         return
 
+    def get_averaging_value(self) -> int:
+        return self.ui.peak_measure_times.value()
+    
+    def is_char_test(self) -> bool:
+        return self.ui.is_char_test.isChecked()
+
     def get_consts_status(self):
         return self.ui.is_analog_use.isChecked(), self.ui.is_analog_digit_use.isChecked(), self.ui.is_digit_use.isChecked()
 
@@ -374,8 +380,8 @@ class Ui(QObject):
 
         return code
     
-    def get_dont_send_constants_status(self):
-        return self.ui.Is_send_consts.isChecked()
+    def get_testing_settings_checks(self):
+        return self.ui.Is_send_consts.isChecked(), self.ui.is_read_consts.isChecked(), self.ui.is_read_interface_data.isChecked()
 
     def process_value_power(self, value:float|int, power:str) -> int|float:
         match power:
@@ -411,7 +417,14 @@ class Ui(QObject):
             case _:
                 raise Exception("Bad signal type.")
             
-    def process_power_to_value(self, value:float, type:str) -> (float, int):
+    def get_polarity_status(self):
+        match self.ui.comboBox_POL.currentIndex():
+            case 0:
+                return 1 
+            case 1:
+                return -1
+
+    def process_power_to_value(self, value:float, type:str):
         match type:
             case "Hz":
                 if 0<=value and value<1_000:
@@ -698,7 +711,7 @@ class Ui(QObject):
         self.ui.spinBox_layer_count.setValue(0)
         self.ui.scenario_status_plain_text.setPlainText("")
 
-    def get_scenario_data(self) -> (str, str, int):
+    def get_scenario_data(self):
         return self.ui.scenario_name.text(), self.ui.scenario_desc_plain_text_input.toPlainText(), self.ui.spinBox_layer_count.value()
 
     def increase_layer_count(self) -> None:
@@ -1193,6 +1206,10 @@ class Ui(QObject):
         self.ui.is_digit_use.repaint()
         self.ui.Is_send_consts.setEnabled(self.is_regs_readonly)
         self.ui.Is_send_consts.repaint()
+        self.ui.is_read_consts.setEnabled(self.is_regs_readonly)
+        self.ui.is_read_consts.repaint()
+        self.ui.is_read_interface_data.setEnabled(self.is_regs_readonly)
+        self.ui.is_read_interface_data.repaint()
         self.ui.comboBox_CCAL.setEnabled(self.is_regs_readonly)
         self.ui.comboBox_CCAL.repaint()
         self.ui.comboBox_CCSA.setEnabled(self.is_regs_readonly)
@@ -1268,6 +1285,10 @@ class Ui(QObject):
         self.ui.is_digit_use.repaint()
         self.ui.Is_send_consts.setEnabled(True)
         self.ui.Is_send_consts.repaint()
+        self.ui.is_read_consts.setEnabled(True)
+        self.ui.is_read_consts.repaint()
+        self.ui.is_read_interface_data.setEnabled(True)
+        self.ui.is_read_interface_data.repaint()
         self.ui.comboBox_CCAL.setEnabled(True)
         self.ui.comboBox_CCAL.repaint()
         self.ui.comboBox_CCSA.setEnabled(True)
@@ -1644,7 +1665,7 @@ class Ui(QObject):
     def get_resource_comm_data(self):
         return self.ui.comboBox_resources.currentIndex(), self.ui.resource_command_text.text().strip()
     
-    def get_chip_metadata(self) -> (str, str):
+    def get_chip_metadata(self):
         name = self.ui.chip_name.text().strip()
         if name == "":
             raise Exception("Empty chip name.")
