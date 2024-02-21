@@ -230,6 +230,9 @@ class Visa(object):
         self.send_command(self.generator, f":OUTP1:COMP OFF")
         self.detect_errors(self.generator)
 
+    def v2_get_sha_sca_amplitude(self, polarity):
+        pass
+
     def v2_configurate_oscilloscope_scenario(self, channels:list[Channel], trig_src, trig_lvl, tim_scale, polarity=1):
         self.v2_oscilloscope_ping()
 
@@ -247,7 +250,7 @@ class Visa(object):
                 self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
             case -1:
                 self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP NEG")
-                
+
         # setting type sweep
         self.send_command(self.oscilloscope, ":TRIG:SWE SING")
 
