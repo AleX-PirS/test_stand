@@ -630,6 +630,50 @@ class OscilloscopeData(object):
 
         return fig
 
+
+class CharOscilloscopeData(object):
+    def __init__(self, trig_src:int, x_value_label:str) -> None:
+        self.x_value = []
+        self.data = {1:[], 2:[], 3:[], 4:[]}
+        self.trig_src = trig_src
+        self.x_value_label = x_value_label
+
+    def add_points(self, avr_res:dict[int, list], x_value):
+        self.x_value.append(x_value)
+        for i in range(1, 5):
+            if len(avr_res[i]) != 0:
+                self.data[i].append(np.mean(avr_res[i]))
+
+    def plot_for_gui(self, channels:list[Channel]):
+        fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
+
+        print(f"data:{self.data}")
+        print(f"x:{self.x_value}")
+
+        for ch in channels:
+            if ch.index == self.trig_src:
+                continue
+            match ch.index:
+                case 1:
+                    axs.plot(self.x_value, self.data[1], color='y')
+                case 2:
+                    axs.plot(self.x_value, self.data[2], color='g')
+                case 3:
+                    axs.plot(self.x_value, self.data[3], color='b')
+                case 4:
+                    axs.plot(self.x_value, self.data[4], color='r')
+
+        axs.set_title(f"Label")
+        axs.set_xlabel(self.x_value_label)
+        axs.set_ylabel("Voltage, V")
+        axs.grid(True, which='both')
+
+        return fig
+    
+    def save_all_plots(self, channels:list[Channel]):
+        pass
+
+
 class Layer(object):
     def __init__(self, constants:RegData, samples:list[GeneratorSample]) -> None:
         self.test_count = len(samples)

@@ -429,6 +429,9 @@ class Stand(QObject):
         index = self.ui.get_current_scenario_box_index()
         if index == -1:
             return
+        if self.list_of_scenarios[index].total_test_count > 0:
+            if len(self.list_of_scenarios[index].layers[0].samples) > 0:
+                self.ui.set_generator_sample(self.list_of_scenarios[index].layers[0].samples[0])
         self.ui.update_scenario_description(self.list_of_scenarios[index].description+f'Totat test count:{self.list_of_scenarios[index].total_test_count}')
         self.ui.set_reg_values(RegData(is_zero_init=False, template_list=self.list_of_scenarios[index].layers[0].constants))
         self.ui.set_channels_data(self.list_of_scenarios[index].channels, self.list_of_scenarios[index].trig_src, self.list_of_scenarios[index].trig_lvl, self.list_of_scenarios[index].tim_scale)
@@ -574,11 +577,12 @@ class Stand(QObject):
     def process_start_butt(self):
         try:
             # Start threading
+            # self.main_thread = ""
             self.main_thread = QThread()
             self.worker.moveToThread(self.main_thread)
             self.main_thread.started.connect(self.worker.start_test)
             self.worker.finished.connect(self.main_thread.quit)
-            self.worker.finished.connect(self.worker.deleteLater)
+            # self.worker.finished.connect(self.worker.deleteLater)
             self.main_thread.finished.connect(self.main_thread.deleteLater)        
             # End threading
 
@@ -601,6 +605,8 @@ class Stand(QObject):
             self.worker.polarity = self.ui.get_polarity_status()
 
             self.main_thread.start()
+#             QObject::moveToThread: Current thread (0x1e45f42be20) is not the object's thread (0x0).
+# Cannot move to target thread (0x1e474ef8300)
             # file = self.start_test(manual_scenar, self.ui.is_manual_screenable(), self.ui.manual_comp_out_use_index(), self.MANUAL_TEST, self.ui.get_dont_send_constants_status())
         except Exception as e:
             self.set_writeable_gui()

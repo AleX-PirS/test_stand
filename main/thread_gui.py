@@ -1,7 +1,7 @@
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel, GeneratorSample
+from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel, GeneratorSample, CharOscilloscopeData
 from pkg import find_scenarios, differenence
 
 import sys
@@ -103,7 +103,7 @@ class StatusWidget(QObject):
                 self.logging.emit(f"Start scenario:{scenario.name} test for chip:{chip_name}")
 
         if scenario.total_test_count != 0:
-            self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale, polarity)
+            self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale, polarity, averaging)
             dict_data = {}
             for idx, val in enumerate(scenario.channels):
                 dict_data[idx] = val
@@ -161,6 +161,7 @@ class StatusWidget(QObject):
                         case self.SCENARIO_TEST:
                             self.logging.emit(f"WARNING! Layer#{idx_layer+1}. Constants mismatch. reg:{k}, mismatch:{v}")
 
+            char = CharOscilloscopeData(scenario.trig_src, "Amplitude, V")
             for sample_index, test_sample in enumerate(test.samples):
                 for l0, l1 in triggers[0]:
                     if self.STOP_flag == 1:
@@ -176,8 +177,9 @@ class StatusWidget(QObject):
                     
                     self.uart.send_triggers((test_sample.delay*10**9+triggers[1])//5, l0, l1)
                         
-                    averaging_results = {"CSA": [], "SHA": []}
-                    for av in averaging:                        
+                    averaging_results = {1:[], 2:[], 3:[], 4:[]}
+                    averaging = 1
+                    for av in range(averaging):                        
                         if scenario.total_test_count != 0:
                             self.set_generator_sample.emit(test_sample)
                             self.visa.v2_configurate_generator_sample(test_sample)
@@ -189,7 +191,7 @@ class StatusWidget(QObject):
                         points_file, plots_file = "", ""
                         if scenario.total_test_count != 0:
                             sample_data = self.visa.v2_get_sample()
-                            points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels, l0, l1)
+                            points_file, plots_file = self.save_points(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, sample_data, scenario.channels, l0, l1, get_char_status)
 
                         chip_data, RAW_data = {}, ""
                         chip_data_output = ChipData(
@@ -249,9 +251,9 @@ class StatusWidget(QObject):
                         if scenario.total_test_count != 0:
                             self.visa.v2_off_all_out1()
                         
-                        amplitude_data = self.visa.v2_get_sha_sca_amplitude(polarity)
-                        averaging_results['CSA'].append(amplitude_data[0])
-                        averaging_results['SHA'].append(amplitude_data[1])
+                        for i in range(1, 5):
+                            if len(sample_data.data[i][1]) != 0:
+                                averaging_results[i].append(max(sample_data.data[i][1]))
 
                         match testing_type:
                             case self.MANUAL_TEST:
@@ -277,15 +279,18 @@ class StatusWidget(QObject):
                             L0=l0*5,
                             L1=l1*5,
                         )
+
                         if not is_dont_read_r:
                             result_layer.r_constants = self.uart.read_r_regs(True).consts_to_json_regs()
+
                         test_idx += 1
                         result_layer.test_count += 1
                         result_layer.samples.append(test_result)
                         time.sleep(self.THREAD_SLEEP_TIME)
                     
-                    if not get_char_status:
-                        self.add_point_chars(averaging_results, test_sample.ampl)
+                    if get_char_status:
+                        char.add_points(averaging_results, test_sample.ampl)
+                        self.save_char_plot(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, char, scenario.channels)
                     # averaging
 
             result.layers.append(result_layer)
@@ -321,7 +326,7 @@ class StatusWidget(QObject):
 
         return path+"\\"+file_name
     
-    def save_points(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:OscilloscopeData, channels, l0, l1):
+    def save_points(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:OscilloscopeData, channels, l0, l1, is_char=False):
         file_name_points = f"channels_data_{sample_index}.json"
         match testing_type:
             case self.MANUAL_TEST:
@@ -353,13 +358,52 @@ class StatusWidget(QObject):
         link_file = "plots.png"
         data.plot_all(channels).savefig(path_plots+"\\"+file_name_plots, format='pdf')
         plt.close('all')
-        data.plot_for_gui(channels, sample_index, l0, l1).savefig(link_file, format='png', dpi=80)
-        plt.close('all')
+        if is_char:
+            data.plot_for_gui(channels, sample_index, l0, l1).savefig(link_file, format='png', dpi=80)
+            plt.close('all')
 
         self.set_plots_data.emit(link_file)
 
         return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
     
+    def save_char_plot(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:CharOscilloscopeData, channels):
+        # file_name_points = f"channels_data_{sample_index}.json"
+        # match testing_type:
+        #     case self.MANUAL_TEST:
+        #         path_points = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, RAW_DATA_FOLDER)
+        #     case self.SCENARIO_TEST:
+        #         path_points = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", RAW_DATA_FOLDER)
+        
+        # try:
+        #     os.makedirs(path_points)
+        # except:
+        #     pass
+
+        # with open(path_points+"\\"+file_name_points, 'w') as file:
+        #     file.write(data.toJSON())
+        #     file.close()
+
+        # file_name_plots = f"plots_{sample_index}.pdf"
+        # match testing_type:
+        #     case self.MANUAL_TEST:
+        #         path_plots = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
+        #     case self.SCENARIO_TEST:
+        #         path_plots = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
+        
+        # try:
+        #     os.makedirs(path_plots)
+        # except:
+        #     pass
+
+        link_file = "plots.png"
+        # data.plot_all(channels).savefig(path_plots+"\\"+file_name_plots, format='pdf')
+        plt.close('all')
+        data.plot_for_gui(channels).savefig(link_file, format='png', dpi=80)
+        plt.close('all')
+
+        self.set_plots_data.emit(link_file)
+
+        # return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
 
 class UARTListener(QObject):
     logging = pyqtSignal(str)

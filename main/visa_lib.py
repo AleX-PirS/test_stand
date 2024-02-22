@@ -230,25 +230,30 @@ class Visa(object):
         self.send_command(self.generator, f":OUTP1:COMP OFF")
         self.detect_errors(self.generator)
 
-    def v2_get_sha_sca_amplitude(self, polarity):
-        pass
-
-    def v2_configurate_oscilloscope_scenario(self, channels:list[Channel], trig_src, trig_lvl, tim_scale, polarity=1):
+    def v2_configurate_oscilloscope_scenario(self, channels:list[Channel], trig_src, trig_lvl, tim_scale, polarity=1, avg_cnt=1):
         self.v2_oscilloscope_ping()
+
+        if avg_cnt > 1:
+            self.send_command(self.oscilloscope, f":ACQ:AVER:COUN {avg_cnt}")
+            self.send_command(self.oscilloscope, f":ACQ:AVER ON")
 
         for i in range(1, 5):
             self.send_command(self.oscilloscope, f":CHAN{i} OFF")
         for ch in channels:
             self.send_command(self.oscilloscope, f":CHAN{ch.index} ON")
+            self.send_command(self.oscilloscope, f":CHAN{ch.index}:INP AC")
+            if ch.index == 1:
+                self.send_command(self.oscilloscope, f":CHAN{ch.index}:INP DC50")
+
 
         # trigger settings
         self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
         self.send_command(self.oscilloscope, f":TRIG:EDGE:SOUR CHAN{trig_src}")
         self.send_command(self.oscilloscope, f":TRIG:LEV CHAN{trig_src}, {trig_lvl}")
         match polarity:
-            case 1:
-                self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
             case -1:
+                self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
+            case 1:
                 self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP NEG")
 
         # setting type sweep
@@ -298,8 +303,9 @@ class Visa(object):
                 break
 
             count += 1
-            if count == 5:
-                raise Exception("No waveforms data.")
+            if count == 5000:
+                print("No waveforms data.")
+                #raise Exception("No waveforms data.")
         
         data = {}
         for i in range(1, 5):
