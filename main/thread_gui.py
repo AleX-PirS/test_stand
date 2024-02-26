@@ -90,6 +90,7 @@ class StatusWidget(QObject):
         if not get_char_status:
             averaging = 1
 
+        averaging = 1
         self.clear_log.emit()
         self.clean_plots_data.emit()
         self.results_folder = ""
@@ -293,8 +294,8 @@ class StatusWidget(QObject):
                         char.add_points(averaging_results, test_sample.ampl)
                         self.save_char_plot(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, char, scenario.channels, end=False)
                     # averaging
-                if get_char_status:
-                    self.save_char_plot(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, char, scenario.channels, end=True)
+            if get_char_status:
+                self.save_char_plot(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, char, scenario.channels, end=True)
 
             result.layers.append(result_layer)
             result.layers_count += 1
@@ -399,17 +400,18 @@ class StatusWidget(QObject):
             except:
                 pass
 
-            link_file = "plots.png"
             plots_data = data.save_all_plots(channels)
             for plot in plots_data:
                 plot.savefig(path_plots+"\\"+f"{file_name_plots}{plot.axes[0].get_title()}.pdf", format='pdf')
             plt.close('all')
+        link_file = "plots.png"
         data.plot_for_gui(channels).savefig(link_file, format='png', dpi=80)
         plt.close('all')
 
         self.set_plots_data.emit(link_file)
-
-        return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
+        
+        if end:
+            return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
 
 class UARTListener(QObject):
     logging = pyqtSignal(str)
