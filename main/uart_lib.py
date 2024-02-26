@@ -28,6 +28,19 @@ class UART(object):
         self.CS_DOWN_WORD =       int.to_bytes(0b0110_0011, 1, 'big')
         self.AUTO_CS_WORD =       int.to_bytes(0b0111_1010, 1, 'big')
         self.NOT_AUTO_CS_WORD =   int.to_bytes(0b1111_1010, 1, 'big')
+        self.DAC_START_WORD =     int.to_bytes(0b1010_1010, 1, 'big')
+
+    def send_start_dac_test_command(self):
+        self.ser.write(self.DAC_START_WORD)
+        self.ser.reset_input_buffer()
+        data = []
+        while True:
+            raw_data = self.ser.read(1)
+            if raw_data == b"":
+                break
+            data.append(raw_data)
+
+        return data
 
     def send_sc_raw_data(self, data, type_mess):
         byte_data = [int.to_bytes(i, 1, 'big') for i in data]

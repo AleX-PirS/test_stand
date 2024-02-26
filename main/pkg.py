@@ -647,9 +647,6 @@ class CharOscilloscopeData(object):
     def plot_for_gui(self, channels:list[Channel]):
         fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
 
-        print(f"data:{self.data}")
-        print(f"x:{self.x_value}")
-
         for ch in channels:
             if ch.index == self.trig_src:
                 continue
@@ -670,9 +667,35 @@ class CharOscilloscopeData(object):
 
         return fig
     
-    def save_all_plots(self, channels:list[Channel]):
-        pass
+    def save_all_plots(self, channels:list[Channel])-> list[Figure]:
+        colors = {1:'y', 2:'g', 3:'b', 4:'r'}
+        
+        root = tk.Tk()
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        root.destroy()
+        
+        figs = []
+        for _, ch in enumerate(channels):
+            fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(screen_width / 150, screen_height / 150))
+            plt.subplots_adjust(wspace=0.3, hspace=0.3)
 
+            if len(self.data[ch.index]) == 0:
+                continue
+
+            axs.plot(self.x_value, self.data[ch.index], color=colors[ch.index])
+            axs.set_title(ch.name)
+            axs.set_xlabel(self.x_value_label)
+            axs.set_ylabel("Voltage, V")
+            axs.grid(True, which='both')
+
+            figs.append(fig)
+                    
+        return figs
+    
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+    
 
 class Layer(object):
     def __init__(self, constants:RegData, samples:list[GeneratorSample]) -> None:

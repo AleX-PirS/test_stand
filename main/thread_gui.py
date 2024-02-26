@@ -1,3 +1,4 @@
+import plistlib
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
@@ -290,8 +291,10 @@ class StatusWidget(QObject):
                     
                     if get_char_status:
                         char.add_points(averaging_results, test_sample.ampl)
-                        self.save_char_plot(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, char, scenario.channels)
+                        self.save_char_plot(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, char, scenario.channels, end=False)
                     # averaging
+                if get_char_status:
+                    self.save_char_plot(start_time, chip_name, scenario.name, testing_type, idx_layer, test_idx, char, scenario.channels, end=True)
 
             result.layers.append(result_layer)
             result.layers_count += 1
@@ -366,44 +369,47 @@ class StatusWidget(QObject):
 
         return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
     
-    def save_char_plot(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:CharOscilloscopeData, channels):
-        # file_name_points = f"channels_data_{sample_index}.json"
-        # match testing_type:
-        #     case self.MANUAL_TEST:
-        #         path_points = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, RAW_DATA_FOLDER)
-        #     case self.SCENARIO_TEST:
-        #         path_points = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", RAW_DATA_FOLDER)
-        
-        # try:
-        #     os.makedirs(path_points)
-        # except:
-        #     pass
+    def save_char_plot(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:CharOscilloscopeData, channels, end=False):
+        if end:
+            file_name_points = f"channels_char_data_{sample_index}.json"
+            match testing_type:
+                case self.MANUAL_TEST:
+                    path_points = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, RAW_DATA_FOLDER)
+                case self.SCENARIO_TEST:
+                    path_points = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", RAW_DATA_FOLDER)
+            
+            try:
+                os.makedirs(path_points)
+            except:
+                pass
 
-        # with open(path_points+"\\"+file_name_points, 'w') as file:
-        #     file.write(data.toJSON())
-        #     file.close()
+            with open(path_points+"\\"+file_name_points, 'w') as file:
+                file.write(data.toJSON())
+                file.close()
 
-        # file_name_plots = f"plots_{sample_index}.pdf"
-        # match testing_type:
-        #     case self.MANUAL_TEST:
-        #         path_plots = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
-        #     case self.SCENARIO_TEST:
-        #         path_plots = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
-        
-        # try:
-        #     os.makedirs(path_plots)
-        # except:
-        #     pass
+            file_name_plots = f"plots_{sample_index}_"
+            match testing_type:
+                case self.MANUAL_TEST:
+                    path_plots = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
+                case self.SCENARIO_TEST:
+                    path_plots = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, f"layer_{layer_index+1}", PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
+            
+            try:
+                os.makedirs(path_plots)
+            except:
+                pass
 
-        link_file = "plots.png"
-        # data.plot_all(channels).savefig(path_plots+"\\"+file_name_plots, format='pdf')
-        plt.close('all')
+            link_file = "plots.png"
+            plots_data = data.save_all_plots(channels)
+            for plot in plots_data:
+                plot.savefig(path_plots+"\\"+f"{file_name_plots}{plot.axes[0].get_title()}.pdf", format='pdf')
+            plt.close('all')
         data.plot_for_gui(channels).savefig(link_file, format='png', dpi=80)
         plt.close('all')
 
         self.set_plots_data.emit(link_file)
 
-        # return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
+        return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
 
 class UARTListener(QObject):
     logging = pyqtSignal(str)
