@@ -3,7 +3,7 @@ from telnetlib import NOP
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import OscilloscopeData, RegData, Scenario, DACSample, DACResult, \
+from pkg import OscilloscopeData, RegData, Scenario, ADCSample, ADCResult, \
 Layer, TestSample, ChipData, ResultLayer, Result, Channel, GeneratorSample, CharOscilloscopeData
 from pkg import find_scenarios, differenence
 
@@ -51,7 +51,7 @@ class StatusWidget(QObject):
     set_w_gui = pyqtSignal()
     set_plots_data = pyqtSignal(str)
     finished = pyqtSignal(Result)
-    finished_DAC = pyqtSignal(DACResult)
+    finished_ADC = pyqtSignal(ADCResult)
 
     scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
     is_screaning = False
@@ -108,19 +108,19 @@ class StatusWidget(QObject):
             self.visa.v2_on_out1(-1)
 
             uart_data = self.uart.send_start_dac_test_command()
-            self.logging.emit(f"DAC TEST. Get payload:{uart_data}")
+            self.logging.emit(f"ADC TEST. Get payload:{uart_data}")
 
-            sample_result = DACSample(
+            sample_result = ADCSample(
                 uart_data=uart_data,
                 sample=sample
             )
 
             samples.append(sample_result)
         
-        result = DACResult(chip_name, chip_desc, samples)
+        result = ADCResult(chip_name, chip_desc, samples)
 
         self.set_w_gui.emit()
-        self.finished_DAC.emit(result)
+        self.finished_ADC.emit(result)
 
     def start_test(self):
         start_time = str(datetime.datetime.now(tz=timezone('Europe/Moscow'))).replace(":", ".")[:-13].replace(" ", "_")
@@ -141,7 +141,6 @@ class StatusWidget(QObject):
         if not get_char_status:
             averaging = 1
 
-        averaging = 1
         self.clear_log.emit()
         self.clean_plots_data.emit()
         self.results_folder = ""
@@ -163,7 +162,7 @@ class StatusWidget(QObject):
             self.set_channels_data.emit(dict_data, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
 
         self.chng_rw_gui.emit()
-
+        averaging = 1
         
         test_idx = 1
         result = Result(

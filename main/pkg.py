@@ -632,14 +632,14 @@ class OscilloscopeData(object):
         return fig
 
 
-class DACSample(object):
+class ADCSample(object):
     def __init__(self, uart_data, sample:GeneratorSample) -> None:
         self.uart_data = uart_data
         self.sample = sample
 
 
-class DACResult(object):
-    def __init__(self, chip_name, chip_desc, samples:list[DACSample]) -> None:
+class ADCResult(object):
+    def __init__(self, chip_name, chip_desc, samples:list[ADCSample]) -> None:
         self.chip_name = chip_name
         self.chip_desc = chip_desc
         self.samples = samples

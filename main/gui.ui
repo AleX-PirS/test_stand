@@ -5027,7 +5027,7 @@
         <rect>
          <x>10</x>
          <y>44</y>
-         <width>131</width>
+         <width>91</width>
          <height>20</height>
         </rect>
        </property>
@@ -5120,6 +5120,41 @@
         <string>Get characteristics</string>
        </property>
       </widget>
+      <widget class="QPushButton" name="start_ADC_butt">
+       <property name="geometry">
+        <rect>
+         <x>130</x>
+         <y>2</y>
+         <width>110</width>
+         <height>20</height>
+        </rect>
+       </property>
+       <property name="font">
+        <font>
+         <weight>75</weight>
+         <bold>true</bold>
+        </font>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">background-color:rgb(85, 177, 84)</string>
+       </property>
+       <property name="text">
+        <string>Start ADC test</string>
+       </property>
+      </widget>
+      <zorder>line_28</zorder>
+      <zorder>label_10</zorder>
+      <zorder>line_29</zorder>
+      <zorder>line_30</zorder>
+      <zorder>isScreenshotable</zorder>
+      <zorder>line_31</zorder>
+      <zorder>comboBox_using_out</zorder>
+      <zorder>line_46</zorder>
+      <zorder>peak_measure_times</zorder>
+      <zorder>label_56</zorder>
+      <zorder>is_char_test</zorder>
+      <zorder>start_butt</zorder>
+      <zorder>start_ADC_butt</zorder>
      </widget>
      <widget class="QWidget" name="widget_38" native="true">
       <property name="geometry">

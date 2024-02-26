@@ -124,6 +124,12 @@ class Stand(QObject):
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
 
+    def start_adc_test(self):
+        try:
+            pass
+        except Exception:
+            return
+
     def send_start_em_comm(self):
         try:
             if self.emulation_state:
