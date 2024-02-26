@@ -1,8 +1,10 @@
 import plistlib
+from telnetlib import NOP
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel, GeneratorSample, CharOscilloscopeData
+from pkg import OscilloscopeData, RegData, Scenario, DACSample, DACResult, \
+Layer, TestSample, ChipData, ResultLayer, Result, Channel, GeneratorSample, CharOscilloscopeData
 from pkg import find_scenarios, differenence
 
 import sys
@@ -49,6 +51,7 @@ class StatusWidget(QObject):
     set_w_gui = pyqtSignal()
     set_plots_data = pyqtSignal(str)
     finished = pyqtSignal(Result)
+    finished_DAC = pyqtSignal(DACResult)
 
     scenario_to_start = Scenario([], "", "", [], 0, 0, 0)
     is_screaning = False
@@ -70,6 +73,54 @@ class StatusWidget(QObject):
         super().__init__()
         self.visa = visa
         self.uart = uart
+
+    def start_dac_test(self):
+        start_time = str(datetime.datetime.now(tz=timezone('Europe/Moscow'))).replace(":", ".")[:-13].replace(" ", "_")
+        self.current_start_time = start_time
+        testing_type = self.MANUAL_TEST
+        chip_name = self.chip_name
+        chip_desc = self.chip_desc
+        scenario = self.scenario_to_start
+
+        self.clear_log.emit()
+        self.clean_plots_data.emit()
+        
+        self.visa.v2_off_all_out1()
+
+        if len(scenario.layers[0].samples) == 0:
+            self.logging.emit(f"Empty generator settings list!")
+            return
+
+        self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
+        dict_data = {}
+        for idx, val in enumerate(scenario.channels):
+            dict_data[idx] = val
+        self.set_channels_data.emit(dict_data, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
+
+        self.chng_rw_gui.emit()
+
+        samples = []
+        for sample in scenario.layers[0].samples:
+
+            self.set_generator_sample.emit(sample)
+            self.visa.v2_configurate_generator_sample(sample)
+            self.visa.v2_oscilloscope_run()
+            self.visa.v2_on_out1(-1)
+
+            uart_data = self.uart.send_start_dac_test_command()
+            self.logging.emit(f"DAC TEST. Get payload:{uart_data}")
+
+            sample_result = DACSample(
+                uart_data=uart_data,
+                sample=sample
+            )
+
+            samples.append(sample_result)
+        
+        result = DACResult(chip_name, chip_desc, samples)
+
+        self.set_w_gui.emit()
+        self.finished_DAC.emit(result)
 
     def start_test(self):
         start_time = str(datetime.datetime.now(tz=timezone('Europe/Moscow'))).replace(":", ".")[:-13].replace(" ", "_")

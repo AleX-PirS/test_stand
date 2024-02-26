@@ -222,6 +222,9 @@ class Visa(object):
                 self.send_command(self.generator, f":OUTP1 ON")
             case 1:
                 self.send_command(self.generator, f":OUTP1:COMP ON")
+            case _:
+                self.send_command(self.generator, f":OUTP1 ON")
+                self.send_command(self.generator, f":OUTP1:COMP ON")
         self.detect_errors(self.generator)
     
     def v2_off_all_out1(self):

@@ -1,6 +1,7 @@
 import json
 import os
 import glob
+from random import sample
 import matplotlib.pyplot  as plt
 from matplotlib.figure import Figure
 import numpy as np
@@ -630,6 +631,18 @@ class OscilloscopeData(object):
 
         return fig
 
+
+class DACSample(object):
+    def __init__(self, uart_data, sample:GeneratorSample) -> None:
+        self.uart_data = uart_data
+        self.sample = sample
+
+
+class DACResult(object):
+    def __init__(self, chip_name, chip_desc, samples:list[DACSample]) -> None:
+        self.chip_name = chip_name
+        self.chip_desc = chip_desc
+        self.samples = samples
 
 class CharOscilloscopeData(object):
     def __init__(self, trig_src:int, x_value_label:str) -> None:

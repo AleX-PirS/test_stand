@@ -105,20 +105,21 @@ class Stand(QObject):
         self.ui.ui.save_trigs_comm.clicked.connect(self.process_save_trigs_comm)
         self.ui.ui.send_start_em_comm.clicked.connect(self.send_start_em_comm)
 
-        # Threading with testing
+        # # Threading with testing
         self.worker = StatusWidget(uart=self.uart, visa=self.visa)
+        self.main_thread = QThread()
 
-        self.worker.logging.connect(self.logging_sig)
-        self.worker.clear_log.connect(self.clear_log_sig)
-        self.worker.clean_plots_data.connect(self.clean_plots_data_sig)
-        self.worker.set_channels_data.connect(self.set_channels_data_sig)
-        self.worker.chng_rw_gui.connect(self.chng_rw_gui_sig)
-        self.worker.set_reg_values.connect(self.set_reg_values_sig)
-        self.worker.set_triggers_data.connect(self.set_triggers_data_sig)
-        self.worker.set_generator_sample.connect(self.set_generator_sample_sig)
-        self.worker.set_w_gui.connect(self.set_w_gui_sig)
-        self.worker.set_plots_data.connect(self.set_plots_data_sig)
-        self.worker.finished.connect(self.finished_sig)
+        # self.worker.logging.connect(self.logging_sig)
+        # self.worker.clear_log.connect(self.clear_log_sig)
+        # self.worker.clean_plots_data.connect(self.clean_plots_data_sig)
+        # self.worker.set_channels_data.connect(self.set_channels_data_sig)
+        # self.worker.chng_rw_gui.connect(self.chng_rw_gui_sig)
+        # self.worker.set_reg_values.connect(self.set_reg_values_sig)
+        # self.worker.set_triggers_data.connect(self.set_triggers_data_sig)
+        # self.worker.set_generator_sample.connect(self.set_generator_sample_sig)
+        # self.worker.set_w_gui.connect(self.set_w_gui_sig)
+        # self.worker.set_plots_data.connect(self.set_plots_data_sig)
+        # self.worker.finished.connect(self.finished_sig)
 
         self.ui.MainWindow.show()
         sys.exit(self.ui.app.exec_())
@@ -320,7 +321,7 @@ class Stand(QObject):
             address = self.ui.get_com_port_address()
             self.uart.connect_com(address)
             self.ui.logging(f"Successfull connect to {address}")
-            self.worker.uart = self.uart 
+            # self.worker.uart = self.uart 
             return
         except Exception as e:
             self.ui.logging("ERROR connect using uart: ", e.args[0])
@@ -330,7 +331,7 @@ class Stand(QObject):
         try:
             self.visa.connect_osc(self.ui.ui.oscilloscope_addr.text())
             self.ui.logging("Successfull connect oscilloscope")
-            self.worker.visa.oscilloscope = self.visa.oscilloscope
+            # self.worker.visa.oscilloscope = self.visa.oscilloscope
         except Exception as e:
             self.ui.logging("ERROR connect oscilloscope: ", e.args[0])
             return
@@ -339,7 +340,7 @@ class Stand(QObject):
         try:
             self.visa.connect_gen(self.ui.ui.generator_addr.text())
             self.ui.logging("Successfull connect generator")
-            self.worker.visa.generator = self.visa.generator
+            # self.worker.visa.generator = self.visa.generator
         except Exception as e:
             self.ui.logging("ERROR connect generator: ", e.args[0])
             return
@@ -576,13 +577,27 @@ class Stand(QObject):
 
     def process_start_butt(self):
         try:
+            # Threading with testing
+            self.worker = StatusWidget(uart=self.uart, visa=self.visa)
+
+            self.worker.logging.connect(self.logging_sig)
+            self.worker.clear_log.connect(self.clear_log_sig)
+            self.worker.clean_plots_data.connect(self.clean_plots_data_sig)
+            self.worker.set_channels_data.connect(self.set_channels_data_sig)
+            self.worker.chng_rw_gui.connect(self.chng_rw_gui_sig)
+            self.worker.set_reg_values.connect(self.set_reg_values_sig)
+            self.worker.set_triggers_data.connect(self.set_triggers_data_sig)
+            self.worker.set_generator_sample.connect(self.set_generator_sample_sig)
+            self.worker.set_w_gui.connect(self.set_w_gui_sig)
+            self.worker.set_plots_data.connect(self.set_plots_data_sig)
+            self.worker.finished.connect(self.finished_sig)
+
             # Start threading
-            # self.main_thread = ""
             self.main_thread = QThread()
             self.worker.moveToThread(self.main_thread)
             self.main_thread.started.connect(self.worker.start_test)
             self.worker.finished.connect(self.main_thread.quit)
-            # self.worker.finished.connect(self.worker.deleteLater)
+            self.worker.finished.connect(self.worker.deleteLater)
             self.main_thread.finished.connect(self.main_thread.deleteLater)        
             # End threading
 
@@ -611,6 +626,7 @@ class Stand(QObject):
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start manual testing: ", e.args[0])
+            raise e
             return
 
     def process_osc_config_butt(self):
