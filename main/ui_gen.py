@@ -1439,6 +1439,7 @@ class Ui_MainWindow(object):
         self.spinBox_ampl_times = QtWidgets.QSpinBox(self.widget_3)
         self.spinBox_ampl_times.setGeometry(QtCore.QRect(300, 150, 41, 21))
         self.spinBox_ampl_times.setMinimum(1)
+        self.spinBox_ampl_times.setMaximum(1000)
         self.spinBox_ampl_times.setProperty("value", 1)
         self.spinBox_ampl_times.setObjectName("spinBox_ampl_times")
         self.comboBox_lead_delta = QtWidgets.QComboBox(self.widget_3)

@@ -258,6 +258,7 @@ class Stand(QObject):
         self.results_folder = result_file
 
     def finished_ADC_sig(self, res:ADCResult):
+        return
         logs_file = self.save_logs(
             self.worker.current_start_time,
             self.worker.chip_name,

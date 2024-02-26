@@ -62,7 +62,7 @@ class Visa(object):
         self.send_command(resource, COMMAND_CLEAR)
         self.send_command(resource, COMMAND_RESET)
 
-    def detect_errors(self, resource: visa.Resource) -> str:
+    def detect_errors(self, resource: visa.Resource, is_skip=False) -> str:
         err_string = ""
         while True:
             str_err = ""
@@ -87,7 +87,10 @@ class Visa(object):
 
         if len(err_string) > 1:
             if err_string[:-1] != "":
-                raise Exception(err_string[:-1])
+                if is_skip:
+                    print(err_string[:-1])
+                else:
+                    raise Exception(err_string[:-1])
 
     def connect_resource(self, address: str, query: str) -> visa.Resource:
         res: visa.Resource
@@ -245,6 +248,33 @@ class Visa(object):
         self.send_command(self.generator, f":OUTP1 OFF")
         self.send_command(self.generator, f":OUTP1:COMP OFF")
         self.detect_errors(self.generator)
+
+    def v2_configurate_oscilloscope_scenario_ADC(self, channels:list[Channel], trig_src, trig_lvl, tim_scale):
+        self.v2_oscilloscope_ping()
+        
+        for i in range(1, 5):
+            self.send_command(self.oscilloscope, f":CHAN{i} OFF")
+        for ch in channels:
+            self.send_command(self.oscilloscope, f":CHAN{ch.index} ON")
+            self.send_command(self.oscilloscope, f":CHAN{ch.index}:INP DC")
+            self.send_command(self.oscilloscope, f":CHAN{ch.index}:INP DC50")
+
+        # trigger settings
+        self.send_command(self.oscilloscope, ":TRIG:MODE EDGE")
+        self.send_command(self.oscilloscope, f":TRIG:EDGE:SOUR CHAN{trig_src}")
+        self.send_command(self.oscilloscope, f":TRIG:LEV CHAN{trig_src}, {trig_lvl}")
+        self.send_command(self.oscilloscope, ":TRIG:EDGE:SLOP POS")
+
+        # setting type sweep
+        self.send_command(self.oscilloscope, ":TRIG:SWE TRIG")
+
+        self.send_command(self.oscilloscope, f":TIM:SCAL {tim_scale}")
+        self.send_command(self.oscilloscope, f":TIM:POS {tim_scale*2}")
+
+        for ch in channels:
+            self.send_command(self.oscilloscope, f":CHAN{ch.index}:SCAL {ch.scale}")
+
+        self.detect_errors(self.oscilloscope, is_skip=True)        
 
     def v2_configurate_oscilloscope_scenario(self, channels:list[Channel], trig_src, trig_lvl, tim_scale, polarity=1, avg_cnt=1):
         self.v2_oscilloscope_ping()

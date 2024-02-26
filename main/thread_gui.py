@@ -3,7 +3,7 @@ from telnetlib import NOP
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import OscilloscopeData, RegData, Scenario, ADCSample, ADCResult, \
+from pkg import OscilloscopeData, RegData, Scenario, ADCSample, ADCResult, ADCFigs, \
 Layer, TestSample, ChipData, ResultLayer, Result, Channel, GeneratorSample, CharOscilloscopeData
 from pkg import find_scenarios, differenence
 
@@ -94,40 +94,78 @@ class StatusWidget(QObject):
         self.clear_log.emit()
         self.clean_plots_data.emit()
         
-        # self.visa.v2_off_all_out1()
+        self.visa.v2_off_all_out1()
 
-        # if len(scenario.layers[0].samples) == 0:
-        #     self.logging.emit(f"Empty generator settings list!")
-        #     return
+        self.logging.emit(f"Start ADC test for chip:{chip_name}")
 
-        # self.logging.emit(f"Start ADC test for chip:{chip_name}")
-
+        self.visa.v2_configurate_oscilloscope_scenario_ADC(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
         # self.visa.v2_configurate_oscilloscope_scenario(scenario.channels, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
-        # dict_data = {}
-        # for idx, val in enumerate(scenario.channels):
-        #     dict_data[idx] = val
-        # self.set_channels_data.emit(dict_data, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
+        dict_data = {}
+        for idx, val in enumerate(scenario.channels):
+            dict_data[idx] = val
+        self.set_channels_data.emit(dict_data, scenario.trig_src, scenario.trig_lvl, scenario.tim_scale)
 
         self.chng_rw_gui.emit()
 
         samples = []
+        plots = ADCFigs()
+        idx = 1
+        try:
+            total_test_count = len(scenario.layers[0].samples) * len(list(scenario.layers[0].samples.values())[0])
+        except:
+            total_test_count = 0
+
         for offset, gen_samples in list(scenario.layers[0].samples.items()):
+            ampls = []
+            adc_vals = []
             for sample in gen_samples:
                 self.set_generator_sample.emit(sample)
                 self.visa.v2_configurate_ADC_sample(sample)
                 self.visa.v2_oscilloscope_run()
                 self.visa.v2_on_out1(-1)
 
-                uart_data = self.uart.send_start_adc_test_command()
-                self.logging.emit(f"ADC TEST, offset:{offset}V, amplitude:{sample.ampl}V. Get payload:{uart_data}")
+                get_flag = 0
+                while True:
+                    if get_flag == 1:
+                        break
+
+                    uart_data = self.uart.send_start_adc_test_command()
+
+                    try:
+                        adcValue = int(uart_data[0] << 2) + int(uart_data[1] & 0x03)
+                        timeout = (uart_data[1] >> 7) & 0x01
+                        if uart_data[0] == 0:
+                            print("old byte is zero")
+                            continue
+                        get_flag = 1
+                    except:
+                        print("empty uart adc data")
+                        continue                                            
+                
+                uart_data_message = f"ADC Value: {adcValue} (bin: {bin(adcValue)}), timeout: {timeout}"
+
+                self.logging.emit(f"ADC TEST (#{idx} of {total_test_count}), offset:{offset}V, amplitude:{sample.ampl}V. Get payload:{uart_data}, Message:{uart_data_message}")
+
 
                 sample_result = ADCSample(
                     uart_data=uart_data,
                     sample=sample
                 )
 
+                ampls.append(sample.ampl)
+                adc_vals.append(adcValue)
+                self.save_adc_plot(self.current_start_time, chip_name, scenario.name, testing_type, offset, ampls, adc_vals, plots, end=False)
+
                 samples.append(sample_result)
-        
+                idx += 1
+            plots.add_plot(offset,  ampls, adc_vals)
+
+        self.save_adc_plot(self.current_start_time, chip_name, scenario.name, testing_type, -1, [], [], plots, end=True)
+
+        if len(scenario.layers[0].samples) == 0:
+            uart_data = self.uart.send_start_adc_test_command()
+            self.logging.emit(f"ADC TEST, offset:{offset}V, amplitude:{sample.ampl}V. Get payload:{uart_data}, Message:{uart_data_message}")
+
         self.logging.emit(f"Finish ADC test.")
 
         result = ADCResult(chip_name, chip_desc, samples, "")
@@ -443,7 +481,7 @@ class StatusWidget(QObject):
     
     def save_char_plot(self, start_time, chip_name, scenario_name, testing_type, layer_index, sample_index, data:CharOscilloscopeData, channels, end=False):
         if end:
-            file_name_points = f"channels_char_data_{sample_index}.json"
+            file_name_points = f"channels_char_data.json"
             match testing_type:
                 case self.MANUAL_TEST:
                     path_points = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, RAW_DATA_FOLDER)
@@ -459,7 +497,7 @@ class StatusWidget(QObject):
                 file.write(data.toJSON())
                 file.close()
 
-            file_name_plots = f"plots_{sample_index}_"
+            file_name_plots = f"plots_"
             match testing_type:
                 case self.MANUAL_TEST:
                     path_plots = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
@@ -480,6 +518,58 @@ class StatusWidget(QObject):
         plt.close('all')
 
         self.set_plots_data.emit(link_file)
+        
+        if end:
+            return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots
+
+    def save_adc_plot(self, start_time, chip_name, scenario_name, testing_type, offset, ampl, adc_vals, data:ADCFigs, end=False):
+        link_file = "plots.png"
+
+        if end:
+            print("im plot all")
+            file_name_points = f"channels_adc_data.json"
+            match testing_type:
+                case self.MANUAL_TEST:
+                    path_points = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, RAW_DATA_FOLDER)
+                case self.SCENARIO_TEST:
+                    path_points = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, RAW_DATA_FOLDER)
+            
+            try:
+                os.makedirs(path_points)
+            except:
+                pass
+
+            with open(path_points+"\\"+file_name_points, 'w') as file:
+                file.write(data.toJSON())
+                file.close()
+
+            file_name_plots = f"adc_plots_"
+            match testing_type:
+                case self.MANUAL_TEST:
+                    path_plots = os.path.join(MANUAL_TESTS_PATH, chip_name, start_time, PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
+                case self.SCENARIO_TEST:
+                    path_plots = os.path.join(SCENARIO_TESTS_PATH, chip_name, f"scenario_{scenario_name}", start_time, PICTURES_FOLDER, PICTURES_PLOTS_FOLDER)
+            
+            try:
+                os.makedirs(path_plots)
+            except:
+                pass
+
+            plots_data = data.plot_all()
+            for plot in plots_data:
+                plot.savefig(path_plots+"\\"+f"{file_name_plots}{plot.axes[0].get_title()}.pdf", format='pdf')
+            plt.close('all')
+
+            data.plot_final_gui().savefig(link_file, format='png', dpi=80)
+            plt.close('all')
+
+            self.set_plots_data.emit(link_file)
+
+        else:            
+            data.plot_for_gui(offset, ampl, adc_vals).savefig(link_file, format='png', dpi=80)
+            plt.close('all')
+
+            self.set_plots_data.emit(link_file)
         
         if end:
             return path_points+"\\"+file_name_points, path_plots+"\\"+file_name_plots

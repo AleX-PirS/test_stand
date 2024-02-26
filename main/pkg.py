@@ -638,6 +638,78 @@ class ADCSample(object):
         self.sample = sample
 
 
+class ADCFigs(object):
+    def __init__(self) -> None:
+        self.data = {}
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
+
+    def add_plot(self, offset, ampl:list[float|int], adc_vals:list[int]):
+        self.data[offset] = (ampl, adc_vals)
+
+    def plot_all(self) -> list[Figure]:
+        # colors = {1:'y', 2:'g', 3:'b', 4:'r'}
+        
+        root = tk.Tk()
+        screen_width = root.winfo_screenwidth()
+        screen_height = root.winfo_screenheight()
+        root.destroy()
+        
+        figs = []
+        for offset, points in list(self.data.items()):
+            fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(screen_width / 150, screen_height / 150))
+            plt.subplots_adjust(wspace=0.3, hspace=0.3)
+
+            axs.plot(points[0], points[1])#, color=colors[ch.index])
+            axs.set_title(f"Offset_{offset}")
+            axs.set_xlabel("Amplitude, V")
+            axs.set_ylabel("ADC code")
+            axs.grid(True, which='both')
+
+            figs.append(fig)
+            # many graphs on one
+
+        fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(screen_width / 150, screen_height / 150))
+        plt.subplots_adjust(wspace=0.3, hspace=0.3)
+        for offset, points in list(self.data.items()):
+            axs.plot(points[0], points[1])#, color=colors[ch.index])
+            axs.set_title(f"All data")
+            axs.set_xlabel("Amplitude, V")
+            axs.set_ylabel("ADC code")
+            # axs.set_legend(f"Offset:{offset}")
+            axs.grid(True, which='both')
+            
+        figs.append(fig)
+
+        return figs
+    
+    def plot_for_gui(self, offset, ampl, adc_vals):
+        fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
+        
+        axs.plot(ampl, adc_vals, color='r')
+
+        axs.set_title(f"Offset:{offset}")
+        axs.set_xlabel("Amplitude, V")
+        axs.set_ylabel("ADC code")
+        axs.grid(True, which='both')
+
+        return fig
+    
+    def plot_final_gui(self):
+        fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
+
+        for offset, points in list(self.data.items()):
+            axs.plot(points[0], points[1])#, color=colors[ch.index])
+            axs.set_title(f"All data")
+            axs.set_xlabel("Amplitude, V")
+            axs.set_ylabel("ADC code")
+            # axs.set_legend(f"Offset:{offset}")
+            axs.grid(True, which='both')
+            
+        return fig
+
+
 class ADCResult(object):
     def __init__(self, chip_name, chip_desc, samples:list[ADCSample], logs:str) -> None:
         self.chip_name = chip_name
