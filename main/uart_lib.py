@@ -30,7 +30,7 @@ class UART(object):
         self.NOT_AUTO_CS_WORD =   int.to_bytes(0b1111_1010, 1, 'big')
         self.DAC_START_WORD =     int.to_bytes(0b1010_1010, 1, 'big')
 
-    def send_start_dac_test_command(self):
+    def send_start_adc_test_command(self):
         self.ser.write(self.DAC_START_WORD)
         self.ser.reset_input_buffer()
         data = []

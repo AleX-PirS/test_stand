@@ -539,6 +539,39 @@ class Ui(QObject):
             L1_sequence,
         )), self.ui.delay_trig.value()
 
+    def get_generator_data_ADC_scenario(self) -> dict[float, list[GeneratorSample]]:
+        offset_sequence = self.create_sequence_samples(
+            start=self.process_value_power(self.ui.offset.value(), self.ui.comboBox_offset.currentText()),
+            finish=self.process_value_power(self.ui.offset_2.value(), self.ui.comboBox_offset_2.currentText()),
+            count=self.ui.spinBox_offset_times.value(),
+            rule="linear",
+        )
+        ampl_sequence = self.create_sequence_samples(
+            start=self.process_value_power(self.ui.ampl.value(), self.ui.comboBox_ampl.currentText()),
+            finish=self.process_value_power(self.ui.ampl_2.value(), self.ui.comboBox_ampl_2.currentText()),
+            count=self.ui.spinBox_ampl_times.value(),
+            rule=self.ui.comboBox_ampl_delta.currentText(),
+        )
+
+        result = {}
+        for offs in offset_sequence:
+            result[offs] = []
+            for ampl in ampl_sequence:
+                result[offs].append(GeneratorSample(
+                    signal_type=process_signal_type(self.ui.signal_type_box.currentText()),
+                    is_triggered=self.ui.checkBox_is_triggered.isChecked(),
+                    trig_lvl=self.process_value_power(self.ui.trig_lvl.value(), self.ui.comboBox_trig_lvl.currentText()),
+                    offset=offs,
+                    delay=self.process_value_power(self.ui.delay.value(), self.ui.comboBox_delay.currentText()),
+                    width=self.process_value_power(self.ui.width.value(), self.ui.comboBox_width.currentText()),
+                    lead=self.process_value_power(self.ui.lead.value(), self.ui.comboBox_lead.currentText()),
+                    trail=self.process_value_power(self.ui.trail.value(), self.ui.comboBox_trail.currentText()),
+                    ampl=ampl,
+                    freq=self.process_value_power(self.ui.freq.value(), self.ui.comboBox_freq.currentText()),
+                ))
+
+        return result
+
     def get_generator_data_scenario(self)-> list[GeneratorSample]:
         sig_type = process_signal_type(self.ui.signal_type_box.currentText())
         offset = self.process_value_power(self.ui.offset.value(), self.ui.comboBox_offset.currentText())

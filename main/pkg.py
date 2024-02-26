@@ -639,10 +639,14 @@ class ADCSample(object):
 
 
 class ADCResult(object):
-    def __init__(self, chip_name, chip_desc, samples:list[ADCSample]) -> None:
+    def __init__(self, chip_name, chip_desc, samples:list[ADCSample], logs:str) -> None:
         self.chip_name = chip_name
         self.chip_desc = chip_desc
         self.samples = samples
+        self.logs = logs
+
+    def toJSON(self):
+        return json.dumps(self, default=lambda o: o.__dict__, sort_keys=True, indent=4)
 
 class CharOscilloscopeData(object):
     def __init__(self, trig_src:int, x_value_label:str) -> None:

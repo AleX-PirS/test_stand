@@ -1,7 +1,7 @@
 from ui_lib import Ui
 from uart_lib import UART
 from visa_lib import Visa
-from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel
+from pkg import OscilloscopeData, RegData, Scenario, Layer, TestSample, ChipData, ResultLayer, Result, Channel, ADCResult
 from pkg import find_scenarios, differenence
 from dotenv import load_dotenv
 from thread_gui import StatusWidget
@@ -104,6 +104,7 @@ class Stand(QObject):
         self.ui.ui.command_send_raw_butt.clicked.connect(self.process_send_raw_fpga)
         self.ui.ui.save_trigs_comm.clicked.connect(self.process_save_trigs_comm)
         self.ui.ui.send_start_em_comm.clicked.connect(self.send_start_em_comm)
+        self.ui.ui.start_ADC_butt.clicked.connect(self.start_adc_test)
 
         # # Threading with testing
         self.worker = StatusWidget(uart=self.uart, visa=self.visa)
@@ -126,8 +127,51 @@ class Stand(QObject):
 
     def start_adc_test(self):
         try:
-            pass
-        except Exception:
+            # Threading with testing
+            self.worker = StatusWidget(uart=self.uart, visa=self.visa)
+
+            self.worker.logging.connect(self.logging_sig)
+            self.worker.clear_log.connect(self.clear_log_sig)
+            self.worker.clean_plots_data.connect(self.clean_plots_data_sig)
+            self.worker.set_channels_data.connect(self.set_channels_data_sig)
+            self.worker.chng_rw_gui.connect(self.chng_rw_gui_sig)
+            self.worker.set_reg_values.connect(self.set_reg_values_sig)
+            self.worker.set_triggers_data.connect(self.set_triggers_data_sig)
+            self.worker.set_generator_sample.connect(self.set_generator_sample_sig)
+            self.worker.set_w_gui.connect(self.set_w_gui_sig)
+            self.worker.set_plots_data.connect(self.set_plots_data_sig)
+            self.worker.finished_ADC.connect(self.finished_ADC_sig)
+
+            # Start threading
+            self.main_thread = QThread()
+            self.worker.moveToThread(self.main_thread)
+            self.main_thread.started.connect(self.worker.start_adc_test)
+            self.worker.finished_ADC.connect(self.main_thread.quit)
+            self.worker.finished_ADC.connect(self.worker.deleteLater)
+            self.worker.exception_sig.connect(self.main_thread.quit)
+            self.worker.exception_sig.connect(self.worker.deleteLater)
+            self.main_thread.finished.connect(self.main_thread.deleteLater)        
+            # End threading
+
+            chip_name, chip_desc = self.ui.get_chip_metadata()
+            manual_scenar = self.create_manual_scenario("ADC")
+
+            self.worker.scenario_to_start = manual_scenar
+            self.worker.is_screaning = self.ui.is_manual_screenable()
+            self.worker.out_index = self.ui.manual_comp_out_use_index()
+            self.worker.triggers = self.ui.get_triggers_data()
+            self.worker.chip_name = chip_name
+            self.worker.chip_desc = chip_desc
+            self.worker.current_test_type = self.MANUAL_TEST
+            self.worker.is_dont_send_consts, self.worker.is_dont_read_r, self.worker.is_dont_send_interface = self.ui.get_testing_settings_checks()
+            self.worker.get_char_status = self.ui.is_char_test()
+            self.worker.averaging = self.ui.get_averaging_value()
+            self.worker.polarity = self.ui.get_polarity_status()
+
+            self.main_thread.start()
+        except Exception as e:
+            self.set_writeable_gui()
+            self.ui.logging("ERROR start ADC test: ", e.args[0])
             return
 
     def send_start_em_comm(self):
@@ -193,6 +237,27 @@ class Stand(QObject):
         self.ui.set_plots_data(link)
 
     def finished_sig(self, res:Result):
+        logs_file = self.save_logs(
+            self.worker.current_start_time,
+            self.worker.chip_name,
+            self.worker.scenario_to_start.name,
+            self.worker.current_test_type,
+            self.ui.get_logs(),
+        )
+
+        res.logs = logs_file
+
+        result_file = self.save_results(
+            res,
+            self.worker.current_start_time,
+            self.worker.chip_name,
+            self.worker.scenario_to_start.name,
+            self.worker.current_test_type,
+        )
+
+        self.results_folder = result_file
+
+    def finished_ADC_sig(self, res:ADCResult):
         logs_file = self.save_logs(
             self.worker.current_start_time,
             self.worker.chip_name,
@@ -562,9 +627,18 @@ class Stand(QObject):
             self.ui.logging("ERROR start scenario testing: ", e.args[0])
             return
 
-    def create_manual_scenario(self):
+    def create_manual_scenario(self, *args):
         manual_scenar = Scenario([], "", "", [], 0, 0, 0)
-        generator_samples = self.ui.get_generator_data_scenario()
+        
+        for p in args:
+            match p:
+                case "ADC":
+                    generator_samples = self.ui.get_generator_data_ADC_scenario()
+                    break
+
+        if len(args) == 0:    
+            generator_samples = self.ui.get_generator_data_scenario()
+
         manual_scenar.add_layer(
             Layer(
                 self.ui.get_w_registers_data(),
@@ -604,6 +678,8 @@ class Stand(QObject):
             self.main_thread.started.connect(self.worker.start_test)
             self.worker.finished.connect(self.main_thread.quit)
             self.worker.finished.connect(self.worker.deleteLater)
+            self.worker.exception_sig.connect(self.main_thread.quit)
+            self.worker.exception_sig.connect(self.worker.deleteLater)
             self.main_thread.finished.connect(self.main_thread.deleteLater)        
             # End threading
 
@@ -632,7 +708,6 @@ class Stand(QObject):
         except Exception as e:
             self.set_writeable_gui()
             self.ui.logging("ERROR start manual testing: ", e.args[0])
-            raise e
             return
 
     def process_osc_config_butt(self):
@@ -869,7 +944,7 @@ class Stand(QObject):
         self.set_writeable_gui()
         return result_file
 
-    def save_results(self, data:Result, start_time, chip_name, scenario_name, testing_type):
+    def save_results(self, data:Result|ADCResult, start_time, chip_name, scenario_name, testing_type):
         file_name = f"result.json"
         match testing_type:
             case self.MANUAL_TEST:

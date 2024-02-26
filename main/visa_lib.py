@@ -166,6 +166,19 @@ class Visa(object):
 
         return result
     
+    def v2_configurate_ADC_sample(self, config:GeneratorSample):
+        self.v2_generator_ping()
+        self.send_command(self.generator, f":FUNC USER")
+        self.send_command(self.generator, f":FUNC:USER CONST")
+        self.send_command(self.generator, f":FREQ {config.freq}")
+        
+        self.send_command(self.generator, f":ARM:SOUR IMM")
+
+        self.send_command(self.generator, f":VOLT:OFFS {config.offset}")
+        self.send_command(self.generator, f":VOLT {config.ampl}")
+
+        self.detect_errors(self.generator)
+
     def v2_configurate_generator_sample(self, config:GeneratorSample):
         self.v2_generator_ping()
         # :OUTPut[1|2]:IMPedance:EXTernal
