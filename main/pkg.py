@@ -697,6 +697,29 @@ class ADCFigs(object):
         return fig
     
     def plot_final_gui(self):
+        offsets = list(self.data.keys())
+        amplitudes = self.data[offsets[0][0]]
+        adc_vals = [val[1] for val in list(self.data.values())]
+
+        heat_fig, ax = plt.subplots(figsize=(5.5, 3.8))
+        im = ax.imshow(adc_vals)
+
+        ax.set_xticks(np.arange(len(amplitudes)), labels=amplitudes)
+        ax.set_yticks(np.arange(len(offsets)), labels=offsets)
+
+        # Rotate the tick labels and set their alignment.
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+
+        # Loop over data dimensions and create text annotations.
+        for i in range(len(offsets)):
+            for j in range(len(amplitudes)):
+                text = ax.text(j, i, adc_vals[i, j],
+                            ha="center", va="center", color="w")
+
+        ax.set_title("ADC heat map")
+        fig.tight_layout()
+        plt.show()
+
         fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
 
         for offset, points in list(self.data.items()):
