@@ -142,7 +142,7 @@ class StatusWidget(QObject):
                         print("empty uart adc data")
                         continue                                            
                 
-                uart_data_message = f"ADC Value: {adcValue} (bin: {bin(adcValue)}), timeout: {timeout}"
+                uart_data_message = f"ADC Value: {adcValue} (bin: {format(adcValue, '#012b')}), timeout: {timeout}"
 
                 self.logging.emit(f"ADC TEST (#{idx} of {total_test_count}), offset:{offset}V, amplitude:{sample.ampl}V. Get payload:{uart_data}, Message:{uart_data_message}")
 
