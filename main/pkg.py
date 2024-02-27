@@ -697,9 +697,9 @@ class ADCFigs(object):
         return fig
     
     def plot_final_gui(self, scale_factor_adc):
-        offsets = list(self.data.keys())
-        amplitudes = list(self.data[offsets[0]][0])
-        adc_vals = [val[1] for val in list(self.data.values())]
+        offsets = ['%.3f' % elem for elem in list(self.data.keys())]
+        amplitudes = ['%.3f' % elem for elem in list(self.data[offsets[0]][0])]
+        adc_vals = np.array([val[1] for val in list(self.data.values())])
 
         heat_fig, ax = plt.subplots(figsize=(5.5, 3.8))
         im = ax.imshow(adc_vals)
@@ -708,13 +708,12 @@ class ADCFigs(object):
         ax.set_yticks(np.arange(len(offsets)), labels=offsets)
 
         # # Rotate the tick labels and set their alignment.
-        # plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
+        plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
         # Loop over data dimensions and create text annotations.
         for i in range(len(offsets)):
             for j in range(len(amplitudes)):
-                text = ax.text(round(j, 3), round(i, 3), round(adc_vals[i, j], 3),
-                            ha="center", va="center", color="w")
+                ax.text(j, i, adc_vals[i, j], ha="center", va="center", color="w")
 
         ax.set_title(f"ADC heat map, Scale factor:{scale_factor_adc}")
         heat_fig.tight_layout()
