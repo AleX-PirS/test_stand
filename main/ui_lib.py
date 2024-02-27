@@ -481,6 +481,12 @@ class Ui(QObject):
             width=self.process_value_power(self.ui.width.value(), self.ui.comboBox_width.currentText()),
         )
 
+    def get_scale_factor(self):
+        return self.ui.scale_factor.value()
+
+    def get_test_count(self):
+        return self.ui.test_count.value()
+
     def create_sequence_samples(self, start, finish, count, rule) -> list[float] | list[int]:
         match count:
             case 1:

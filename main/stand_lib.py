@@ -167,6 +167,8 @@ class Stand(QObject):
             self.worker.get_char_status = self.ui.is_char_test()
             self.worker.averaging = self.ui.get_averaging_value()
             self.worker.polarity = self.ui.get_polarity_status()
+            self.worker.scale_factor_adc = self.ui.get_scale_factor()
+            self.worker.test_count = self.ui.get_test_count()
 
             self.main_thread.start()
         except Exception as e:

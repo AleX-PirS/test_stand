@@ -648,7 +648,7 @@ class ADCFigs(object):
     def add_plot(self, offset, ampl:list[float|int], adc_vals:list[int]):
         self.data[offset] = (ampl, adc_vals)
 
-    def plot_all(self) -> list[Figure]:
+    def plot_all(self, scale_factor_adc) -> list[Figure]:
         # colors = {1:'y', 2:'g', 3:'b', 4:'r'}
         
         root = tk.Tk()
@@ -661,8 +661,8 @@ class ADCFigs(object):
             fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(screen_width / 150, screen_height / 150))
             plt.subplots_adjust(wspace=0.3, hspace=0.3)
 
-            axs.plot(points[0], points[1])#, color=colors[ch.index])
-            axs.set_title(f"Offset_{offset}")
+            axs.plot(points[0], list(np.array(points[1])*scale_factor_adc))#, color=colors[ch.index])
+            axs.set_title(f"Offset_{offset}, Scale factor:{scale_factor_adc}")
             axs.set_xlabel("Amplitude, V")
             axs.set_ylabel("ADC code")
             axs.grid(True, which='both')
@@ -673,8 +673,8 @@ class ADCFigs(object):
         fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(screen_width / 150, screen_height / 150))
         plt.subplots_adjust(wspace=0.3, hspace=0.3)
         for offset, points in list(self.data.items()):
-            axs.plot(points[0], points[1])#, color=colors[ch.index])
-            axs.set_title(f"All data")
+            axs.plot(points[0], list(np.array(points[1])*scale_factor_adc))#, color=colors[ch.index])
+            axs.set_title(f"All data, Scale factor:{scale_factor_adc}")
             axs.set_xlabel("Amplitude, V")
             axs.set_ylabel("ADC code")
             # axs.set_legend(f"Offset:{offset}")
@@ -684,21 +684,21 @@ class ADCFigs(object):
 
         return figs
     
-    def plot_for_gui(self, offset, ampl, adc_vals):
+    def plot_for_gui(self, offset, ampl, adc_vals, scale_factor_adc):
         fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
         
-        axs.plot(ampl, adc_vals, color='r')
+        axs.plot(list(np.array(ampl)*scale_factor_adc), adc_vals, color='r')
 
-        axs.set_title(f"Offset:{offset}")
+        axs.set_title(f"Offset:{offset}, Scale factor:{scale_factor_adc}")
         axs.set_xlabel("Amplitude, V")
-        axs.set_ylabel("ADC code")
+        axs.set_ylabel(f"ADC code")
         axs.grid(True, which='both')
 
         return fig
     
-    def plot_final_gui(self):
+    def plot_final_gui(self, scale_factor_adc):
         offsets = list(self.data.keys())
-        amplitudes = list(self.data[offsets[0]][0])
+        amplitudes = list(np.array(self.data[offsets[0]][0])*scale_factor_adc)
         adc_vals = [val[1] for val in list(self.data.values())]
 
         heat_fig, ax = plt.subplots(figsize=(5.5, 3.8))
@@ -710,13 +710,13 @@ class ADCFigs(object):
         # # Rotate the tick labels and set their alignment.
         # plt.setp(ax.get_xticklabels(), rotation=45, ha="right", rotation_mode="anchor")
 
-        # # Loop over data dimensions and create text annotations.
-        # for i in range(len(offsets)):
-        #     for j in range(len(amplitudes)):
-        #         text = ax.text(j, i, adc_vals[i, j],
-        #                     ha="center", va="center", color="w")
+        # Loop over data dimensions and create text annotations.
+        for i in range(len(offsets)):
+            for j in range(len(amplitudes)):
+                text = ax.text(round(j, 3), round(i, 3), round(adc_vals[i, j], 3),
+                            ha="center", va="center", color="w")
 
-        ax.set_title("ADC heat map")
+        ax.set_title(f"ADC heat map, Scale factor:{scale_factor_adc}")
         heat_fig.tight_layout()
         link_file = "plots_heat.pdf"
         heat_fig.savefig(link_file, format='pdf')
@@ -724,8 +724,8 @@ class ADCFigs(object):
         fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(5.5, 3.8))
 
         for offset, points in list(self.data.items()):
-            axs.plot(points[0], points[1])#, color=colors[ch.index])
-            axs.set_title(f"All data")
+            axs.plot(points[0], list(np.array(points[1])*scale_factor_adc)) #, color=colors[ch.index])
+            axs.set_title(f"All data, Scale factor:{scale_factor_adc}")
             axs.set_xlabel("Amplitude, V")
             axs.set_ylabel("ADC code")
             # axs.set_legend(f"Offset:{offset}")
