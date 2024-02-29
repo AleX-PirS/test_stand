@@ -28,7 +28,7 @@ def get_normalized_data(ads_neg_path, ads_pos_path):
         ads_neg_path) if pos_json.endswith('.json')]
     pos_json_files = [pos_json for pos_json in os.listdir(
         ads_pos_path) if pos_json.endswith('.json')]
-    # old scale = 10
+    
     neg_points = open_files(ads_neg_path, neg_json_files, -1, 5.55555, 0.9)
     pos_points = open_files(ads_pos_path, pos_json_files, 1, 5.55555, 0.9)
 
@@ -110,11 +110,10 @@ def measure_dnl(points):
             n_dict[val] = n_dict.get(val, 0) + 1
     
     items = [n_dict[val] for val in list(n_dict.keys()) if val >= start_val and val <= end_val]
-    # print(items)
+
     mean = sum(items) / len(items)
 
-    dnl = []
-    
+    dnl = []    
     for i in range(start_val, end_val):
         try:
             dnl.append((n_dict[i]/mean) - 1)
@@ -128,12 +127,11 @@ def measure_dnl(points):
 
     fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(
         screen_width / 125, screen_height / 125))
-    # plt.subplots_adjust(wspace=0.3, hspace=0.3)
 
     max_dnl = round(max(dnl), 3)
     min_dnl = round(min(dnl), 3)
     min_dnl_abs = round(min(abs(i) for i in dnl if abs(i) > 0), 3)
-    # axs.plot(range(start_val, end_val), dnl)
+
     axs.bar(range(start_val, end_val), dnl, width=2)
     axs.plot([start_val, end_val], [max_dnl, max_dnl],
              color='r', label=f'Max val:{max_dnl}')
@@ -163,12 +161,10 @@ def measure_inl(i_s, dnl):
 
     fig, axs = plt.subplots(ncols=1, nrows=1, figsize=(
         screen_width / 125, screen_height / 125))
-    # plt.subplots_adjust(wspace=0.3, hspace=0.3)
 
     max_inl = round(max(inl), 3)
     min_inl = round(min(inl), 3)
     min_inl_abs = min(abs(i) for i in inl if abs(i) > 0)
-    # min_inl_abs = round(min(abs(i) for i in inl if abs(i) > 0), 3)
 
     axs.bar(i_s, inl, width=2)
     axs.plot([i_s[0], i_s[-1]], [max_inl, max_inl],
