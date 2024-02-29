@@ -1524,7 +1524,7 @@ class Ui_MainWindow(object):
         self.label_57.setFont(font)
         self.label_57.setObjectName("label_57")
         self.scale_factor = QtWidgets.QDoubleSpinBox(self.widget_3)
-        self.scale_factor.setGeometry(QtCore.QRect(100, 70, 61, 21))
+        self.scale_factor.setGeometry(QtCore.QRect(110, 70, 61, 21))
         self.scale_factor.setDecimals(3)
         self.scale_factor.setMinimum(-1000.0)
         self.scale_factor.setMaximum(1000.0)
